@@ -1,0 +1,13 @@
+1️⃣ Check if Nginx is running
+	sudo systemctl status nginx
+2️⃣ Start Nginx
+	sudo systemctl start nginx
+3️⃣ Stop Nginx
+	sudo systemctl stop nginx
+4️⃣ Restart Nginx
+	sudo systemctl restart nginx
+5️⃣ Reload Nginx configuration (without stopping server)
+	sudo systemctl reload nginx
+6️⃣ Quick test for Nginx
+	curl -I http://localhost
+
