@@ -1,36 +1,31 @@
 #include "My_server.hpp"
 
-
 My_server::~My_server() {
-	for (size_t i = 0; i < _pollfds.size(); i++)
-		if (_pollfds[i].fd) close(_pollfds[i].fd);
+	for (size_t i = 0; i < _fds.size(); i++)
+		if (_fds[i].fd) close(_fds[i].fd);
 }
 
-My_server::My_server() : _timeout_ms(1000),  _port(8080), _s_socket(-1) {}
-
-
-void My_server::init() {
+My_server::My_server() :_timeout_ms(1000),  _port(8080), _socket(-1) {
 
 	_s_addr.sin_family = AF_INET;
 	_s_addr.sin_port = htons(this->_port);
 	_s_addr.sin_addr.s_addr = INADDR_ANY;
 }
 
-bool My_server::create_socket() {
+void My_server::create_socket() {
 	int opt = 1;
-	_s_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (_s_socket < 0)
+	_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (_socket < 0)
 		throw std::string("socket failed");
-	if (fcntl(_s_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
+	if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
 		throw std::string("fcntl failed");
-	if (setsockopt(_s_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     	throw std::string("setsockopt failed");
-	if (bind(_s_socket, (struct sockaddr *)&_s_addr, sizeof(_s_addr)) == -1)
+	if (bind(_socket, (struct sockaddr *)&_s_addr, sizeof(_s_addr)) == -1)
 		throw std::string("bind failed");
-	if (listen(_s_socket, 128) < 0)
+	if (listen(_socket, 128) < 0)
 		throw std::string("listen failed");
-	_pollfds.push_back(create_pollfd(_s_socket));
-	return true; 
+	_fds.push_back(create_pollfd(_socket));
 }
 
 pollfd	My_server::create_pollfd(int fd)
@@ -42,9 +37,20 @@ pollfd	My_server::create_pollfd(int fd)
 	return p;
 }
 
+void	My_server::remove_item(int index)
+{
+	_fds.erase(_fds.begin() + index);
+	_client.erase(_client.begin() + index - 1);
+}
+
+void	My_server::add_item(int fd)
+{
+	_fds.push_back(create_pollfd(fd));
+	_client.push_back(client(fd));
+}
+
 void My_server::start()
 {
-	init();
 	create_socket();
 	accept_loop();
 }
@@ -53,36 +59,50 @@ void My_server::setPort(const int new_port) { this->_port = new_port; }
 
 int	My_server::request(int index)
 {
+	std::string buffer;
+	size_t		n;
 	if (index == 0)
 	{
-		std::cout << "Client connected " << std::endl;
-		int client_fd = accept(_s_socket, NULL, NULL);
+		//std::cout << "Client connected " << std::endl;
+		//int client_fd = accept(_socket, NULL, NULL);
+		int client_fd = _req.connect(_socket);
 		if (client_fd >= 0)
 		{
-			if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
-				throw std::string("fcntl failed");
-			_pollfds.push_back(create_pollfd(client_fd));
-			_client.push_back(client(client_fd));
+			// if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
+			// 	throw std::string("fcntl failed");
+			_req.nonBlock(client_fd);
+			add_item(client_fd);
 		}
 		return index + 1;
 	}
 
-	char buffer[1025];
-	int n = read(_pollfds[index].fd, buffer, 1024);
+	buffer = _req.to_read(_fds[index].fd);
+	n = buffer.length();
+	// char buffer[1025];
+	// int n = read(_fds[index].fd, buffer, 1024);
 
 	if (n <= 0)
 	{
 		if (n == -1 &&  (errno != EAGAIN && errno != EWOULDBLOCK))
 				return index + 1;
-		close(_pollfds[index].fd);
-		_pollfds.erase(_pollfds.begin() + index);
-		_client.erase(_client.begin() + index - 1);
+		close(_fds[index].fd);
+		remove_item(index);
 		return index;
 	}
+	//buffer[n] = '\0';
+	_client[index - 1].buffer.append(buffer);
+	if (!Pars::end_req(_client[index - 1].buffer))
+		return index + 1;
 
-	buffer[n] = '\0';
+	//std::cout << "[RAW] " << _client[index - 1].buffer << std::endl;
 
-	std::cout << "[RAW] " << buffer << std::endl;
+	std::vector<std::string > temp = Pars::split(_client[index - 1].buffer, "\r\n");
+
+	for (size_t i = 0; i < temp.size(); i++)
+	{
+		std::cout << temp[i] << " === " << std::endl;
+	}
+	
 	std::ifstream file("conf/index.html");
 	std::string body;
 
@@ -99,15 +119,14 @@ int	My_server::request(int index)
 		<< "Connection: keep-alive\r\n"
 		<< "Content-Length: " << body.size() <<  "\r\n"
 		<< "\r\n" << body;
-
 	_client[index - 1].outbuf = t.str();
-	_pollfds[index].events |= POLLOUT;
+	_fds[index].events |= POLLOUT;
 	return index + 1;
 }
 
 int My_server::respons(int index)
 {
-	int fd = _pollfds[index].fd;
+	int fd = _fds[index].fd;
 	client & c = _client[index - 1];
 
 	while (!c.outbuf.empty())
@@ -125,10 +144,9 @@ int My_server::respons(int index)
 	if (c.val)
 	{
 		close(fd);
-		_pollfds.erase(_pollfds.begin() + index);
-		_client.erase(_client.begin() + index - 1);
+		remove_item(index);
 	}
-	_pollfds[index].events &= ~POLLOUT;
+	_fds[index].events &= ~POLLOUT;
 	return index;
 }
 
@@ -137,18 +155,18 @@ bool    My_server::accept_loop()
 	std::cout << "\nServer start ...\n";
 	while (g_running)
 	{
-		int n = poll(_pollfds.data(), _pollfds.size(), _timeout_ms);
+		int n = poll(_fds.data(), _fds.size(), _timeout_ms);
 
 		if (n <= 0)	continue;
 
 		size_t i = 0;
-		while (i < _pollfds.size())
+		while (i < _fds.size())
 		{
-			if (_pollfds[i].revents & POLLIN)
+			if (_fds[i].revents & POLLIN)
 			{
 				i = request(i);
 			}
-			else if (_pollfds[i].revents & POLLOUT)
+			else if (_fds[i].revents & POLLOUT)
 			{
 				i = respons(i);
 			}
