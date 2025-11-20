@@ -5,10 +5,11 @@ My_server::~My_server() {
 		if (_fds[i].fd) close(_fds[i].fd);
 }
 
-My_server::My_server() :_timeout_ms(1000),  _port(8080), _socket(-1) {
-
+My_server::My_server(const std::string & conf_path)
+	:_conf(conf_path), _timeout_ms(1000), _port(8080), _socket(-1)
+{
 	_s_addr.sin_family = AF_INET;
-	_s_addr.sin_port = htons(this->_port);
+	_s_addr.sin_port = htons(_port); //htons(this->_conf.getPort());
 	_s_addr.sin_addr.s_addr = INADDR_ANY;
 }
 
@@ -55,8 +56,6 @@ void My_server::start()
 	accept_loop();
 }
 
-void My_server::setPort(const int new_port) { this->_port = new_port; }
-
 int	My_server::request(int index)
 {
 	std::string buffer;
@@ -83,7 +82,7 @@ int	My_server::request(int index)
 	}
 	_client[index - 1].buffer.append(buffer);
 
-	if (!_req.recieve(_client[index - 1].buffer))	
+	if (!_req.recieve(_client[index - 1].buffer))
 		return index + 1;
 
 	_req.analize_request(_client[index - 1]);

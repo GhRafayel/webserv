@@ -42,8 +42,9 @@ std::vector<std::string> Pars::split(std::string & src, const std::string & del)
     std::vector<std::string>    dest;
     std::string                 temp;
     size_t                      pos;
-    if (src.length() < 4) return dest;
 
+    if (!src.length())
+        return dest;
     while ((pos = src.find(del)) != std::string::npos)
     {
         temp = src.substr(0, pos);
@@ -52,6 +53,8 @@ std::vector<std::string> Pars::split(std::string & src, const std::string & del)
     }
     if (src.length())
         dest.push_back(temp);
+    std::cout << dest[0] << std::endl;
+    std::cout << dest[1] << std::endl;
     return dest;
 }
 

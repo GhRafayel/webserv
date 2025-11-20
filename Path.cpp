@@ -14,4 +14,5 @@ char *Path::absolutePath(const std::string & file_name)
 }
 
 bool    Path::is_dir() {return true;}
+
 bool    Path::is_file() {return true;}

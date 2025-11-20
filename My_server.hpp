@@ -5,6 +5,7 @@
 #include "Respons.hpp"
 #include "Request.hpp"
 #include "Pars.hpp"
+#include "Config.hpp"
 
 #include <poll.h>
 #include <netinet/in.h>
@@ -16,11 +17,12 @@
 
 extern volatile bool g_running;
 
-class My_server
+class My_server : public Pars
 {
 	private:
 		Request					_req;
 		Respons					_res;
+		Config					_conf;
 		struct  sockaddr_in		_s_addr;
 		std::vector<client>		_client;
 		std::vector<pollfd>		_fds;
@@ -37,9 +39,10 @@ class My_server
 		pollfd		create_pollfd(int);
 	public:
 		void		start();
-		void		setPort(const int);
+		void		setPath(const std::string &);
+		std::string getPath();
 		~My_server();
-		My_server();
+		My_server(const std::string &);
 };
 
 #endif
