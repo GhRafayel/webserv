@@ -1,6 +1,6 @@
 #include "Pars.hpp"
 
-bool    Pars::end_req(const std::string & buffer)
+bool    Pars::recieve(const std::string & buffer)
 {
     if (buffer.length() < 4)
     {

@@ -1,4 +1,4 @@
-SRC = main.cpp My_server.cpp Client.cpp Pars.cpp
+SRC = main.cpp My_server.cpp Client.cpp Pars.cpp Request.cpp Respons.cpp Path.cpp
 OBJ = $(SRC:%.cpp=$(OBJ_FOLDER)/%.o)
 DEP = $(OBJ:.o=.d)
 

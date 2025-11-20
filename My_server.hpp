@@ -6,10 +6,7 @@
 #include "Request.hpp"
 #include "Pars.hpp"
 
-#include <unistd.h>
-#include <fcntl.h>
 #include <poll.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <sstream>
 #include <fstream>

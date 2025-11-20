@@ -60,27 +60,19 @@ void My_server::setPort(const int new_port) { this->_port = new_port; }
 int	My_server::request(int index)
 {
 	std::string buffer;
-	size_t		n;
+	ssize_t		n;
 	if (index == 0)
 	{
-		//std::cout << "Client connected " << std::endl;
-		//int client_fd = accept(_socket, NULL, NULL);
 		int client_fd = _req.connect(_socket);
 		if (client_fd >= 0)
 		{
-			// if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)
-			// 	throw std::string("fcntl failed");
 			_req.nonBlock(client_fd);
 			add_item(client_fd);
 		}
 		return index + 1;
 	}
-
 	buffer = _req.to_read(_fds[index].fd);
 	n = buffer.length();
-	// char buffer[1025];
-	// int n = read(_fds[index].fd, buffer, 1024);
-
 	if (n <= 0)
 	{
 		if (n == -1 &&  (errno != EAGAIN && errno != EWOULDBLOCK))
@@ -89,20 +81,15 @@ int	My_server::request(int index)
 		remove_item(index);
 		return index;
 	}
-	//buffer[n] = '\0';
 	_client[index - 1].buffer.append(buffer);
-	if (!Pars::end_req(_client[index - 1].buffer))
+
+	if (!_req.recieve(_client[index - 1].buffer))	
 		return index + 1;
 
-	//std::cout << "[RAW] " << _client[index - 1].buffer << std::endl;
-
-	std::vector<std::string > temp = Pars::split(_client[index - 1].buffer, "\r\n");
-
-	for (size_t i = 0; i < temp.size(); i++)
-	{
-		std::cout << temp[i] << " === " << std::endl;
-	}
+	_req.analize_request(_client[index - 1]);
 	
+    _req.absolutePath("/index.html");
+
 	std::ifstream file("conf/index.html");
 	std::string body;
 
