@@ -1,4 +1,15 @@
 #include "Pars.hpp"
+bool    Pars::is_digitS(const std::string & str)
+{
+    if (!str.size())
+        return false;
+    for (size_t i = 0; i < str.size(); i++)
+    {
+       if (!isdigit(str[i]))
+			return false;
+    }
+    return true;
+}
 
 bool    Pars::recieve(const std::string & buffer)
 {
@@ -12,6 +23,27 @@ bool    Pars::recieve(const std::string & buffer)
         return true;
     }
     return false;
+}
+
+std::vector<std::string> Pars::trimArray(std::vector<std::string> & array)
+{
+    for (size_t i = 0; i < array.size(); i++)
+    {
+        array[i] = trim(array[i]);
+    }
+    return array;
+}
+
+int	Pars::str_to_int(std::string & str)
+{
+	std::stringstream	ss;
+	int					res;
+
+	if (!str.size())
+		return -1;
+	ss << str;
+	ss >> res;
+	return res;	
 }
 
 std::string Pars::trim (std::string & src)

@@ -10,7 +10,7 @@ My_server::My_server()
 {
 	try
 	{
-		_conf = Config("default.conf");
+		_conf = Config("conf/default.conf");
 	}
 	catch(...)
 	{
@@ -36,7 +36,6 @@ My_server::My_server(const std::string & conf_path)
 	_s_addr.sin_port = htons(this->_conf.getPort());
 	_s_addr.sin_addr.s_addr = INADDR_ANY;
 }
-
 
 void My_server::create_socket() {
 	int opt = 1;
@@ -112,9 +111,7 @@ int	My_server::request(int index)
 
 	_req.analize_request(_client[index - 1]);
 	
-    //_conf.abs_Path("index.html");
-
-	std::ifstream file(_conf.getPath().c_str());
+	std::ifstream file((_conf.getPath() + _conf.getDefaultFile()).c_str());
 	std::string body;
 
 	if (file.is_open())

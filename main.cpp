@@ -7,11 +7,11 @@ static void signal_handler(int) {
 	g_running = false;
 }
 
-//int main(int argc, char ** argv)
-int main()
+int main(int argc, char ** argv)
+// int main()
 {
-	int argc = 2;
-	char argv[2][100] = {"./webser", "server.conf"};
+	// int argc = 2;
+	// char argv[2][100] = {"./webser", "conf/server.conf"};
 
 	if (argc < 3)
 	{
