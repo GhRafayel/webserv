@@ -52,9 +52,7 @@ std::vector<std::string> Pars::split(std::string & src, const std::string & del)
         dest.push_back(temp);
     }
     if (src.length())
-        dest.push_back(temp);
-    std::cout << dest[0] << std::endl;
-    std::cout << dest[1] << std::endl;
+        dest.push_back(src);
     return dest;
 }
 

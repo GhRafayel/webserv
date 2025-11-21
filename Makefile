@@ -1,4 +1,4 @@
-SRC = main.cpp My_server.cpp Client.cpp Pars.cpp Request.cpp Respons.cpp Path.cpp  Config.cpp
+SRC = main.cpp My_server.cpp Client.cpp Pars.cpp Request.cpp Respons.cpp Config.cpp
 OBJ = $(SRC:%.cpp=$(OBJ_FOLDER)/%.o)
 DEP = $(OBJ:.o=.d)
 
@@ -6,7 +6,7 @@ DEBUG = "debug.sh"
 OBJ_FOLDER = output
 NAME = webserv 
 C	 = c++
-FLAG = -Wall -Wextra -Werror -std=c++98 -MMD 
+FLAG = -Wall -Wextra -Werror -std=c++98 -MMD  -g3
 COMP = $(C) $(FLAG)
 
 all : create-dirs $(NAME)

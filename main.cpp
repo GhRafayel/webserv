@@ -7,21 +7,30 @@ static void signal_handler(int) {
 	g_running = false;
 }
 
-int main(int argc, char ** argv)
+//int main(int argc, char ** argv)
+int main()
 {
+	int argc = 2;
+	char argv[2][100] = {"./webser", "server.conf"};
+
 	if (argc < 3)
 	{
-		std::string path;
 		std::signal(SIGINT, signal_handler);
 		std::signal(SIGTERM, signal_handler);
-		if (argc == 2)
-			path = argv[1];
 		try
 		{
-			My_server srv(path);
-			srv.start();
+			if (argc == 1)
+			{
+				My_server srv;
+				srv.start();
+			}
+			else
+			{
+				My_server srv(argv[1]);
+				srv.start();
+			}
 		}
-		catch(const std::exception& e)
+		catch(const std::exception & e)
 		{
 			std::cerr << e.what() << '\n';
 		}

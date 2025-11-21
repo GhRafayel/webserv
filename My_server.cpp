@@ -5,13 +5,38 @@ My_server::~My_server() {
 		if (_fds[i].fd) close(_fds[i].fd);
 }
 
-My_server::My_server(const std::string & conf_path)
-	:_conf(conf_path), _timeout_ms(1000), _port(8080), _socket(-1)
+My_server::My_server()
+	: _client(), _fds(), _timeout_ms(1000), _socket(-1)
 {
+	try
+	{
+		_conf = Config("default.conf");
+	}
+	catch(...)
+	{
+		throw;
+	}
 	_s_addr.sin_family = AF_INET;
-	_s_addr.sin_port = htons(_port); //htons(this->_conf.getPort());
+	_s_addr.sin_port = htons(this->_conf.getPort());
 	_s_addr.sin_addr.s_addr = INADDR_ANY;
 }
+
+My_server::My_server(const std::string & conf_path)
+	:	_client(), _fds(), _timeout_ms(1000), _socket(-1)
+{
+	try
+	{
+		_conf = Config(conf_path);
+	}
+	catch(...)
+	{
+		throw;
+	}
+	_s_addr.sin_family = AF_INET;
+	_s_addr.sin_port = htons(this->_conf.getPort());
+	_s_addr.sin_addr.s_addr = INADDR_ANY;
+}
+
 
 void My_server::create_socket() {
 	int opt = 1;
@@ -87,9 +112,9 @@ int	My_server::request(int index)
 
 	_req.analize_request(_client[index - 1]);
 	
-    _req.absolutePath("/index.html");
+    //_conf.abs_Path("index.html");
 
-	std::ifstream file("conf/index.html");
+	std::ifstream file(_conf.getPath().c_str());
 	std::string body;
 
 	if (file.is_open())

@@ -7,9 +7,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include "Client.hpp"
-#include "Path.hpp"
 
-class Request : public Pars , public Path
+class Request : public Pars
 {
     private:
         Request(const Request &);

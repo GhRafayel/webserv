@@ -27,7 +27,6 @@ class My_server : public Pars
 		std::vector<client>		_client;
 		std::vector<pollfd>		_fds;
 		int 					_timeout_ms;
-		int						_port;
 		int						_socket;
 	protected:	
 		int			request(int);
@@ -39,9 +38,8 @@ class My_server : public Pars
 		pollfd		create_pollfd(int);
 	public:
 		void		start();
-		void		setPath(const std::string &);
-		std::string getPath();
 		~My_server();
+		My_server();
 		My_server(const std::string &);
 };
 
