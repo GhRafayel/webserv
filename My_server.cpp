@@ -134,13 +134,12 @@ int	My_server::request(int index)
 
 int My_server::respons(int index)
 {
-	int fd = _fds[index].fd;
 	client & c = _client[index - 1];
 
 	while (!c.outbuf.empty())
 	{
 		c.val = true;
-		ssize_t sent = send(fd, c.outbuf.data(), c.outbuf.size(), 0);
+		ssize_t sent = send(_fds[index].fd, c.outbuf.data(), c.outbuf.size(), 0);
 		if (sent > 0)
 		{
 			c.outbuf.erase(0, sent);
@@ -151,7 +150,7 @@ int My_server::respons(int index)
 	}
 	if (c.val)
 	{
-		close(fd);
+		close(_fds[index].fd);
 		remove_item(index);
 	}
 	_fds[index].events &= ~POLLOUT;
@@ -171,13 +170,9 @@ bool    My_server::accept_loop()
 		while (i < _fds.size())
 		{
 			if (_fds[i].revents & POLLIN)
-			{
 				i = request(i);
-			}
 			else if (_fds[i].revents & POLLOUT)
-			{
 				i = respons(i);
-			}
 			else
 				i++;
 			if (!g_running) break;

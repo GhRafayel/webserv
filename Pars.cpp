@@ -1,4 +1,5 @@
 #include "Pars.hpp"
+
 bool    Pars::is_digitS(const std::string & str)
 {
     if (!str.size())
