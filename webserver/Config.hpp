@@ -19,7 +19,13 @@ class Config : public StringUtils
 		std::string	file_content;
 		bool		valid;
 
-		void		call_member(const std::string &);
+		void		listen(std::string & str);
+		void		client_max_body_size(std::string & str);
+		void		server_name(std::string & str);
+		void		error_page_404(std::string & str);
+		void		error_page_500(std::string & str);
+
+		void		call_member(const std::string &,const  char *);
 		void		read_conf();
 		void		init_sockadd_struct();
 	public:

@@ -12,7 +12,7 @@ int main()
 {
     int argc = 2;
     char argv[2][50] = {"./webserv", "conf/server.conf"};
-    Server * server;
+    Server * server = NULL;
 
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);

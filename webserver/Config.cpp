@@ -8,7 +8,7 @@ Config::Config()
 Config::Config(std::string & strim)
 	: StringUtils(), file_content(strim), valid(true), conf_seting()
 {
-	call_member("read_conf");
+	call_member("read_conf", NULL);
 }
 
 Config::Config(const Config & obj)	
@@ -37,18 +37,38 @@ void	Config::init_sockadd_struct(){
 	addr.sin_addr.s_addr = INADDR_ANY;
 }
 
-void Config::call_member(const std::string & fun_name)
+void Config::call_member(const std::string & fun_name, const char * arg)
 {
-	std::string fun_list[2] = {"init_sockadd_struct", "read_conf"};
-	
-	void (Config::*fun_ref[2]) (void) = {&Config::init_sockadd_struct, &Config::read_conf};
+	std::string fun_void_list[2] = { "init_sockadd_struct","read_conf" };
+
+	std::string fun_str_list[5] = { "listen", "client_max_body_size", "server_name", "error_page_404", "error_page_500" };
+
+	void (Config::*fun_str_ref[5]) (std::string &) =
+	{
+		&Config::listen, 
+		&Config::client_max_body_size, 
+		&Config::server_name,
+		&Config::error_page_404,
+		&Config::error_page_500
+	};
+	void (Config::*fun_void_ref[2]) (void) =
+	{
+		&Config::init_sockadd_struct,
+		&Config::read_conf
+	};
 	try
 	{
-		for (size_t i = 0; i < fun_list->size(); i++)
+		for (size_t i = 0; i < (arg ? fun_str_list->size() : fun_void_list->size()); i++)
 		{
-			if (fun_list[i] == fun_name)
+			if ((arg ? fun_str_list[i] : fun_void_list[i]) == fun_name)
 			{
-				(this->*fun_ref[i])();
+				if (arg)
+				{
+					std::string temp = arg;
+					(this->*fun_str_ref[i])(temp);
+					return;
+				}
+				(this->*fun_void_ref[i])();
 				return;
 			}
 		}
@@ -191,14 +211,38 @@ std::string Config::abs_Path(const std::string & name)
 	path = r_path;
 	return path;
 }*/
+void	Config::listen(std::string & str){
+	std::cout << str << std::endl;
+}
 
+void	Config::client_max_body_size(std::string & str) {
+	std::cout << str << std::endl;
+}
+
+void	Config::server_name(std::string & str) {
+	std::cout << str << std::endl;
+}
+
+void	Config::error_page_404(std::string & str) {
+	std::cout << str << std::endl;
+}
+
+void	Config::error_page_500(std::string & str)
+{
+	std::cout << str << std::endl;
+}
 
 void    Config::read_conf()
 {
 	std::vector<std::string> array = split(file_content, "\n", true);
-
+	
 	for (size_t i = 0; i < array.size(); i++)
 	{
-		
+		std::vector<std::string> conf_line = split(array[i], "=", true);
+		if(conf_line.size() == 2)
+		{
+			call_member(conf_line[0], conf_line[1].c_str());
+			conf_line.clear();
+		}
 	}
 }

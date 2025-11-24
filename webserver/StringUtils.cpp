@@ -84,7 +84,12 @@ std::vector<std::string> StringUtils::split(std::string & src, const std::string
         dest.push_back(temp);
     }
     if (src.length())
+    {
+        if (val)
+            src = trim(src, " \t");
         dest.push_back(src);
+    }
+        
     return dest;
 }
 
