@@ -99,7 +99,7 @@ int	My_server::request(int index)
 	if (n <= 0)
 	{
 		if (n == -1 &&  (errno != EAGAIN && errno != EWOULDBLOCK))
-				return index + 1;
+			return index + 1;
 		close(_fds[index].fd);
 		remove_item(index);
 		return index;

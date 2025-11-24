@@ -1,12 +1,12 @@
 #include "Server.hpp"
 
 Server::~Server() {
+	for (size_t i = 0; i < _conf.size(); i++)
+		delete _conf[i];
 	for (size_t i = 0; i < _pollfds.size(); i++)
 	{
 		if (_pollfds[i].fd != -1)
-		{
 			close(_pollfds[i].fd);
-		}
 	}
 }
 
@@ -14,7 +14,6 @@ Server::Server() : StringUtils(), _conf_file_path("conf/default.conf"), _conf(),
 	_conf_file_path = abs_Path(_conf_file_path);
 	if(!_conf_file_path.size())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
-	call_member("initConfig");
 }
 
 Server::Server(const std::string & conf_file_path)
@@ -23,7 +22,6 @@ Server::Server(const std::string & conf_file_path)
 	_conf_file_path = abs_Path(_conf_file_path);
 	if(!_conf_file_path.size())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
-	call_member("initConfig");
 }
 
 Server::Server(const Server & obj) : StringUtils(), _conf(obj._conf), _pollfds(obj._pollfds)
@@ -37,7 +35,7 @@ Server & Server::operator = (const Server & obj) {
 		this->_conf_file_path = obj._conf_file_path;
 		for (size_t i = 0; i < obj._conf.size(); i++)
 		{
-			std::vector<Config> conf_temp(obj._conf);
+			std::vector<Config *> conf_temp(obj._conf);
 			this->_conf = conf_temp;
 			std::vector<pollfd> pollfd_temp(obj._pollfds);
 			this->_pollfds = pollfd_temp;
@@ -47,33 +45,20 @@ Server & Server::operator = (const Server & obj) {
 	return *this;
 }
 
-void	Server::call_member(const std::string & fun_name)
+pollfd	Server::create_pollfd(int fd)
 {
-	std::string fun_list[3] = {"initConfig", "create_server", "accept_loop"};
-
-	void (Server::*fun_ref[3])(void) = { &Server::initConfig, &Server::create_server, &Server::accept_loop};
-	try
-	{
-		for (size_t i = 0; i < fun_list->size(); i++)
-		{
-			if (fun_list[i] == fun_name)
-			{
-				(this->*fun_ref[i])();
-				break;
-			}
-				
-		}
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-		throw;
-	}
+	pollfd p;
+	p.events = POLLIN;
+	p.fd = fd;
+	p.revents = 0;
+	return p;
 }
 
-void	Server::start(){
-	call_member("create_server");
-	call_member("accept_loop");
+void	Server::start()
+{
+	initConfig();
+	create_server();
+	// accept_loop();
 }
 
 void	Server::initConfig()
@@ -83,6 +68,7 @@ void	Server::initConfig()
 	std::ifstream	file(_conf_file_path.c_str());
 	std::string		buffer;
 	std::string		str;
+
 	while (getline(file, buffer))
 	{
 		buffer = trim(buffer, " \t");
@@ -90,14 +76,13 @@ void	Server::initConfig()
 			continue;
 		str += buffer + "\n";
 	}
-	std::vector<std::string> a = split(str, "[end]", true);
-
-	for (size_t i = 0; i < a.size(); i++)
+	std::vector<std::string> server = split(str, "[end]", true);
+	for (size_t i = 0; i < server.size(); i++)
 	{
-		Config conf(a[i]);
+		Config conf(server[i]);
 		if (conf.is_valid())
 		{
-			this->_conf.push_back(Config(conf));
+			this->_conf.push_back(new Config(conf));
 			str.clear();
 		}
 	}
@@ -106,14 +91,11 @@ void	Server::initConfig()
 void	Server::create_server()
 {
 	int				_socket;
-	
+	int				opt;
 	for (size_t i = 0; i < _conf.size(); i++)
 	{
-		int 			opt = 1;
-		struct pollfd	temp;
-	
-		temp.events = POLLIN;
-		temp.revents = 0;
+		opt = 1;
+
 		_socket = socket(AF_INET, SOCK_STREAM, 0);
 
 		if (_socket < 0)
@@ -125,12 +107,11 @@ void	Server::create_server()
 		if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 			throw std::runtime_error("setsockopt failed");
 
-		if (bind(_socket, (struct sockaddr *)&_conf[i].addr, sizeof(_conf[i].addr)) == -1)
+		if (bind(_socket, (struct sockaddr *)&_conf[i]->addr, sizeof(_conf[i]->addr)) == -1)
 			throw std::runtime_error("bind failed");
 		if (listen(_socket, 128) < 0)
 			throw std::runtime_error("listen failed");
-		temp.fd = _socket;
-		_pollfds.push_back(temp);
+		_pollfds.push_back(create_pollfd(_socket));
 	}
 }
 
@@ -148,11 +129,15 @@ void    Server::accept_loop()
 		while (i < _pollfds.size())
 		{
 			if (_pollfds[i].revents & POLLIN)
+			{
 				// i = request(i);
 				std::cout << "request" << std::endl;
+			}
 			else if (_pollfds[i].revents & POLLOUT)
+			{
 				//i = respons(i);
 				std::cout << "respons" << std::endl;
+			}
 			else
 				i++;
 			if (!g_running) break;

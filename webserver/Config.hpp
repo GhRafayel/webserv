@@ -24,14 +24,16 @@ class Config : public StringUtils
 		void		server_name(std::string & str);
 		void		error_page_404(std::string & str);
 		void		error_page_500(std::string & str);
-
+		void		control();
 		void		call_member(const std::string &,const  char *);
 		void		read_conf();
 		void		init_sockadd_struct();
+
 	public:
 		struct  sockaddr_in			addr;
 		std::vector<Location>		conf_location;
 		std::map<std::string, int>	conf_seting;
+		std::string					serv_name;
 		std::string					error_404;
 		std::string 				error_500;
 		
@@ -42,22 +44,6 @@ class Config : public StringUtils
 		Config & operator = (const Config &);
 		
 		bool		is_valid() const;
-		
-
-		// void		setSetings(std::vector<std::string> &);
-
-		// void		setPort(std::string &);
-		// void		setSize(std::string &);
-		// void		setPath(std::string &);
-		// void		setFileName(std::string &);
-		// void		setMethods(std::string &);
-		
-		// void		check_otehr(const std::string &, std::string &);
-		// std::string abs_Path(const std::string &);
-		// int			getPort();
-		// std::string	getPath();
-		// std::string getDefaultFile();
-		// bool		getMethods(const std::string &);
 };
 
 #endif

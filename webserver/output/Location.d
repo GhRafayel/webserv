@@ -1,1 +1,1 @@
-output/Location.o: Location.cpp Location.hpp
+output/Location.o: Location.cpp Location.hpp StringUtils.hpp

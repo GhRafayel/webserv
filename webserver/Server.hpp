@@ -3,6 +3,7 @@
 
 //#include "Request.hpp"
 //#include "Respons.hpp"
+#include "Client.hpp"
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <csignal>
@@ -19,13 +20,15 @@ extern volatile bool g_running;
 class Server : public StringUtils
 {
 	private:
+		std::map<int, client>		_client;
 		std::string					_conf_file_path;
-		std::vector<Config>			_conf;
+		std::vector<Config *>		_conf;
 		std::vector<pollfd>			_pollfds;
 		int							_time;
 		void						initConfig();
 		void						create_server();
 		void						accept_loop();
+		pollfd						create_pollfd(int);
 
 	public:
 		~Server();
@@ -33,8 +36,8 @@ class Server : public StringUtils
 		Server(const std::string &);
 		Server(const Server &);
 		Server & operator = (const Server &);
-		void	call_member(const std::string & fun_name);
-		void    start(); 
+		//void	call_member(const std::string & fun_name);
+		void    start();
 };
 
 #endif
