@@ -27,7 +27,6 @@ class Config : public StringUtils
 		void		control();
 		void		call_member(const std::string &,const  char *);
 		void		read_conf();
-		void		init_sockadd_struct();
 
 	public:
 		struct  sockaddr_in			addr;

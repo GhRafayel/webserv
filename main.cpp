@@ -8,11 +8,7 @@ static void signal_handler(int) {
 }
 
 int main(int argc, char ** argv)
-// int main()
 {
-	// int argc = 2;
-	// char argv[2][100] = {"./webser", "conf/server.conf"};
-
 	if (argc < 3)
 	{
 		std::signal(SIGINT, signal_handler);

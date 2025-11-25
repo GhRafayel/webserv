@@ -1,23 +1,29 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
+#include "StringUtils.hpp"
+#include <sys/socket.h>
 #include "Client.hpp"
 #include <iostream>
 #include <map>
 
-#include <sys/socket.h>
 
-class Request
+class Request : public StringUtils
 {
 	private:
-		Request();
+		std::string str_request;
+
+		
 		Request(const Request &);
-		Request & operator = (const Request &);
+
+		Request &	operator = (const Request &);
+		bool		end_of_request();
+		int			to_read(int);
 	public:
 		~Request();
 		Request(std::map<int, Client>::iterator it);
-
-		std::string		to_read(int);
+		Request();
+		// void	analize_request();
 };
 
 #endif

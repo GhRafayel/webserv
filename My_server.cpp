@@ -46,6 +46,7 @@ void My_server::create_socket() {
 		throw std::string("fcntl failed");
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     	throw std::string("setsockopt failed");
+	std::cout << "My_server" << _s_addr.sin_port  << std::endl;
 	if (bind(_socket, (struct sockaddr *)&_s_addr, sizeof(_s_addr)) == -1)
 		throw std::string("bind failed");
 	if (listen(_socket, 128) < 0)
@@ -98,7 +99,7 @@ int	My_server::request(int index)
 	n = buffer.length();
 	if (n <= 0)
 	{
-		if (n == -1 &&  (errno != EAGAIN && errno != EWOULDBLOCK))
+		if (n == -1 )  // (errno != EAGAIN && errno != EWOULDBLOCK))
 			return index + 1;
 		close(_fds[index].fd);
 		remove_item(index);
@@ -121,6 +122,7 @@ int	My_server::request(int index)
 		body = oss.str();
 		file.close();
 	}
+	
 	std::ostringstream t;
     t	<< "HTTP/1.1 200 OK\r\n"
 		<< "Content-Type: text/html\r\n"

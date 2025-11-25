@@ -1,8 +1,6 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-//#include "Request.hpp"
-//#include "Respons.hpp"
 #include "StringUtils.hpp"
 #include "Request.hpp"
 #include "Client.hpp"
@@ -20,12 +18,13 @@ extern volatile bool g_running;
 class Server : public StringUtils
 {
 	private:
-		std::vector<int>			_sockets;
-		std::map<int, Client>		_client;
-		std::string					_conf_file_path;
-		std::vector<Config *>		_conf;
-		std::vector<pollfd>			_pollfds;
-		int							_time;
+		//std::vector<int>				_sockets;
+		std::map<int, Client>			_client;
+		std::map<int, Config *>			_conf;
+		std::vector<pollfd>				_pollfds;
+		int								_time;
+		std::string						_conf_file_path;
+
 		void						to_connect(int);
 		bool						is_server_socket(int);
 		void						initConfig();

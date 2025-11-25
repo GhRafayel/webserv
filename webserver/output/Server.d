@@ -1,2 +1,2 @@
-output/Server.o: Server.cpp Server.hpp Config.hpp StringUtils.hpp \
- Location.hpp
+output/Server.o: Server.cpp Server.hpp StringUtils.hpp Request.hpp \
+  Client.hpp Config.hpp Location.hpp

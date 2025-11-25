@@ -2,61 +2,43 @@
 
 Request::~Request() {}
 
-Request::Request() {}
+Request::Request() : StringUtils(), str_request() {}
 
-Request::Request(std::map<int, Client>::iterator it)
-{
-	
-}
+Request::Request(std::map<int, Client>::iterator it) : StringUtils(), str_request() {(void)it;}
 
-std::string	Request::to_read(int fd)
+int	Request::to_read(int fd)
 {
-	char buffer[1025];
+	char	buffer[1025];
+
 	int n = recv(fd, buffer, 1024, 0);
 	if (n)
-	    buffer[n] = '\0';
-	std::string temp(buffer);
-	return temp;
+	{
+		buffer[n] = '\0';
+		this->str_request = buffer;
+	}
+	return n;
 }
 
-// int     Request::connect(int socket) {
-// 	int fd = accept(socket, NULL, NULL);
-// 	if (fd >= 0)
-// 		std::cout << "Client connected successfully" << std::endl;
-// 	else
-// 		std::cout << "Client connection failed" << std::endl;
-// 	return fd;
-// }
 
-// void		Request::nonBlock(int fd)
-// {
-// 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
-// 		throw std::string("fcntl failed");
-// }
+bool    Request::end_of_request()
+{
+    if (this->str_request.length() < 4)
+        return false;
+    size_t pos = this->str_request.find("\r\n\r\n");
+    if (pos != std::string::npos)
+        return true;
+    return false;
+}
 
-// std::string	Request::to_read(int fd)
+// void	Request::analize_request(std::map<int, Client>::iterator it)
 // {
-// 	char buffer[1025];
-// 	int n = recv(fd, buffer, 1024, 0);
-// 	if (n )
-// 	buffer[n] = '\0';
-// 	std::string temp(buffer);
-// 	return temp;
-// }
+// 	int count_of_readed_chars = to_read(it->second.fd);
 
-// void	Request::analize_request(client & obj)
-// {
-// 	size_t in = obj.buffer.find("\r\n");
-// 	if (in != std::string::npos)
+// 	if (count_of_readed_chars == 0)
+// 		it->second.end_request = true;
+// 	else if (count_of_readed_chars != -1 && end_of_request())
 // 	{
-// 		std::string first_line = obj.buffer.substr(0, in);
-// 		std::vector<std::string> container = split(first_line, " ");
-// 		for (size_t i = 0; i < container.size(); i++)
-// 		{
-// 			std::cout << container[i] << std::endl;
-// 		}
-		
-// 		std::cout << first_line << std::endl;
+// 		std::cout << "hello world" << std::endl;
 // 	}
-
+	
 // }

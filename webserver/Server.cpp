@@ -1,8 +1,10 @@
 #include "Server.hpp"
 
 Server::~Server() {
-	for (size_t i = 0; i < _conf.size(); i++)
-		delete _conf[i];
+	for (std::map<int, Config *>::iterator  it = _conf.begin(); it != _conf.end(); it++)
+	{
+		delete it->second;
+	}
 	for (size_t i = 0; i < _pollfds.size(); i++)
 	{
 		if (_pollfds[i].fd != -1)
@@ -10,15 +12,24 @@ Server::~Server() {
 	}
 }
 
-Server::Server()
-	: StringUtils(), _sockets(), _client(), _conf_file_path("conf/default.conf"), _conf(), _pollfds() {
+Server::Server() : 
+	StringUtils(),
+	_client(), 
+	_conf(), 
+	_pollfds(), 
+	_conf_file_path("conf/default.conf")
+{
 	_conf_file_path = abs_Path(_conf_file_path);
 	if(!_conf_file_path.size())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
 
-Server::Server(const std::string & conf_file_path)
-	: StringUtils(), _conf_file_path(conf_file_path),  _conf(), _pollfds()
+Server::Server(const std::string & conf_file_path) :
+	StringUtils(),
+	_client(),
+	_conf(), 
+	_pollfds(),
+	_conf_file_path(conf_file_path)
 {
 	_conf_file_path = abs_Path(_conf_file_path);
 	if(!_conf_file_path.size())
@@ -34,9 +45,10 @@ Server & Server::operator = (const Server & obj) {
 	if (this != & obj)
 	{
 		this->_conf_file_path = obj._conf_file_path;
+
 		for (size_t i = 0; i < obj._conf.size(); i++)
 		{
-			std::vector<Config *> conf_temp(obj._conf);
+			std::map<int, Config *> conf_temp(obj._conf);
 			this->_conf = conf_temp;
 			std::vector<pollfd> pollfd_temp(obj._pollfds);
 			this->_pollfds = pollfd_temp;
@@ -59,7 +71,7 @@ void	Server::start()
 {
 	initConfig();
 	create_server();
-	// accept_loop();
+	//accept_loop();
 }
 
 void	Server::initConfig()
@@ -83,7 +95,10 @@ void	Server::initConfig()
 		Config conf(server[i]);
 		if (conf.is_valid())
 		{
-			this->_conf.push_back(new Config(conf));
+			int fd = socket(AF_INET, SOCK_STREAM, 0);
+			if (fd < 0)
+				throw std::runtime_error("socket failed\n");
+			_conf.insert(std::make_pair(fd, new Config(conf)));
 			str.clear();
 		}
 	}
@@ -91,29 +106,19 @@ void	Server::initConfig()
 
 void	Server::create_server()
 {
-	int				fd;
 	int				opt;
-	for (size_t i = 0; i < _conf.size(); i++)
+	for (std::map<int, Config *>::iterator it = _conf.begin(); it != _conf.end(); it++)
 	{
 		opt = 1;
-
-		fd = socket(AF_INET, SOCK_STREAM, 0);
-
-		if (fd < 0)
-			throw std::runtime_error("socket failed");
-
-		if (fcntl(fd, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
-			throw std::runtime_error("fcntl failed");
-
-		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-			throw std::runtime_error("setsockopt failed");
-
-		if (bind(fd, (struct sockaddr *)&_conf[i]->addr, sizeof(_conf[i]->addr)) == -1)
-			throw std::runtime_error("bind failed");
-		if (listen(fd, 128) < 0)
-			throw std::runtime_error("listen failed");
-		_sockets.push_back(fd);
-		_pollfds.push_back(create_pollfd(fd));
+		if (fcntl(it->first, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
+			throw std::runtime_error("fcntl failed\n");
+		if (setsockopt(it->first, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+			throw std::runtime_error("setsockopt failed\n");
+		if (bind(it->first, (struct sockaddr *)&it->second->addr, sizeof(it->second->addr)) == -1)
+			throw std::runtime_error("bind failed\n");
+		if (listen(it->first, 128) < 0)
+			throw std::runtime_error("listen failed\n");
+		_pollfds.push_back(create_pollfd(it->first));
 	}
 }
 
@@ -129,22 +134,18 @@ void     Server::to_connect(int index)
 		}
 		_pollfds.push_back(create_pollfd(fd));
 		_client.insert(std::make_pair(index, Client(fd)));
+		_client.find(index)->second.server_conf_key = _pollfds[index].fd;
 		std::cout << "Client connected successfully" << std::endl;
 	}
 	else
-	{
 		std::cout << "Client connection failed" << std::endl;
-		close(fd);
-	}
 }
 
 bool	Server::is_server_socket(int fd)
 {
-	for (size_t i = 0; i < _sockets.size(); i++)
-	{
-		if (fd == _sockets[i])
-			return true;
-	}
+	std::map<int, Config *>::iterator it = _conf.find(fd);
+	if (it != _conf.end())
+		return true;
 	return false;
 }
 
@@ -169,7 +170,8 @@ void    Server::accept_loop()
 				}
 				else
 				{
-					Request(_client.find(i));
+					Request	req;
+					// Request(_client.find(i));
 					//if (n == -1 &&  (errno != EAGAIN && errno != EWOULDBLOCK))
 				}
 				std::cout << "request" << std::endl;

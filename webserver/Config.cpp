@@ -1,15 +1,16 @@
 #include "Config.hpp"
 
-Config::~Config() {
-	
+Config::~Config() { }
+
+Config::Config() : StringUtils(), file_content(""), valid(false),  conf_seting() {
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
 }
 
-Config::Config()
-	: StringUtils(), file_content(""), valid(false),  conf_seting() {}
-
-Config::Config(std::string & strim)
-	: StringUtils(), file_content(strim), valid(true), conf_seting()
+Config::Config(std::string & strim): StringUtils(), file_content(strim), valid(true), conf_seting()
 {
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
 	call_member("read_conf", NULL);
 }
 
@@ -20,6 +21,9 @@ Config::Config(const Config & obj)
 	this->serv_name = obj.serv_name;
 	this->error_404 = obj.error_404;
 	this->error_500 = obj.error_500;
+	this->addr.sin_port = obj.addr.sin_port;
+	this->addr.sin_family = obj.addr.sin_family;
+	this->addr.sin_addr.s_addr = obj.addr.sin_addr.s_addr;
 }
 
 bool	Config::is_valid() const {
@@ -35,18 +39,14 @@ Config &  Config::operator = (const Config & obj)
 	return *this;
 }
 
-void	Config::init_sockadd_struct(){
-
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(conf_seting["port"]);
-	addr.sin_addr.s_addr = INADDR_ANY;
-}
-
 void Config::call_member(const std::string & fun_name, const char * arg)
 {
 	std::string fun_str_list[5] = { "listen", "client_max_body_size", "server_name", "error_page_404", "error_page_500" };
-	std::string fun_void_list[2] = { "init_sockadd_struct","read_conf" };
-	
+
+	std::string fun_void = "read_conf";
+
+	void (Config::*fun_void_ref) (void) = &Config::read_conf;
+
 	void (Config::*fun_str_ref[5]) (std::string &) =
 	{
 		&Config::listen, 
@@ -55,24 +55,21 @@ void Config::call_member(const std::string & fun_name, const char * arg)
 		&Config::error_page_404,
 		&Config::error_page_500
 	};
-	void (Config::*fun_void_ref[2]) (void) =
-	{
-		&Config::init_sockadd_struct,
-		&Config::read_conf
-	};
+	
 	try
 	{
-		for (size_t i = 0; i < (arg ? fun_str_list->size() : fun_void_list->size()); i++)
+		if (!arg && fun_name == fun_void)
 		{
-			if ((arg ? fun_str_list[i] : fun_void_list[i]) == fun_name)
+			(this->*fun_void_ref)();
+			return;
+		}
+			
+		for (size_t i = 0; i < fun_str_list->size(); i++)
+		{
+			if (fun_str_list[i] == fun_name)
 			{
-				if (arg)
-				{
-					std::string temp = arg;
-					(this->*fun_str_ref[i])(temp);
-					return;
-				}
-				(this->*fun_void_ref[i])();
+				std::string temp = arg;
+				(this->*fun_str_ref[i])(temp);
 				return;
 			}
 		}
@@ -87,14 +84,21 @@ void Config::call_member(const std::string & fun_name, const char * arg)
 void	Config::listen(std::string & str) 
 {
 	if (!is_digitS(str))
-		throw std::runtime_error("prot is  invalid");
-	conf_seting.insert(std::make_pair("port", str_to_int(str)));
+		throw std::runtime_error("port is invalid");
+	int res = str_to_int(str);
+	if (res == -1)
+		throw std::runtime_error("port is invalid");
+	conf_seting.insert(std::make_pair("port", res));
+	this->addr.sin_port = res;
 }
 	
 void	Config::client_max_body_size(std::string & str) {
 	if (!is_digitS(str))
 		throw std::runtime_error("max_body_size is invalid");
-	conf_seting.insert(std::make_pair("max_size", str_to_int(str)));	
+	int res =  str_to_int(str);
+	if (res == -1)
+		throw std::runtime_error("Max_body_sie is invalid");
+	conf_seting.insert(std::make_pair("max_size", res));	
 }
 
 void	Config::server_name(std::string & str) {
