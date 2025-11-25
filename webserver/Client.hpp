@@ -2,15 +2,15 @@
 
 #include <iostream>
 
-class client
+class Client
 {
     public:
         int         fd;
         int         statuc_code;
-        bool        val;
+        int         val;
         std::string buffer;
         std::string outbuf;
-        ~client();
-        client(int);
-        client();
+        ~Client();
+        Client(int);
+        Client();
 };

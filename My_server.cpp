@@ -145,7 +145,8 @@ int My_server::respons(int index)
 			c.outbuf.erase(0, sent);
 			continue;
 		}
-		if (sent == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))  return index + 1;
+		if (sent == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
+			return index + 1;
 		return index;
 	}
 	if (c.val)

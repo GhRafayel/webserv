@@ -1,8 +1,8 @@
 #include "Client.hpp"
 
 
-client::~client() { }
+Client::~Client() { }
 
-client::client() : fd(-1), val(false), buffer(""), outbuf("") {}
+Client::Client() : fd(-1), val(false), buffer(""), outbuf("") {}
 
-client::client(int FD) : fd(FD), val(false), buffer(""), outbuf("") {}
+Client::Client(int FD) : fd(FD), val(false), buffer(""), outbuf("") {}

@@ -10,7 +10,8 @@ Server::~Server() {
 	}
 }
 
-Server::Server() : StringUtils(), _conf_file_path("conf/default.conf"), _conf(), _pollfds() {
+Server::Server()
+	: StringUtils(), _sockets(), _client(), _conf_file_path("conf/default.conf"), _conf(), _pollfds() {
 	_conf_file_path = abs_Path(_conf_file_path);
 	if(!_conf_file_path.size())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
@@ -90,29 +91,61 @@ void	Server::initConfig()
 
 void	Server::create_server()
 {
-	int				_socket;
+	int				fd;
 	int				opt;
 	for (size_t i = 0; i < _conf.size(); i++)
 	{
 		opt = 1;
 
-		_socket = socket(AF_INET, SOCK_STREAM, 0);
+		fd = socket(AF_INET, SOCK_STREAM, 0);
 
-		if (_socket < 0)
+		if (fd < 0)
 			throw std::runtime_error("socket failed");
 
-		if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
+		if (fcntl(fd, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
 			throw std::runtime_error("fcntl failed");
 
-		if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 			throw std::runtime_error("setsockopt failed");
 
-		if (bind(_socket, (struct sockaddr *)&_conf[i]->addr, sizeof(_conf[i]->addr)) == -1)
+		if (bind(fd, (struct sockaddr *)&_conf[i]->addr, sizeof(_conf[i]->addr)) == -1)
 			throw std::runtime_error("bind failed");
-		if (listen(_socket, 128) < 0)
+		if (listen(fd, 128) < 0)
 			throw std::runtime_error("listen failed");
-		_pollfds.push_back(create_pollfd(_socket));
+		_sockets.push_back(fd);
+		_pollfds.push_back(create_pollfd(fd));
 	}
+}
+
+void     Server::to_connect(int index)
+{
+	int fd = accept(_pollfds[index].fd, NULL, NULL);
+	if (fd >= 0)
+	{
+		if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
+		{
+			close(fd);
+			return;
+		}
+		_pollfds.push_back(create_pollfd(fd));
+		_client.insert(std::make_pair(index, Client(fd)));
+		std::cout << "Client connected successfully" << std::endl;
+	}
+	else
+	{
+		std::cout << "Client connection failed" << std::endl;
+		close(fd);
+	}
+}
+
+bool	Server::is_server_socket(int fd)
+{
+	for (size_t i = 0; i < _sockets.size(); i++)
+	{
+		if (fd == _sockets[i])
+			return true;
+	}
+	return false;
 }
 
 void    Server::accept_loop()
@@ -130,12 +163,21 @@ void    Server::accept_loop()
 		{
 			if (_pollfds[i].revents & POLLIN)
 			{
-				// i = request(i);
+				if (is_server_socket(_pollfds[i].fd))
+				{
+					to_connect(i);
+				}
+				else
+				{
+					Request(_client.find(i));
+					//if (n == -1 &&  (errno != EAGAIN && errno != EWOULDBLOCK))
+				}
 				std::cout << "request" << std::endl;
 			}
 			else if (_pollfds[i].revents & POLLOUT)
 			{
-				//i = respons(i);
+				// Respons(_client.find(i));
+				// i++;
 				std::cout << "respons" << std::endl;
 			}
 			else
