@@ -15,7 +15,7 @@ Config::Config(std::string & strim): StringUtils(), file_content(strim), valid(t
 }
 
 Config::Config(const Config & obj)	
-	: StringUtils(), valid(true), conf_location(obj.conf_location), conf_seting(obj.conf_seting)
+	: StringUtils(), conf_location(obj.conf_location), conf_seting(obj.conf_seting)
 {
 	this->valid = obj.valid;
 	this->serv_name = obj.serv_name;
@@ -34,7 +34,17 @@ Config &  Config::operator = (const Config & obj)
 {
 	if (this != &obj)
 	{
-		return *this;
+		std::vector<Location> temp_L(obj.conf_location);
+		this->conf_location = temp_L;
+		std::map<std::string, int> temp_M(obj.conf_seting);
+		this->conf_seting = temp_M;
+		this->valid = obj.valid;
+		this->serv_name = obj.serv_name;
+		this->error_404 = obj.error_404;
+		this->error_500 = obj.error_500;
+		this->addr.sin_port = obj.addr.sin_port;
+		this->addr.sin_family = obj.addr.sin_family;
+		this->addr.sin_addr.s_addr = obj.addr.sin_addr.s_addr;
 	}
 	return *this;
 }
@@ -63,7 +73,6 @@ void Config::call_member(const std::string & fun_name, const char * arg)
 			(this->*fun_void_ref)();
 			return;
 		}
-			
 		for (size_t i = 0; i < fun_str_list->size(); i++)
 		{
 			if (fun_str_list[i] == fun_name)
@@ -89,7 +98,8 @@ void	Config::listen(std::string & str)
 	if (res == -1)
 		throw std::runtime_error("port is invalid");
 	conf_seting.insert(std::make_pair("port", res));
-	this->addr.sin_port = res;
+	std::cout << res << std::endl;
+	this->addr.sin_port = htons(res);
 }
 	
 void	Config::client_max_body_size(std::string & str) {

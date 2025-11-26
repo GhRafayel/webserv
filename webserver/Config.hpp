@@ -34,7 +34,7 @@ class Config : public StringUtils
 		std::map<std::string, int>	conf_seting;
 		std::string					serv_name;
 		std::string					error_404;
-		std::string 				error_500;
+		std::string					error_500;
 		
 		~Config();
 		Config();

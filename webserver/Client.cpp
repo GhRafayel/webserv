@@ -1,6 +1,5 @@
 #include "Client.hpp"
 
-
 Client::~Client() { }
 
 Client::Client(const Client & obj)

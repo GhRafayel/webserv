@@ -110,6 +110,7 @@ int	My_server::request(int index)
 	if (!_req.recieve(_client[index - 1].buffer))
 		return index + 1;
 
+	
 	_req.analize_request(_client[index - 1]);
 	
 	std::ifstream file((_conf.getPath() + _conf.getDefaultFile()).c_str());
@@ -162,18 +163,27 @@ int My_server::respons(int index)
 
 bool    My_server::accept_loop()
 {
+	bool val = true;
 	std::cout << "\nServer start ...\n";
 	while (g_running)
 	{
 		int n = poll(_fds.data(), _fds.size(), _timeout_ms);
-
 		if (n <= 0)	continue;
 
+		std::cout << "==================  n = " << n << std::endl;
+		
 		size_t i = 0;
+		if (val)
+		{
+			sleep(10);
+			val = false;
+		}
 		while (i < _fds.size())
 		{
 			if (_fds[i].revents & POLLIN)
+			{
 				i = request(i);
+			}
 			else if (_fds[i].revents & POLLOUT)
 				i = respons(i);
 			else

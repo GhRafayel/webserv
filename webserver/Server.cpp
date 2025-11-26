@@ -16,7 +16,8 @@ Server::Server() :
 	StringUtils(),
 	_client(), 
 	_conf(), 
-	_pollfds(), 
+	_pollfds(),
+	_time(1000),
 	_conf_file_path("conf/default.conf")
 {
 	_conf_file_path = abs_Path(_conf_file_path);
@@ -29,6 +30,7 @@ Server::Server(const std::string & conf_file_path) :
 	_client(),
 	_conf(), 
 	_pollfds(),
+	_time(1000),
 	_conf_file_path(conf_file_path)
 {
 	_conf_file_path = abs_Path(_conf_file_path);
@@ -36,10 +38,13 @@ Server::Server(const std::string & conf_file_path) :
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
 
-Server::Server(const Server & obj) : StringUtils(), _conf(obj._conf), _pollfds(obj._pollfds)
-{
-	this->_conf_file_path = obj._conf_file_path;
-}
+// Server::Server(const Server & obj) :
+// 	StringUtils(),
+// 	_conf(obj._conf),
+// 	_pollfds(obj._pollfds)
+// {
+// 	this->_conf_file_path = obj._conf_file_path;
+// }
 
 Server & Server::operator = (const Server & obj) {
 	if (this != & obj)
@@ -63,7 +68,6 @@ pollfd	Server::create_pollfd(int fd)
 	pollfd p;
 	p.events = POLLIN;
 	p.fd = fd;
-	p.revents = 0;
 	return p;
 }
 
@@ -71,7 +75,7 @@ void	Server::start()
 {
 	initConfig();
 	create_server();
-	//accept_loop();
+	accept_loop();
 }
 
 void	Server::initConfig()
@@ -107,11 +111,13 @@ void	Server::initConfig()
 void	Server::create_server()
 {
 	int				opt;
+
 	for (std::map<int, Config *>::iterator it = _conf.begin(); it != _conf.end(); it++)
 	{
 		opt = 1;
+		std::cout << "it->first = " << it->first << " it->second->addr.port = " << it->second->addr.sin_port << std::endl;
 		if (fcntl(it->first, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
-			throw std::runtime_error("fcntl failed\n");
+            throw std::runtime_error("fcntl failed");
 		if (setsockopt(it->first, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 			throw std::runtime_error("setsockopt failed\n");
 		if (bind(it->first, (struct sockaddr *)&it->second->addr, sizeof(it->second->addr)) == -1)
@@ -133,7 +139,7 @@ void     Server::to_connect(int index)
 			return;
 		}
 		_pollfds.push_back(create_pollfd(fd));
-		_client.insert(std::make_pair(index, Client(fd)));
+		_client.insert(std::make_pair(fd, Client(fd)));
 		_client.find(index)->second.server_conf_key = _pollfds[index].fd;
 		std::cout << "Client connected successfully" << std::endl;
 	}
@@ -155,37 +161,27 @@ void    Server::accept_loop()
 
 	while (g_running)
 	{
-		int n = poll(_pollfds.data(), _pollfds.size(), _time);
-
-		if (n <= 0)	continue;
+		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
+		if (n <= 0) continue;
 
 		size_t i = 0;
-		while (i < _pollfds.size())
+		while (g_running && i < _pollfds.size())
 		{
 			if (_pollfds[i].revents & POLLIN)
 			{
 				if (is_server_socket(_pollfds[i].fd))
-				{
 					to_connect(i);
-				}
 				else
 				{
-					Request	req;
-					// Request(_client.find(i));
-					//if (n == -1 &&  (errno != EAGAIN && errno != EWOULDBLOCK))
+					std::cout << "else request" << std::endl;
 				}
 				std::cout << "request" << std::endl;
 			}
 			else if (_pollfds[i].revents & POLLOUT)
 			{
-				// Respons(_client.find(i));
-				// i++;
 				std::cout << "respons" << std::endl;
 			}
-			else
-				i++;
-			if (!g_running) break;
+			i++;
 		}
-		if (!g_running) break;
 	}
 }

@@ -12,11 +12,9 @@ class Request : public StringUtils
 {
 	private:
 		std::string str_request;
-
-		
 		Request(const Request &);
-
 		Request &	operator = (const Request &);
+
 		bool		end_of_request();
 		int			to_read(int);
 	public:

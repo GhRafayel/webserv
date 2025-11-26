@@ -18,25 +18,24 @@ extern volatile bool g_running;
 class Server : public StringUtils
 {
 	private:
-		//std::vector<int>				_sockets;
 		std::map<int, Client>			_client;
 		std::map<int, Config *>			_conf;
 		std::vector<pollfd>				_pollfds;
 		int								_time;
 		std::string						_conf_file_path;
 
-		void						to_connect(int);
-		bool						is_server_socket(int);
-		void						initConfig();
-		void						create_server();
-		void						accept_loop();
-		pollfd						create_pollfd(int);
+		Server(const Server &);
 
+		void	to_connect(int);
+		bool	is_server_socket(int);
+		void	initConfig();
+		void	create_server();
+		void	accept_loop();
+		pollfd	create_pollfd(int);
 	public:
 		~Server();
 		Server();
 		Server(const std::string &);
-		Server(const Server &);
 		Server & operator = (const Server &);
 		void    start();
 };
