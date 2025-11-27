@@ -1,187 +1,164 @@
 #include "Server.hpp"
 
-Server::~Server() {
-	for (std::map<int, Config *>::iterator  it = _conf.begin(); it != _conf.end(); it++)
-	{
-		delete it->second;
-	}
-	for (size_t i = 0; i < _pollfds.size(); i++)
-	{
-		if (_pollfds[i].fd != -1)
-			close(_pollfds[i].fd);
-	}
+Server::~Server() { }
+
+Server::Server() : StringUtils(), file_content(""), valid(false),  conf_seting() {
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
 }
 
-Server::Server() : 
-	StringUtils(),
-	_client(), 
-	_conf(), 
-	_pollfds(),
-	_time(1000),
-	_conf_file_path("conf/default.conf")
+Server::Server(std::string & strim): StringUtils(), file_content(strim), valid(true), conf_seting()
 {
-	_conf_file_path = abs_Path(_conf_file_path);
-	if(!_conf_file_path.size())
-		throw std::runtime_error("Configuration file dose not exist or worng path!");
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	call_member("read_conf", NULL);
 }
 
-Server::Server(const std::string & conf_file_path) :
-	StringUtils(),
-	_client(),
-	_conf(), 
-	_pollfds(),
-	_time(1000),
-	_conf_file_path(conf_file_path)
+Server::Server(const Server & obj)	
+	: StringUtils(), conf_location(obj.conf_location), conf_seting(obj.conf_seting)
 {
-	_conf_file_path = abs_Path(_conf_file_path);
-	if(!_conf_file_path.size())
-		throw std::runtime_error("Configuration file dose not exist or worng path!");
+	this->valid = obj.valid;
+	this->serv_name = obj.serv_name;
+	this->error_404 = obj.error_404;
+	this->error_500 = obj.error_500;
+	this->addr.sin_port = obj.addr.sin_port;
+	this->addr.sin_family = obj.addr.sin_family;
+	this->addr.sin_addr.s_addr = obj.addr.sin_addr.s_addr;
 }
 
-// Server::Server(const Server & obj) :
-// 	StringUtils(),
-// 	_conf(obj._conf),
-// 	_pollfds(obj._pollfds)
-// {
-// 	this->_conf_file_path = obj._conf_file_path;
-// }
+bool	Server::is_valid() const {
+	return this->valid;
+}
 
-Server & Server::operator = (const Server & obj) {
-	if (this != & obj)
+Server &  Server::operator = (const Server & obj)
+{
+	if (this != &obj)
 	{
-		this->_conf_file_path = obj._conf_file_path;
-
-		for (size_t i = 0; i < obj._conf.size(); i++)
-		{
-			std::map<int, Config *> conf_temp(obj._conf);
-			this->_conf = conf_temp;
-			std::vector<pollfd> pollfd_temp(obj._pollfds);
-			this->_pollfds = pollfd_temp;
-		}
-		return *this;
+		std::vector<Location> temp_L(obj.conf_location);
+		this->conf_location = temp_L;
+		std::map<std::string, int> temp_M(obj.conf_seting);
+		this->conf_seting = temp_M;
+		this->valid = obj.valid;
+		this->serv_name = obj.serv_name;
+		this->error_404 = obj.error_404;
+		this->error_500 = obj.error_500;
+		this->addr.sin_port = obj.addr.sin_port;
+		this->addr.sin_family = obj.addr.sin_family;
+		this->addr.sin_addr.s_addr = obj.addr.sin_addr.s_addr;
 	}
 	return *this;
 }
 
-pollfd	Server::create_pollfd(int fd)
+void Server::call_member(const std::string & fun_name, const char * arg)
 {
-	pollfd p;
-	p.events = POLLIN;
-	p.fd = fd;
-	return p;
-}
+	std::string fun_str_list[5] = { "listen", "client_max_body_size", "server_name", "error_page_404", "error_page_500" };
 
-void	Server::start()
-{
-	initConfig();
-	create_server();
-	accept_loop();
-}
+	std::string fun_void = "read_conf";
 
-void	Server::initConfig()
-{
-	validate_file(_conf_file_path);
+	void (Server::*fun_void_ref) (void) = &Server::read_conf;
 
-	std::ifstream	file(_conf_file_path.c_str());
-	std::string		buffer;
-	std::string		str;
-
-	while (getline(file, buffer))
+	void (Server::*fun_str_ref[5]) (std::string &) =
 	{
-		buffer = trim(buffer, " \t");
-		if (buffer[0] == '#' || !buffer.length())
-			continue;
-		str += buffer + "\n";
-	}
-	std::vector<std::string> server = split(str, "[end]", true);
-	for (size_t i = 0; i < server.size(); i++)
+		&Server::listen, 
+		&Server::client_max_body_size, 
+		&Server::server_name,
+		&Server::error_page_404,
+		&Server::error_page_500
+	};
+	
+	try
 	{
-		Config conf(server[i]);
-		if (conf.is_valid())
+		if (!arg && fun_name == fun_void)
 		{
-			int fd = socket(AF_INET, SOCK_STREAM, 0);
-			if (fd < 0)
-				throw std::runtime_error("socket failed\n");
-			_conf.insert(std::make_pair(fd, new Config(conf)));
-			str.clear();
-		}
-	}
-}
-
-void	Server::create_server()
-{
-	int				opt;
-
-	for (std::map<int, Config *>::iterator it = _conf.begin(); it != _conf.end(); it++)
-	{
-		opt = 1;
-		std::cout << "it->first = " << it->first << " it->second->addr.port = " << it->second->addr.sin_port << std::endl;
-		if (fcntl(it->first, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
-            throw std::runtime_error("fcntl failed");
-		if (setsockopt(it->first, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-			throw std::runtime_error("setsockopt failed\n");
-		if (bind(it->first, (struct sockaddr *)&it->second->addr, sizeof(it->second->addr)) == -1)
-			throw std::runtime_error("bind failed\n");
-		if (listen(it->first, 128) < 0)
-			throw std::runtime_error("listen failed\n");
-		_pollfds.push_back(create_pollfd(it->first));
-	}
-}
-
-void     Server::to_connect(int index)
-{
-	int fd = accept(_pollfds[index].fd, NULL, NULL);
-	if (fd >= 0)
-	{
-		if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
-		{
-			close(fd);
+			(this->*fun_void_ref)();
 			return;
 		}
-		_pollfds.push_back(create_pollfd(fd));
-		_client.insert(std::make_pair(fd, Client(fd)));
-		_client.find(index)->second.server_conf_key = _pollfds[index].fd;
-		std::cout << "Client connected successfully" << std::endl;
-	}
-	else
-		std::cout << "Client connection failed" << std::endl;
-}
-
-bool	Server::is_server_socket(int fd)
-{
-	std::map<int, Config *>::iterator it = _conf.find(fd);
-	if (it != _conf.end())
-		return true;
-	return false;
-}
-
-void    Server::accept_loop()
-{
-	std::cout << "\nServer start ...\n";
-
-	while (g_running)
-	{
-		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
-		if (n <= 0) continue;
-
-		size_t i = 0;
-		while (g_running && i < _pollfds.size())
+		for (size_t i = 0; i < fun_str_list->size(); i++)
 		{
-			if (_pollfds[i].revents & POLLIN)
+			if (fun_str_list[i] == fun_name)
 			{
-				if (is_server_socket(_pollfds[i].fd))
-					to_connect(i);
-				else
-				{
-					std::cout << "else request" << std::endl;
-				}
-				std::cout << "request" << std::endl;
+				std::string temp = arg;
+				(this->*fun_str_ref[i])(temp);
+				return;
 			}
-			else if (_pollfds[i].revents & POLLOUT)
-			{
-				std::cout << "respons" << std::endl;
-			}
-			i++;
 		}
 	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+		this->valid = false;
+	}
+}
+
+void	Server::listen(std::string & str) 
+{
+	if (!is_digitS(str))
+		throw std::runtime_error("port is invalid");
+	int res = str_to_int(str);
+	if (res == -1)
+		throw std::runtime_error("port is invalid");
+	conf_seting.insert(std::make_pair("port", res));
+	std::cout << res << std::endl;
+	this->addr.sin_port = htons(res);
+}
+	
+void	Server::client_max_body_size(std::string & str) {
+	if (!is_digitS(str))
+		throw std::runtime_error("max_body_size is invalid");
+	int res =  str_to_int(str);
+	if (res == -1)
+		throw std::runtime_error("Max_body_sie is invalid");
+	conf_seting.insert(std::make_pair("max_size", res));	
+}
+
+void	Server::server_name(std::string & str) {
+	if (!str.size())
+		throw std::runtime_error("server name is invalid");
+	this->serv_name = str;
+}
+	
+void	Server::error_page_404(std::string & str) {
+	error_404 = str;
+}
+
+void	Server::error_page_500(std::string & str)
+{
+	error_500 = str;
+}
+
+void	Server::control() {
+	if (conf_location.empty() || conf_seting.empty())
+		this->valid = false;
+	if (serv_name.empty())
+		this->valid = false;
+}
+
+void    Server::read_conf()
+{
+	std::vector<std::string> array = split(file_content, "\n", true);
+	
+	for (size_t i = 0; i < array.size(); i++)
+	{
+		std::vector<std::string> conf_line = split(array[i], "=", true);
+		if(conf_line.size() == 2 && conf_line[0].size() && conf_line[1].size())
+		{
+			if (conf_line[0] == "location")
+			{
+				array[i] = ("location = " + array[i]);
+				try {
+					Location temp(array, i);
+					if (!temp.valid)
+						throw std::runtime_error("Location is invalid");
+					this->conf_location.push_back(Location(temp));
+				}
+				catch(const std::exception& e) {
+					std::cerr << e.what() << '\n';
+					this->valid = false;
+				}
+			}
+			call_member(conf_line[0], conf_line[1].c_str());
+			conf_line.clear();
+		}
+	}
+	control();
 }

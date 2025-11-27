@@ -1,43 +1,49 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
-
-#include "StringUtils.hpp"
-#include "Request.hpp"
-#include "Client.hpp"
-#include "Config.hpp"
+#ifndef Server_HPP
+#define Server_HPP
 
 #include <sys/socket.h>
-#include <fcntl.h>
-#include <csignal>
-#include <pthread.h>
-#include <unistd.h>
-#include <poll.h>
+#include <netinet/in.h>
+#include <stdlib.h>
 
-extern volatile bool g_running;
+#include "StringUtils.hpp"
+#include "Location.hpp"
+#include <typeinfo>
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include <map>
 
 class Server : public StringUtils
 {
 	private:
-		std::map<int, Client>			_client;
-		std::map<int, Config *>			_conf;
-		std::vector<pollfd>				_pollfds;
-		int								_time;
-		std::string						_conf_file_path;
+		std::string	file_content;
+		bool		valid;
 
-		Server(const Server &);
+		void		listen(std::string & str);
+		void		client_max_body_size(std::string & str);
+		void		server_name(std::string & str);
+		void		error_page_404(std::string & str);
+		void		error_page_500(std::string & str);
+		void		control();
+		void		call_member(const std::string &,const  char *);
+		void		read_conf();
 
-		void	to_connect(int);
-		bool	is_server_socket(int);
-		void	initConfig();
-		void	create_server();
-		void	accept_loop();
-		pollfd	create_pollfd(int);
 	public:
+		struct  sockaddr_in			addr;
+		std::vector<Location>		conf_location;
+		std::map<std::string, int>	conf_seting;
+		std::string					serv_name;
+		std::string					error_404;
+		std::string					error_500;
+		
 		~Server();
 		Server();
-		Server(const std::string &);
+		Server(std::string &);
+		Server(const Server &);
 		Server & operator = (const Server &);
-		void    start();
+		
+		bool		is_valid() const;
 };
 
 #endif
+

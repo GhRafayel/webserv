@@ -1,5 +1,5 @@
 
-#include "Server.hpp"
+#include "Config.hpp"
 
 volatile bool g_running = true;
 
@@ -12,22 +12,22 @@ int main()
 {
 	int argc = 2;
 	char argv[2][50] = {"./webserv", "conf/server.conf"};
-	Server * server = NULL;
+	Config * config = NULL;
 
 	std::signal(SIGINT, signal_handler);
 	std::signal(SIGTERM, signal_handler);
 	if (argc < 3)
 	{
 		if (argc == 1)
-			server = new Server;
+			config = new Config;
 		else
 		{
-			server = new Server(argv[1]);
-			server->start();
+			config = new Config(argv[1]);
+			config->start();
 		}
 	}
 	else
 		std::cerr << "Error: Invalid number of parameters. Expected max : 2" << std::endl;
-	delete server;
+	delete config;
 	return 0;
 }

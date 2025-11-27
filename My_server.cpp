@@ -99,7 +99,7 @@ int	My_server::request(int index)
 	n = buffer.length();
 	if (n <= 0)
 	{
-		if (n == -1 )  // (errno != EAGAIN && errno != EWOULDBLOCK))
+		if (n == -1 )
 			return index + 1;
 		close(_fds[index].fd);
 		remove_item(index);
@@ -110,9 +110,7 @@ int	My_server::request(int index)
 	if (!_req.recieve(_client[index - 1].buffer))
 		return index + 1;
 
-	
 	_req.analize_request(_client[index - 1]);
-	
 	std::ifstream file((_conf.getPath() + _conf.getDefaultFile()).c_str());
 	std::string body;
 

@@ -1,4 +1,4 @@
-SRC = main.cpp Server.cpp StringUtils.cpp  Config.cpp Location.cpp Request.cpp Client.cpp
+SRC = main.cpp Config.cpp StringUtils.cpp  Server.cpp Location.cpp Request.cpp Client.cpp
 OBJ = $(SRC:%.cpp=$(OBJ_FOLDER)/%.o)
 DEP = $(OBJ:.o=.d)
 
