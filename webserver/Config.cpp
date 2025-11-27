@@ -196,7 +196,7 @@ void    Config::accept_loop()
 							_pollfds.erase(_pollfds.begin() + i);
 							_client.erase(_pollfds[i].fd);
 						}
-						break;
+						continue;
 					}
 					buffer[n] = '\0';
 					_client.find(_pollfds[i].fd)->second.buffer.append(buffer);
