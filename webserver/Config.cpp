@@ -70,6 +70,7 @@ pollfd	Config::create_pollfd(int fd)
 {
 	pollfd p;
 	p.events = POLLIN;
+	p.revents = 0;
 	p.fd = fd;
 	return p;
 }
@@ -170,10 +171,18 @@ void    Config::accept_loop()
 		size_t i = 0;
 		while (g_running && i < _pollfds.size())
 		{
+			if (_pollfds[i].fd == -1)
+			{
+				std::cout << "_pollfds fd = -1" << std::endl;
+				i++;
+				continue;
+			}
 			if (_pollfds[i].revents & POLLIN)
 			{
 				if (is_server_socket(_pollfds[i].fd))
+				{
 					to_connect(i);
+				}
 				else
 				{
 					char buffer[1025];
@@ -181,12 +190,15 @@ void    Config::accept_loop()
 
 					if (n <= 0)
 					{
-						if (n == -1 ) break;
-						close(_pollfds[i].fd);
-						_pollfds.erase(_pollfds.begin() + i);
-						_client.erase(_pollfds[i].fd);
-
+						if (n == 0) 
+						{
+							close(_pollfds[i].fd);
+							_pollfds.erase(_pollfds.begin() + i);
+							_client.erase(_pollfds[i].fd);
+						}
+						break;
 					}
+					buffer[n] = '\0';
 					_client.find(_pollfds[i].fd)->second.buffer.append(buffer);
 					if (!recieve(_client.find(_pollfds[i].fd)->second.buffer))
 						break;
@@ -231,11 +243,9 @@ void    Config::accept_loop()
 				}
 				if (_client.find(_pollfds[i].fd)->second.end_request)
 				{
-					
 					close(_pollfds[i].fd);
 					_client.erase(_pollfds[i].fd);
 					_pollfds.erase(_pollfds.begin() + i);
-					
 				}
 				_pollfds[i].events &= ~POLLOUT;
 			}
