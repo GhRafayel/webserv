@@ -57,12 +57,12 @@ std::string StringUtils::trim (std::string & str, const std::string & del)
     return str;
 }
 
-std::string StringUtils::chang_char(std::string & src, const char chr, const char del)
+std::string StringUtils::chang_char(std::string & src, const char chr1, const char chr2)
 {
     for (size_t i = 0; i < src.size(); i++)
     {
-        if (src[i] == del)
-            src[i] = chr;
+        if (src[i] == chr1)
+            src[i] = chr2;
     }
     return src;
 }

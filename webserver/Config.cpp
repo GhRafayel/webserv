@@ -75,7 +75,7 @@ pollfd	Config::create_pollfd(int fd)
 	return p;
 }
 
-void	Config::start()
+void	Config::start_server()
 {
 	initConfig();
 	create_server();
@@ -159,6 +159,37 @@ bool	Config::is_server_socket(int fd)
 	return false;
 }
 
+void	Config::remove_client(int i)
+{
+	close(_pollfds[i].fd);
+	_client.erase(_pollfds[i].fd);
+	_pollfds.erase(_pollfds.begin() + i);
+}
+
+int	Config::to_read(Client & obj)
+{
+	char	buffer[1025];
+
+	int n = recv(obj.fd, buffer, 1024, 0);
+	if (n)
+	{
+		buffer[n] = '\0';
+		obj.buffer.append(buffer);
+		obj.end_request = end_of_request(buffer);
+	}
+	return n;
+}
+
+
+bool    Config::end_of_request(const std::string & buffer)
+{
+    if (buffer.length() < 4)
+        return false;
+    if (buffer.find("\r\n\r\n") != std::string::npos)
+        return true;
+    return false;
+}
+
 void    Config::accept_loop()
 {
 	std::cout << "\nServer start ...\n";
@@ -171,13 +202,7 @@ void    Config::accept_loop()
 		size_t i = 0;
 		while (g_running && i < _pollfds.size())
 		{
-			if (_pollfds[i].fd == -1)
-			{
-				std::cout << "_pollfds fd = -1" << std::endl;
-				i++;
-				continue;
-			}
-			if (_pollfds[i].revents & POLLIN)
+			if ( _pollfds[i].revents & POLLIN)
 			{
 				if (is_server_socket(_pollfds[i].fd))
 				{
@@ -185,23 +210,28 @@ void    Config::accept_loop()
 				}
 				else
 				{
-					char buffer[1025];
-					int n = recv(_pollfds[i].fd, buffer, 1024, 0);
-
-					if (n <= 0)
+					Client		&ref = _client.find(_pollfds[i].fd)->second;
+			
+					if (to_read(ref) == 0)
 					{
-						if (n == 0) 
-						{
-							close(_pollfds[i].fd);
-							_pollfds.erase(_pollfds.begin() + i);
-							_client.erase(_pollfds[i].fd);
-						}
-						continue;
-					}
-					buffer[n] = '\0';
-					_client.find(_pollfds[i].fd)->second.buffer.append(buffer);
-					if (!recieve(_client.find(_pollfds[i].fd)->second.buffer))
+						remove_client(i);
 						break;
+					}
+					if (ref.end_request)
+					{
+						Request		req(ref);
+						std::map<std::string, std::string> & map_ref = req.getRequest();
+
+						std::cout << req.getMethod() << std::endl;
+						std::cout << req.getPath() << std::endl;
+						std::cout << req.getProtocol() << std::endl;
+
+						for (std::map<std::string, std::string>::iterator it = map_ref.begin(); it != map_ref.end(); it++)
+						{
+							std::cout << it->first << " = " << it->second << std::endl;
+						}
+						
+					}
 
 					validate_file("index.html");
 					std::ifstream file("index.html");
@@ -223,9 +253,8 @@ void    Config::accept_loop()
 					_client.find(_pollfds[i].fd)->second.outbuf = t.str();
 					_pollfds[i].events |= POLLOUT;
 				}
-				std::cout << "request" << std::endl;
 			}
-			else if (_pollfds[i].revents & POLLOUT)
+			else if ( _pollfds[i].revents & POLLOUT)
 			{
 				while (!_client.find(_pollfds[i].fd)->second.outbuf.empty())
 				{

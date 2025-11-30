@@ -11,17 +11,26 @@
 class Request : public StringUtils
 {
 	private:
-		std::string str_request;
+		Client								&client_ref;
+		std::string							method;
+		std::string							path;
+		std::string							protocol;
+		std::map<std::string, std::string>	request;
+
 		Request(const Request &);
 		Request &	operator = (const Request &);
-
-		bool		end_of_request();
-		int			to_read(int);
 	public:
+		
+
+		void	analize_request();
+
+		std::string	getMethod();
+		std::string	getPath();
+		std::string getProtocol();
+		std::map<std::string, std::string> & getRequest();
+
 		~Request();
-		Request(std::map<int, Client>::iterator it);
-		Request();
-		// void	analize_request();
+		Request(Client &);
 };
 
 #endif
@@ -36,7 +45,7 @@ typedef struct {
 static const mime_entry mime_map[] = {
 	{ "html", "text/html" },
 	{ "htm",  "text/html" },
-	{ "css",  "text/css" },        // ոչ text.css
+	{ "css",  "text/css" },
 	{ "js",   "application/javascript" },
 	{ "json", "application/json" },
 	{ "jpg",  "image/jpeg" },

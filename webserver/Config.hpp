@@ -29,6 +29,9 @@ class Config : public StringUtils
 		void	initConfig();
 		void	create_server();
 		void	accept_loop();
+		bool	end_of_request(const std::string &);
+		int		to_read(Client &);
+		void	remove_client(int);
 		pollfd	create_pollfd(int);
 	public:
 		~Config();
@@ -36,7 +39,7 @@ class Config : public StringUtils
 		Config(const Config &);
 		Config(const std::string &);
 		Config & operator = (const Config &);
-		void    start();
+		void    start_server();
 };
 
 #endif

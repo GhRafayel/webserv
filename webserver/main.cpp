@@ -18,12 +18,19 @@ int main()
 	std::signal(SIGTERM, signal_handler);
 	if (argc < 3)
 	{
-		if (argc == 1)
-			config = new Config;
-		else
+		try
 		{
-			config = new Config(argv[1]);
-			config->start();
+			if (argc == 1)
+				config = new Config;
+			else
+			{
+				config = new Config(argv[1]);
+				config->start_server();
+			}
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
 		}
 	}
 	else

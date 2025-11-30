@@ -23,7 +23,6 @@ class StringUtils
 		std::string					abs_Path(const std::string &);
 		std::string					chang_char(std::string &, const char, const char);
 		std::vector<std::string>	split(std::string &, const std::string &, bool);
-
 };
 
 
