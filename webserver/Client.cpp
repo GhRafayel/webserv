@@ -17,6 +17,6 @@ Client::Client(int FD) :
     fd(FD),
     statuc_code(0),
     end_request(false), 
-    buffer(""), 
+    buffer(""),
     outbuf("") 
 {}

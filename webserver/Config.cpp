@@ -220,23 +220,13 @@ void    Config::accept_loop()
 					if (ref.end_request)
 					{
 						Request		req(ref);
-						std::map<std::string, std::string> & map_ref = req.getRequest();
-
-						std::cout << req.getMethod() << std::endl;
-						std::cout << req.getPath() << std::endl;
-						std::cout << req.getProtocol() << std::endl;
-
-						for (std::map<std::string, std::string>::iterator it = map_ref.begin(); it != map_ref.end(); it++)
-						{
-							std::cout << it->first << " = " << it->second << std::endl;
-						}
-						
+						req.foo(_servers.find(ref.server_conf_key)->second);
 					}
 
 					validate_file("index.html");
 					std::ifstream file("index.html");
-				
 					std::string body;
+
 					if (file.is_open())
 					{
 						std::ostringstream oss;
@@ -244,6 +234,7 @@ void    Config::accept_loop()
 						body = oss.str();
 						file.close();
 					}
+
 					std::ostringstream t;
 					t	<< "HTTP/1.1 200 OK\r\n"
 						<< "Content-Type: text/html\r\n"
@@ -254,14 +245,14 @@ void    Config::accept_loop()
 					_pollfds[i].events |= POLLOUT;
 				}
 			}
-			else if ( _pollfds[i].revents & POLLOUT)
+			else if (_pollfds[i].revents & POLLOUT)
 			{
 				while (!_client.find(_pollfds[i].fd)->second.outbuf.empty())
 				{
 					_client.find(_pollfds[i].fd)->second.end_request = true;
 					ssize_t sent = send(
 						_pollfds[i].fd, 
-						_client.find(_pollfds[i].fd)->second.outbuf.data(), 
+						_client.find(_pollfds[i].fd)->second.outbuf.data(),
 						_client.find(_pollfds[i].fd)->second.outbuf.size(), 0);
 					if (sent > 0)
 					{

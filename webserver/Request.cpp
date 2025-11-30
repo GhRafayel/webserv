@@ -17,12 +17,16 @@ void	Request::analize_request()
 	for (size_t i = 1; i < req.size(); i++)
 	{
 		std::vector<std::string> line = split(req[i], " ", true);
-
 		if (line.size() == 2)
 		{
 			request.insert(std::make_pair(line[0], line[1]));
 		}
 	}
+}
+
+void	Request::foo(Server * obj)
+{
+	(void)obj;
 }
 std::string Request::getProtocol(){
 	return this->protocol;
@@ -37,4 +41,3 @@ std::string	Request::getPath(){
 std::map<std::string, std::string> & Request::getRequest() {
 	return this->request;
 }
-

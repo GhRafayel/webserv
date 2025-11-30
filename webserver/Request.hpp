@@ -4,6 +4,7 @@
 #include "StringUtils.hpp"
 #include <sys/socket.h>
 #include "Client.hpp"
+#include "Server.hpp"
 #include <iostream>
 #include <map>
 
@@ -22,12 +23,12 @@ class Request : public StringUtils
 	public:
 		
 
-		void	analize_request();
-
-		std::string	getMethod();
-		std::string	getPath();
-		std::string getProtocol();
-		std::map<std::string, std::string> & getRequest();
+		void								foo(Server * );
+		void								analize_request();
+		std::string							getMethod();
+		std::string							getPath();
+		std::string 						getProtocol();
+		std::map<std::string, std::string>	&getRequest();
 
 		~Request();
 		Request(Client &);
