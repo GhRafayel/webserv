@@ -82,9 +82,10 @@ void	Config::start_server()
 	// accept_loop();
 }
 
-bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, size_t i)
+bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, size_t *index)
 {
-	int len = temp[i].size() - 1;
+	size_t	i = *index;
+	int 	len = temp[i].size() - 1;
 
 	if (temp[i].substr(0, 4) == "http")
 	{
@@ -94,7 +95,7 @@ bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, 
 		{
 			if (i + 1 >= temp.size() || temp[i + 1] != "{")
 				return false;
-			i++;
+			*index  += 1;
 		}
 		blocks[0] = true;
 		return true;
@@ -107,7 +108,7 @@ bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, 
 		{
 			if (i + 1 >= temp.size() || temp[i + 1] != "{")
 				return false;
-			i++;
+			*index  += 1;
 		}
 		blocks[1] = true;
 		return true;
@@ -120,7 +121,7 @@ bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, 
 		{
 			if (i + 1 >= temp.size() || temp[i + 1] != "{")
 				return false;
-			i++;
+			*index  += 1;
 		}
 		blocks[2] = true;
 		return true;
@@ -151,7 +152,7 @@ void	Config::initConfig()
 	{
 		std::cout << temp[i] << std::endl; 
 		
-		if (temp[i][temp[i].size() - 1] != ';' && !is_valid_line(blocks, temp, i))
+		if (temp[i] != "}" && temp[i][temp[i].size() - 1] != ';' && !is_valid_line(blocks, temp, &i))
 			throw std::runtime_error("syntax error in config file");
 		if (temp[i] == "}")
 		{
