@@ -15,6 +15,7 @@ class StringUtils
 	public:
 		~StringUtils();
 		StringUtils();
+		void						check_config_file();
 		void						validate_file(const std::string &);
 		bool						is_digitS(const std::string &);
 		bool						recieve(const std::string &);
@@ -24,6 +25,5 @@ class StringUtils
 		std::string					chang_char(std::string &, const char, const char);
 		std::vector<std::string>	split(std::string &, const std::string &, bool);
 };
-
 
 #endif

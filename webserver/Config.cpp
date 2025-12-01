@@ -78,10 +78,55 @@ pollfd	Config::create_pollfd(int fd)
 void	Config::start_server()
 {
 	initConfig();
-	create_server();
-	accept_loop();
+	// create_server();
+	// accept_loop();
 }
 
+bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, size_t i)
+{
+	int len = temp[i].size() - 1;
+
+	if (temp[i].substr(0, 4) == "http")
+	{
+		if (blocks[0] || blocks[1] || blocks[2])
+			return false;
+		if (temp[i][len] != '{')
+		{
+			if (i + 1 >= temp.size() || temp[i + 1] != "{")
+				return false;
+			i++;
+		}
+		blocks[0] = true;
+		return true;
+	}
+	else if (temp[i].substr(0, 6) == "server")
+	{
+		if (blocks[1] || !blocks[0] || blocks[2])
+			return false;
+		if (temp[i][len] != '{')
+		{
+			if (i + 1 >= temp.size() || temp[i + 1] != "{")
+				return false;
+			i++;
+		}
+		blocks[1] = true;
+		return true;
+	}
+	else if(temp[i].substr(0, 8) == "location")
+	{
+		if (blocks[2] || !blocks[1] || !blocks[0])
+			return false;
+		if (temp[i][len] != '{')
+		{
+			if (i + 1 >= temp.size() || temp[i + 1] != "{")
+				return false;
+			i++;
+		}
+		blocks[2] = true;
+		return true;
+	}
+	return false;
+}
 void	Config::initConfig()
 {
 	validate_file(_conf_file_path);
@@ -97,6 +142,36 @@ void	Config::initConfig()
 			continue;
 		str += buffer + "\n";
 	}
+
+	std::vector<std::string> temp = split(str, "\n", true);
+
+	std::vector<bool> blocks(3, false);
+	
+	for (size_t i = 0; i < temp.size(); i++)
+	{
+		std::cout << temp[i] << std::endl; 
+		
+		if (temp[i][temp[i].size() - 1] != ';' && !is_valid_line(blocks, temp, i))
+			throw std::runtime_error("syntax error in config file");
+		if (temp[i] == "}")
+		{
+			int j = blocks.size() - 1;
+			while (j >= 0)
+			{
+				if (blocks[j])
+				{
+					blocks[j] = false;
+					j = -1;
+					break;
+				}
+				j--;
+			}
+			if (j != -1)
+				throw std::runtime_error("syntax error in config file");
+		}
+	}
+	
+	/*
 	std::vector<std::string> Config = split(str, "[end]", true);
 	for (size_t i = 0; i < Config.size(); i++)
 	{
@@ -109,7 +184,7 @@ void	Config::initConfig()
 			_servers.insert(std::make_pair(fd, new Server(conf)));
 			str.clear();
 		}
-	}
+	}*/
 }
 
 void	Config::create_server()
@@ -180,7 +255,6 @@ int	Config::to_read(Client & obj)
 	return n;
 }
 
-
 bool    Config::end_of_request(const std::string & buffer)
 {
     if (buffer.length() < 4)
@@ -222,11 +296,9 @@ void    Config::accept_loop()
 						Request		req(ref);
 						req.foo(_servers.find(ref.server_conf_key)->second);
 					}
-
 					validate_file("index.html");
 					std::ifstream file("index.html");
 					std::string body;
-
 					if (file.is_open())
 					{
 						std::ostringstream oss;
@@ -234,7 +306,6 @@ void    Config::accept_loop()
 						body = oss.str();
 						file.close();
 					}
-
 					std::ostringstream t;
 					t	<< "HTTP/1.1 200 OK\r\n"
 						<< "Content-Type: text/html\r\n"
