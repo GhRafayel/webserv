@@ -93,7 +93,7 @@ bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, 
 			return false;
 		if (temp[i][len] != '{')
 		{
-			if (i + 1 >= temp.size() || temp[i + 1] != "{")
+			if (i + 1 >= temp.size() || temp[i + 1] != "{" || temp[i][4] != '\0')
 				return false;
 			*index  += 1;
 		}
@@ -106,7 +106,7 @@ bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, 
 			return false;
 		if (temp[i][len] != '{')
 		{
-			if (i + 1 >= temp.size() || temp[i + 1] != "{")
+			if (i + 1 >= temp.size() || temp[i + 1] != "{" || temp[i][6] != '\0')
 				return false;
 			*index  += 1;
 		}
@@ -119,7 +119,7 @@ bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, 
 			return false;
 		if (temp[i][len] != '{')
 		{
-			if (i + 1 >= temp.size() || temp[i + 1] != "{")
+			if (i + 1 >= temp.size() || temp[i + 1] != "{" )
 				return false;
 			*index  += 1;
 		}
@@ -128,6 +128,7 @@ bool	is_valid_line(std::vector<bool> & blocks, std::vector<std::string> & temp, 
 	}
 	return false;
 }
+
 void	Config::initConfig()
 {
 	validate_file(_conf_file_path);
@@ -149,11 +150,12 @@ void	Config::initConfig()
 	std::vector<bool> blocks(3, false);
 	
 	for (size_t i = 0; i < temp.size(); i++)
-	{
-		std::cout << temp[i] << std::endl; 
-		
+	{		
 		if (temp[i] != "}" && temp[i][temp[i].size() - 1] != ';' && !is_valid_line(blocks, temp, &i))
-			throw std::runtime_error("syntax error in config file");
+		{
+			throw std::runtime_error("Syntax error config file  failed in line =>  " + temp[i]);
+		}
+			
 		if (temp[i] == "}")
 		{
 			int j = blocks.size() - 1;
@@ -168,7 +170,7 @@ void	Config::initConfig()
 				j--;
 			}
 			if (j != -1)
-				throw std::runtime_error("syntax error in config file");
+				throw std::runtime_error("Syntax error config file  failed " + temp[i]);
 		}
 	}
 	
