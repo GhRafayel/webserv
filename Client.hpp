@@ -1,16 +1,26 @@
-#pragma once
+#ifndef CLIENT_HPP
+# define CLIENT_HPP
 
 #include <iostream>
+#include <sstream>
+#include <ctime>
 
-class client
-{
-    public:
-        int         fd;
-        int         statuc_code;
-        bool        val;
-        std::string buffer;
-        std::string outbuf;
-        ~client();
-        client(int);
-        client();
+class Client
+{		
+	public:
+		std::time_t timeOut;
+		int			server_conf_key;
+		int			fd;
+		int			statuc_code;
+		bool		end_request;
+		std::string	buffer;
+		std::string	outbuf;
+		
+		~Client();
+		Client();
+		Client(int);
+		Client(const Client &);
+		Client & operator = (const Client &);
 };
+
+#endif

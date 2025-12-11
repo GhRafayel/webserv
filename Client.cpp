@@ -1,8 +1,47 @@
 #include "Client.hpp"
 
+Client::~Client() { }
 
-client::~client() { }
+Client::Client() :
+	server_conf_key(-1),
+	fd(-1),
+	statuc_code(-1),
+	end_request(false)
+{ timeOut = std::time(NULL);}
 
-client::client() : fd(-1), val(false), buffer(""), outbuf("") {}
+Client::Client(const Client & obj)
+{
+	this->fd = obj.fd;
+	this->end_request = obj.end_request;
+	this->buffer = obj.buffer;
+	this->outbuf = obj.outbuf;
+	this->server_conf_key = obj.server_conf_key;
+	this->statuc_code = obj.statuc_code;
+	this->timeOut = obj.timeOut;
+}
 
-client::client(int FD) : fd(FD), val(false), buffer(""), outbuf("") {}
+Client::Client(int FD) :
+	server_conf_key(-1),
+	fd(FD),
+	statuc_code(0),
+	end_request(false), 
+	buffer(""),
+	outbuf("") 
+{ 
+	timeOut = std::time(NULL);
+}
+
+Client & Client::operator = (const Client & obj)
+{
+	if (this != & obj)
+	{
+		this->server_conf_key = obj.server_conf_key;
+		this->fd = obj.fd;
+		this->statuc_code = obj.statuc_code;
+		this->end_request = obj.end_request;
+		this->buffer = obj.buffer;
+		this->outbuf = obj.outbuf;
+		this->timeOut = obj.timeOut;
+	}
+	return *this;
+}

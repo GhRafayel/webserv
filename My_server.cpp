@@ -1,195 +1,284 @@
 #include "My_server.hpp"
 
 My_server::~My_server() {
-	for (size_t i = 0; i < _fds.size(); i++)
-		if (_fds[i].fd) close(_fds[i].fd);
+	for (size_t i = 0; i < _pollfds.size(); i++)
+	{
+		if (_pollfds[i].fd != -1)
+			close(_pollfds[i].fd);
+	}
 }
 
-My_server::My_server()
-	: _client(), _fds(), _timeout_ms(1000), _socket(-1)
+My_server::My_server() : 
+	StringUtils(),
+	_client(), 
+	_servers(), 
+	_pollfds(),
+	_time(1000),
+	_conf_file_path("conf/default.conf"),
+	_env()
 {
-	try
-	{
-		_conf = Config("conf/default.conf");
-	}
-	catch(...)
-	{
-		throw;
-	}
-	_s_addr.sin_family = AF_INET;
-	_s_addr.sin_port = htons(this->_conf.getPort());
-	_s_addr.sin_addr.s_addr = INADDR_ANY;
+	_conf_file_path = abs_Path(_conf_file_path);
+	if(!_conf_file_path.size())
+		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
 
-My_server::My_server(const std::string & conf_path)
-	:	_client(), _fds(), _timeout_ms(1000), _socket(-1)
+My_server::My_server( char **env) :
+	StringUtils(),
+	_client(),
+	_servers(), 
+	_pollfds(),
+	_time(1000),
+	_conf_file_path(),
+	_env()
 {
-	try
-	{
-		_conf = Config(conf_path);
-	}
-	catch(...)
-	{
-		throw;
-	}
-	_s_addr.sin_family = AF_INET;
-	_s_addr.sin_port = htons(this->_conf.getPort());
-	_s_addr.sin_addr.s_addr = INADDR_ANY;
+	for (size_t i = 0; env && env[i]; i++)
+		_env.push_back(env[i]);
+	// _conf_file_path = abs_Path(_conf_file_path);
+	// if (_env.empty())
+	// 	throw std::runtime_error("Env is empy ! ");
+	if(_conf_file_path.empty())
+		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
 
-void My_server::create_socket() {
-	int opt = 1;
-	_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (_socket < 0)
-		throw std::string("socket failed");
-	if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
-		throw std::string("fcntl failed");
-	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-    	throw std::string("setsockopt failed");
-	std::cout << "My_server" << _s_addr.sin_port  << std::endl;
-	if (bind(_socket, (struct sockaddr *)&_s_addr, sizeof(_s_addr)) == -1)
-		throw std::string("bind failed");
-	if (listen(_socket, 128) < 0)
-		throw std::string("listen failed");
-	_fds.push_back(create_pollfd(_socket));
+My_server::My_server(const std::string & conf_file_path,  char **env) :
+	StringUtils(),
+	_client(),
+	_servers(), 
+	_pollfds(),
+	_time(1000),
+	_conf_file_path(conf_file_path),
+	_env()
+{
+	for (size_t i = 0; env && env[i]; i++)
+		_env.push_back(env[i]);
+	// _conf_file_path = abs_Path(_conf_file_path);
+	// if (_env.empty())
+	// 	throw std::runtime_error("Env is empy ! ");
+	if(_conf_file_path.empty())
+		throw std::runtime_error("Configuration file dose not exist or worng path!");
+}
+
+My_server::My_server(const My_server & obj) :
+	StringUtils(),
+	_client(obj._client),
+	_servers(obj._servers),
+	_pollfds(obj._pollfds),
+	_env(obj._env)
+{
+	this->_conf_file_path = obj._conf_file_path;
+	this->_time = obj._time;
+}
+
+My_server & My_server::operator = (const My_server & obj)
+{
+	if (this != & obj)
+	{
+		this->_client = obj._client;
+		this->_servers = obj._servers;
+		this->_pollfds = obj._pollfds;
+		this->_conf_file_path = obj._conf_file_path;
+		this->_time = obj._time;
+		this->_env = obj._env;
+	}
+	return *this;
 }
 
 pollfd	My_server::create_pollfd(int fd)
 {
 	pollfd p;
 	p.events = POLLIN;
-	p.fd = fd;
 	p.revents = 0;
+	p.fd = fd;
 	return p;
 }
 
-void	My_server::remove_item(int index)
+void	My_server::start_server()
 {
-	_fds.erase(_fds.begin() + index);
-	_client.erase(_client.begin() + index - 1);
-}
-
-void	My_server::add_item(int fd)
-{
-	_fds.push_back(create_pollfd(fd));
-	_client.push_back(client(fd));
-}
-
-void My_server::start()
-{
-	create_socket();
+	initConfig();
+	create_server();
 	accept_loop();
 }
 
-int	My_server::request(int index)
+void	My_server::initConfig()
 {
-	std::string buffer;
-	ssize_t		n;
-	if (index == 0)
-	{
-		int client_fd = _req.connect(_socket);
-		if (client_fd >= 0)
-		{
-			_req.nonBlock(client_fd);
-			add_item(client_fd);
-		}
-		return index + 1;
-	}
-	buffer = _req.to_read(_fds[index].fd);
-	n = buffer.length();
-	if (n <= 0)
-	{
-		if (n == -1 )
-			return index + 1;
-		close(_fds[index].fd);
-		remove_item(index);
-		return index;
-	}
-	_client[index - 1].buffer.append(buffer);
+	validate_file(_conf_file_path);
 
-	if (!_req.recieve(_client[index - 1].buffer))
-		return index + 1;
-
-	_req.analize_request(_client[index - 1]);
-	std::ifstream file((_conf.getPath() + _conf.getDefaultFile()).c_str());
-	std::string body;
-
-	if (file.is_open())
-	{
-		std::ostringstream oss;
-		oss << file.rdbuf();
-		body = oss.str();
-		file.close();
-	}
+	ConfigPars config(_conf_file_path);
 	
-	std::ostringstream t;
-    t	<< "HTTP/1.1 200 OK\r\n"
-		<< "Content-Type: text/html\r\n"
-		<< "Connection: keep-alive\r\n"
-		<< "Content-Length: " << body.size() <<  "\r\n"
-		<< "\r\n" << body;
-	_client[index - 1].outbuf = t.str();
-	_fds[index].events |= POLLOUT;
-	return index + 1;
+	for (size_t i = 0; i < config.servers.size(); i++)
+	{
+		int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+		if (fd < 0)
+			throw std::runtime_error("socket failed\n");
+
+		_servers.insert(std::make_pair(fd, Server(config.servers[i])));
+	}
 }
 
-int My_server::respons(int index)
+void	My_server::create_server()
 {
-	client & c = _client[index - 1];
+	int				opt;
 
-	while (!c.outbuf.empty())
+	for (std::map<int, Server>::iterator it = _servers.begin(); it != _servers.end(); it++)
 	{
-		c.val = true;
-		ssize_t sent = send(_fds[index].fd, c.outbuf.data(), c.outbuf.size(), 0);
-		if (sent > 0)
+		opt = 1;
+		if (fcntl(it->first, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
+            throw std::runtime_error("fcntl failed");
+		if (setsockopt(it->first, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+			throw std::runtime_error("setsockopt failed\n");
+		if (bind(it->first, (struct sockaddr *)&it->second._addr, sizeof(it->second._addr)) == -1)
+			throw std::runtime_error("bind failed\n");
+		if (listen(it->first, 128) < 0)
+			throw std::runtime_error("listen failed\n");
+		_pollfds.push_back(create_pollfd(it->first));
+	}
+}
+
+void     My_server::to_connect(int index)
+{
+	int fd = accept(_pollfds[index].fd, NULL, NULL);
+	if (fd >= 0)
+	{
+		if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
 		{
-			c.outbuf.erase(0, sent);
+			close(fd);
+			return;
+		}
+		_pollfds.push_back(create_pollfd(fd));
+		_client.insert(std::make_pair(fd, Client(fd)));
+		_client.find(fd)->second.server_conf_key = _pollfds[index].fd;
+		std::cout << "Client connected successfully" << std::endl;
+	}
+	else
+		std::cout << "Client connection failed" << std::endl;
+}
+
+bool	My_server::is_server_socket(int fd)
+{
+	std::map<int, Server>::iterator it = _servers.find(fd);
+	if (it != _servers.end())
+		return true;
+	return false;
+}
+
+void	My_server::remove_client(int i)
+{
+	close(_pollfds[i].fd);
+	_client.erase(_pollfds[i].fd);
+	_pollfds.erase(_pollfds.begin() + i);
+}
+
+void	My_server::remove_conection(int index)
+{
+	close(_pollfds[index].fd);
+	_client.erase(_pollfds[index].fd);
+	_pollfds.erase(_pollfds.begin() + index);
+}
+
+int	My_server::to_read(Client & obj)
+{
+	char	buffer[1025];
+
+	int n = recv(obj.fd, buffer, 1024, 0);
+	if (n)
+	{
+		buffer[n] = '\0';
+		obj.buffer.append(buffer);
+		obj.end_request = is_end_of_request(buffer);
+	}
+	return n;
+}
+
+void	My_server::poll_in(int index)
+{
+	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
+	Server	&s_ref = _servers.find(c_ref.server_conf_key)->second;
+	
+	c_ref.timeOut = time(NULL);
+
+	if (to_read(c_ref) == 0)
+	{
+		remove_client(index);
+		return;
+	}
+	if (!c_ref.end_request)
+		return;
+	Request	req(s_ref, c_ref);
+	_pollfds[index].events |= POLLOUT;
+}
+
+void	My_server::poll_out(int index)
+{
+	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
+
+	while (!c_ref.outbuf.empty())
+	{
+		ssize_t n = send(_pollfds[index].fd, c_ref.outbuf.data(), c_ref.outbuf.size(), 0);
+		if (n > 0)
+		{
+			c_ref.outbuf.erase(0, n);
 			continue;
 		}
-		if (sent == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
-			return index + 1;
-		return index;
+		if (n == -1) break;
 	}
-	if (c.val)
+	if (c_ref.end_request && c_ref.outbuf.empty())
 	{
-		close(_fds[index].fd);
-		remove_item(index);
+		remove_conection(index);
+		return;
 	}
-	_fds[index].events &= ~POLLOUT;
-	return index;
+	if (!c_ref.outbuf.empty())
+        _pollfds[index].events |= POLLOUT;
 }
 
-bool    My_server::accept_loop()
+void My_server::time_out()
 {
-	bool val = true;
-	std::cout << "\nServer start ...\n";
-	while (g_running)
+	for (size_t index = 0; index < _pollfds.size(); index++)
 	{
-		int n = poll(_fds.data(), _fds.size(), _timeout_ms);
-		if (n <= 0)	continue;
+		if(!is_server_socket(_pollfds[index].fd))
+		{
+			std::time_t corent_time = time(NULL);
+			Client	&c_ref = _client.find(_pollfds[index].fd)->second;
 
-		std::cout << "==================  n = " << n << std::endl;
-		
-		size_t i = 0;
-		if (val)
-		{
-			sleep(10);
-			val = false;
-		}
-		while (i < _fds.size())
-		{
-			if (_fds[i].revents & POLLIN)
+			if (corent_time - c_ref.timeOut > 10 && !c_ref.end_request)
 			{
-				i = request(i);
+				std::ostringstream strim;
+
+				strim	<< "HTTP/1.1 408 Request Timeout \r\n"
+						<< "Content-Length: 0 \r\n"
+						<< "Connection: close \r\n"
+						<< "\r\n" ;
+				c_ref.end_request = true;
+				c_ref.outbuf = strim.str();
+				_pollfds[index].events |= POLLOUT;
 			}
-			else if (_fds[i].revents & POLLOUT)
-				i = respons(i);
-			else
-				i++;
-			if (!g_running) break;
 		}
-		if (!g_running) break;
 	}
-	return true;
 }
 
+void    My_server::accept_loop()
+{
+	std::cout << "\nServer start ...\n";
+
+	while (g_running && this->_pollfds.size())
+	{
+		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
+
+		//if (n == 0) time_out();
+			
+		size_t i = 0;
+		while (n > 0 && g_running && i < _pollfds.size())
+		{
+			if (_pollfds[i].revents & POLLIN)
+			{
+				if (is_server_socket(_pollfds[i].fd))
+					to_connect(i);
+				else
+					poll_in(i);
+			}
+			else if (_pollfds[i].revents & POLLOUT)
+				poll_out(i);
+			i++;
+		}
+	}
+}

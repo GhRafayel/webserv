@@ -1,55 +1,39 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <iostream>
-#include "Pars.hpp"
-#include <fcntl.h>
-#include <unistd.h>
+#include "StringUtils.hpp"
 #include <sys/socket.h>
 #include "Client.hpp"
+#include "Server.hpp"
+#include <iostream>
+#include <map>
 
-class Request : public Pars
+
+class Request : public StringUtils
 {
-    private:
-        Request(const Request &);
-        Request & operator = (const Request &);
-    public:
-        ~Request();
-        Request();
-        int			connect(int);
-        void		nonBlock(int);
-        void		analize_request(client &);
-        std::string	to_read(int);
+	private:
+		Server								&server_ref;
+		Client								&client_ref;
+		std::string							method;
+		std::string							path;
+		std::string							protocol;
+		std::map<std::string, std::string>	request;
+		int									best_location_index;
+
+	public:
+		void								analize_request();
+		std::string							getMethod();
+		std::string							getPath();
+		std::string 						getProtocol();
+		std::map<std::string, std::string>	&getRequest();
+		std::string							get_best_mach(const std::string &);
+
+		~Request();
+		//Request();
+		Request(Server &, Client &);
+		Request(const Request &);
+		Request &	operator = (const Request &);
+		void	run();
 };
 
 #endif
-
-
-/*
-typedef struct {
-    const char *ext;
-    const char *mime;
-} mime_entry;
-
-static const mime_entry mime_map[] = {
-    { "html", "text/html" },
-    { "htm",  "text/html" },
-    { "css",  "text/css" },        // ոչ text.css
-    { "js",   "application/javascript" },
-    { "json", "application/json" },
-    { "jpg",  "image/jpeg" },
-    { "jpeg", "image/jpeg" },
-    { "png",  "image/png" },
-    { "gif",  "image/gif" },
-    { "svg",  "image/svg+xml" },
-    { "txt",  "text/plain" },
-    { "pdf",  "application/pdf" },
-    { "webp", "image/webp" },
-    { "woff", "font/woff" },
-    { "woff2","font/woff2" },
-    { "xml",  "application/xml" },
-    { "zip",  "application/zip" },
-    { NULL,   NULL }               // ավարտ
-};
-
-*/

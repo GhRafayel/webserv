@@ -1,46 +1,52 @@
 #ifndef MY_SERVER_HPP
 #define MY_SERVER_HPP
 
-#include "Client.hpp"
-#include "Respons.hpp"
+#include "StringUtils.hpp"
+#include "ConfigPars.hpp"
 #include "Request.hpp"
-#include "Pars.hpp"
-#include "Config.hpp"
+#include "Client.hpp"
+#include "Server.hpp"
 
-#include <poll.h>
-#include <netinet/in.h>
-#include <sstream>
-#include <fstream>
-#include <cerrno>
-#include <vector>
+#include <sys/socket.h>
+#include <fcntl.h>
 #include <csignal>
+#include <pthread.h>
+#include <unistd.h>
+#include <poll.h>
+#include <algorithm>
 
 extern volatile bool g_running;
 
-class My_server : public Pars
+class My_server : public StringUtils
 {
 	private:
-		Request					_req;
-		Respons					_res;
-		Config					_conf;
-		struct  sockaddr_in		_s_addr;
-		std::vector<client>		_client;
-		std::vector<pollfd>		_fds;
-		int 					_timeout_ms;
-		int						_socket;
-	protected:	
-		int			request(int);
-		int			respons(int);
-		void		create_socket();
-		void		remove_item(int);
-		void		add_item(int);
-		bool		accept_loop();
-		pollfd		create_pollfd(int);
+		std::map<int, Client>		_client;
+		std::map<int, Server>		_servers;
+		std::vector<pollfd>			_pollfds;
+		int							_time;
+		std::string					_conf_file_path;
+		std::vector<std::string>	_env;
+
+		void	to_connect(int);
+		bool	is_server_socket(int);
+		void	initConfig();
+		void	create_server();
+		void	accept_loop();
+		int		to_read(Client &);
+		void	remove_client(int);
+		pollfd	create_pollfd(int);
 	public:
-		void		start();
 		~My_server();
 		My_server();
-		My_server(const std::string &);
+		My_server(const My_server &);
+		My_server(char **env);
+		My_server(const std::string &,  char **env);
+		My_server & operator = (const My_server &);
+		void    start_server();
+		void	poll_in(int);
+		void	poll_out(int);
+		void	time_out();
+		void	remove_conection(int);
 };
 
 #endif
