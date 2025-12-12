@@ -54,7 +54,6 @@ Request &	Request::operator = (const Request & obj)
 void	Request::analize_request()
 {
 	std::vector<std::string> req = split(client_ref.buffer, "\r\n", true);
-	std::cout << req[0] << std::endl;
 	std::vector<std::string> header = split(req[0], " ", true);
 	this->method = header[0];
 	this->path = header[1];
@@ -88,16 +87,24 @@ std::string	Request::is_defoult_location(const std::string & loc)
 	}
 	if (loc.substr(1, loc.size()).find("/") == std::string::npos)
 	{
-		return "www/public/" + loc;
+		return server_ref._root + loc;
 	}
 	return "";
 }
-std::string Request::get_best_mach(const std::string & url_path)
+std::string Request::get_best_mach(std::string & url_path)
 {
     size_t best_index = -1;
     std::string best_loc = is_defoult_location(url_path);
 	if (!best_loc.empty()) return best_loc;
 	
+	if (!client_ref.first_path.empty())
+	{
+		size_t pos = url_path.find(client_ref.first_path);
+		if (pos == std::string::npos)
+		{
+			url_path = client_ref.first_path + url_path;
+		} 
+	}
     for (size_t i = 0; i < server_ref._locations.size(); i++)
     {
         std::string loc = server_ref._locations[i]._location;

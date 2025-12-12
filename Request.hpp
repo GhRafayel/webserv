@@ -26,18 +26,16 @@ class Request : public StringUtils
 		std::string							getPath();
 		std::string 						getProtocol();
 		std::map<std::string, std::string>	&getRequest();
-		std::string							get_best_mach(const std::string &);
+		std::string							get_best_mach(std::string &);
 		std::string							is_defoult_location(const std::string &);
 		bool								is_directory(const std::string &);
-
-
 
 		~Request();
 		//Request();
 		Request(Server &, Client &);
 		Request(const Request &);
 		Request &	operator = (const Request &);
-		void	run();
+		void		run();
 };
 
 #endif
