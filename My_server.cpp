@@ -95,7 +95,17 @@ pollfd	My_server::create_pollfd(int fd)
 void	My_server::start_server()
 {
 	initConfig();
-	create_server();
+	for (std::map<int, Server>::iterator it = _servers.begin(); it != _servers.end(); it++)
+	{
+		try
+		{
+			create_server(it);
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+	}
 	accept_loop();
 }
 
@@ -116,23 +126,20 @@ void	My_server::initConfig()
 	}
 }
 
-void	My_server::create_server()
+void	My_server::create_server(const std::map<int, Server>::iterator & it)
 {
-	int				opt;
+	int		opt = 1;
 
-	for (std::map<int, Server>::iterator it = _servers.begin(); it != _servers.end(); it++)
-	{
-		opt = 1;
-		if (fcntl(it->first, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
-            throw std::runtime_error("fcntl failed");
-		if (setsockopt(it->first, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-			throw std::runtime_error("setsockopt failed\n");
-		if (bind(it->first, (struct sockaddr *)&it->second._addr, sizeof(it->second._addr)) == -1)
-			throw std::runtime_error("bind failed\n");
-		if (listen(it->first, 128) < 0)
-			throw std::runtime_error("listen failed\n");
-		_pollfds.push_back(create_pollfd(it->first));
-	}
+	if (fcntl(it->first, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
+		throw std::runtime_error("fcntl failed");
+	if (setsockopt(it->first, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+		throw std::runtime_error("setsockopt failed\n");
+	if (bind(it->first, (struct sockaddr *)&it->second._addr, sizeof(it->second._addr)) == -1)
+		throw std::runtime_error("bind failed\n" + int_to_string(ntohs(it->second._addr.sin_port)));
+	if (listen(it->first, 128) < 0)
+		throw std::runtime_error("listen failed\n");
+	_pollfds.push_back(create_pollfd(it->first));
+	
 }
 
 void     My_server::to_connect(int index)
@@ -160,13 +167,6 @@ bool	My_server::is_server_socket(int fd)
 	if (it != _servers.end())
 		return true;
 	return false;
-}
-
-void	My_server::remove_client(int i)
-{
-	close(_pollfds[i].fd);
-	_client.erase(_pollfds[i].fd);
-	_pollfds.erase(_pollfds.begin() + i);
 }
 
 void	My_server::remove_conection(int index)
@@ -199,7 +199,7 @@ void	My_server::poll_in(int index)
 
 	if (to_read(c_ref) == 0)
 	{
-		remove_client(index);
+		remove_conection(index);
 		return;
 	}
 	if (!c_ref.end_request)

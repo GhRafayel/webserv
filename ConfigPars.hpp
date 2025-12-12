@@ -31,7 +31,6 @@ class ConfigPars : public StringUtils
 
 		void	read_config_file(std::string &);
 		void	create_server_class();
-		void	clear_all();
 		void	join_location_path(std::string &);
 		void	callFunctionByName(const std::string &);
 

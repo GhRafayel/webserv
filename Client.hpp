@@ -13,6 +13,7 @@ class Client
 		int			fd;
 		int			statuc_code;
 		bool		end_request;
+		std::string first_path;
 		std::string	buffer;
 		std::string	outbuf;
 		

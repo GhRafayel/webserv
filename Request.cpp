@@ -59,7 +59,8 @@ void	Request::analize_request()
 	this->method = header[0];
 	this->path = header[1];
 	this->protocol = header[2];
-
+	if (client_ref.first_path.empty())
+		client_ref.first_path = path;
 	for (size_t i = 1; i < req.size(); i++)
 	{
 		size_t post = req[i].find(":");
@@ -72,11 +73,11 @@ void	Request::analize_request()
 	}
 }
 
-std::string	is_defoult_location(const std::string & loc)
+std::string	Request::is_defoult_location(const std::string & loc)
 {
 	if (loc == "/")
 	{
-		return "www/public/index.html";
+		return server_ref._root + server_ref._index;
 	}
 		
 	if (loc.substr(1, loc.size()).find("/") == std::string::npos)

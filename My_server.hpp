@@ -30,10 +30,10 @@ class My_server : public StringUtils
 		void	to_connect(int);
 		bool	is_server_socket(int);
 		void	initConfig();
-		void	create_server();
+		void	create_server(const std::map<int, Server>::iterator &);
 		void	accept_loop();
+		void	remove_conection(int);
 		int		to_read(Client &);
-		void	remove_client(int);
 		pollfd	create_pollfd(int);
 	public:
 		~My_server();
@@ -46,7 +46,7 @@ class My_server : public StringUtils
 		void	poll_in(int);
 		void	poll_out(int);
 		void	time_out();
-		void	remove_conection(int);
+		
 };
 
 #endif

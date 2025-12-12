@@ -125,20 +125,10 @@ void	ConfigPars::create_server_class()
 		temp._error_404 = _error_404;
 		temp._error_500 = _error_500;
 		temp._port = _ports[i];
+		temp._index = _index;
 		temp._addr.sin_port = htons(_ports[i]);
 		this->servers.push_back(temp);
 	}
-}
-
-void	ConfigPars::clear_all()
-{
-	this->_locations.clear();
-	this->_ports.clear();
-	this->_root.clear();
-	this->_server_name.clear();
-	this->_body_max_size.clear();
-	this->_error_404.clear();
-	this->_error_500.clear();
 }
 
 void	ConfigPars::close_blocks()
@@ -151,7 +141,6 @@ void	ConfigPars::close_blocks()
 	{
 		_is_open_server = false;
 		create_server_class();
-		clear_all();
 	}
 	else if (_is_open_http)
 	{
@@ -301,7 +290,6 @@ void	ConfigPars::callFunctionByName(const std::string & fun_name)
 	func_map.insert(std::make_pair("close_blocks", &ConfigPars::close_blocks));
 	func_map.insert(std::make_pair("root", &ConfigPars::root));
 	func_map.insert(std::make_pair("index", &ConfigPars::index));
-
 
 	std::map<std::string, void (ConfigPars::*) (void)>::iterator	it = func_map.find(fun_name);
 	if(it == func_map.end())
