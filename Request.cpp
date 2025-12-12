@@ -58,8 +58,6 @@ void	Request::analize_request()
 	this->method = header[0];
 	this->path = header[1];
 	this->protocol = header[2];
-	if (client_ref.first_path.empty())
-		client_ref.first_path = path;
 	for (size_t i = 1; i < req.size(); i++)
 	{
 		size_t post = req[i].find(":");
@@ -97,14 +95,6 @@ std::string Request::get_best_mach(std::string & url_path)
     std::string best_loc = is_defoult_location(url_path);
 	if (!best_loc.empty()) return best_loc;
 	
-	if (!client_ref.first_path.empty())
-	{
-		size_t pos = url_path.find(client_ref.first_path);
-		if (pos == std::string::npos)
-		{
-			url_path = client_ref.first_path + url_path;
-		} 
-	}
     for (size_t i = 0; i < server_ref._locations.size(); i++)
     {
         std::string loc = server_ref._locations[i]._location;
