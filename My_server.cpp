@@ -139,7 +139,6 @@ void	My_server::create_server(const std::map<int, Server>::iterator & it)
 	if (listen(it->first, 128) < 0)
 		throw std::runtime_error("listen failed\n");
 	_pollfds.push_back(create_pollfd(it->first));
-	
 }
 
 void     My_server::to_connect(int index)

@@ -33,7 +33,7 @@ class ConfigPars : public StringUtils
 		void	create_server_class();
 		void	join_location_path(std::string &);
 		void	callFunctionByName(const std::string &);
-
+		void	clear_all();
 		void	index();
 		void	http_block();
 		void	server_block();

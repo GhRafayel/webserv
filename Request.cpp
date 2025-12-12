@@ -77,6 +77,7 @@ void	Request::analize_request()
 bool	Request::is_directory(const std::string & path)
 {
 	(void)path;
+	return false;
 }
 
 std::string	Request::is_defoult_location(const std::string & loc)

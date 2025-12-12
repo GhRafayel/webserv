@@ -130,6 +130,25 @@ void	ConfigPars::create_server_class()
 	}
 }
 
+void	ConfigPars::clear_all()
+{
+	_is_open_server = false;
+	_ind = 0;
+	_locations.clear();
+	_token_nl.clear();
+	_is_open_location.clear();
+	_ports.clear();
+	_key_value.clear();
+	_file_content.clear();
+	_index.clear();
+	_root.clear();
+	_server_name.clear();
+	_body_max_size.clear();
+	_error_404.clear();
+	_error_500.clear();
+	_error_massage.clear();
+}
+
 void	ConfigPars::close_blocks()
 {
 	if (!_is_open_location.empty())
@@ -140,6 +159,7 @@ void	ConfigPars::close_blocks()
 	{
 		_is_open_server = false;
 		create_server_class();
+		clear_all();
 	}
 	else if (_is_open_http)
 	{
