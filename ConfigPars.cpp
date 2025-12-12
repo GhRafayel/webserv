@@ -132,11 +132,7 @@ void	ConfigPars::create_server_class()
 
 void	ConfigPars::clear_all()
 {
-	_is_open_server = false;
-	_ind = 0;
 	_locations.clear();
-	_token_nl.clear();
-	_is_open_location.clear();
 	_ports.clear();
 	_key_value.clear();
 	_file_content.clear();
