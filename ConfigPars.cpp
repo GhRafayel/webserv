@@ -20,7 +20,6 @@ ConfigPars::ConfigPars(std::string & file_path) :
 	_key_value(),
 	_error_massage("Configuration Error:\nAn invalid line was detected in the server block of the configuration file: > ")
 {
-
 	read_config_file(file_path);
 }
 

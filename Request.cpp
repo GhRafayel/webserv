@@ -73,13 +73,18 @@ void	Request::analize_request()
 	}
 }
 
+
+bool	Request::is_directory(const std::string & path)
+{
+	(void)path;
+}
+
 std::string	Request::is_defoult_location(const std::string & loc)
 {
 	if (loc == "/")
 	{
 		return server_ref._root + server_ref._index;
 	}
-		
 	if (loc.substr(1, loc.size()).find("/") == std::string::npos)
 	{
 		return "www/public/" + loc;

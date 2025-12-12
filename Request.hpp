@@ -28,6 +28,8 @@ class Request : public StringUtils
 		std::map<std::string, std::string>	&getRequest();
 		std::string							get_best_mach(const std::string &);
 		std::string							is_defoult_location(const std::string &);
+		bool								is_directory(const std::string &);
+
 
 
 		~Request();

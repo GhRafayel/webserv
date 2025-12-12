@@ -19,6 +19,7 @@ Server::Server() :
 Server::Server(const Server & obj) : 
     _locations(obj._locations),
     _root(obj._root),
+    _index(obj._index),
     _server_name(obj._server_name),
     _body_max_size(obj._body_max_size),
     _error_404(obj._error_404),
