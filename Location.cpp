@@ -2,16 +2,30 @@
 
 Location::~Location() {  this->_config.clear(); }
 
-Location::Location() :
-_config(), _GET(false), _POST(false), _DELETE(false), _autoIndex(false), 
+Location::Location() : func_map(),
+_config(), _GET(true), _POST(true), _DELETE(true), _autoIndex(false),
+_root("/www/public/"), _redirection(""), _index("index.html"), _location("/"),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > ")
- {}	
+ {
+	func_map.insert(std::make_pair("location", &Location::location));
+	func_map.insert(std::make_pair("root", &Location::root));
+	func_map.insert(std::make_pair("index", &Location::index));
+	func_map.insert(std::make_pair("autoindex", &Location::autoindex));
+	func_map.insert(std::make_pair("methods", &Location::methods));
+	func_map.insert(std::make_pair("redirect", &Location::redirect));
+ }
 
-Location::Location(std::vector<std::string> & array) :
+Location::Location(std::vector<std::string> & array) : func_map(),
 _config(array), _GET(false), _POST(false), _DELETE(false), _autoIndex(false),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > ")
 {
-	init();
+	func_map.insert(std::make_pair("location", &Location::location));
+	func_map.insert(std::make_pair("root", &Location::root));
+	func_map.insert(std::make_pair("index", &Location::index));
+	func_map.insert(std::make_pair("autoindex", &Location::autoindex));
+	func_map.insert(std::make_pair("methods", &Location::methods));
+	func_map.insert(std::make_pair("redirect", &Location::redirect));
+	location_pars();
 }	
 
 Location::Location(const Location & obj) : StringUtils() ,
@@ -25,6 +39,7 @@ Location::Location(const Location & obj) : StringUtils() ,
 	this->_redirection = obj._redirection;
 	this->_index = obj._index;
 	this->_location = obj._location;
+	this->func_map = obj.func_map;
 }
 
 Location & Location::operator = (const Location & obj)
@@ -39,6 +54,7 @@ Location & Location::operator = (const Location & obj)
 		this->_redirection = obj._redirection;
 		this->_index = obj._index;
 		this->_location = obj._location;
+		this->func_map = obj.func_map;
 	}
 	return *this;
 }
@@ -53,17 +69,17 @@ bool	Location::is_line_valid(std::string & line)
 	return false;
 }
 
-void	Location::init()
+void	Location::location_pars()
 {
-	std::string key;
-	std::string value;
+	std::string key, value;
+
 	for (size_t i = 0; i < _config.size(); i++)
 	{
-		size_t id = _config[i].find(" ");
-		if (id != std::string::npos)
+		size_t pos = _config[i].find(" ");
+		if (pos != std::string::npos)
 		{
-			key = trim(_config[i].substr(0, id), " ");
-			value = trim(_config[i].substr(id, _config[i].size()), " ");
+			key = trim(_config[i].substr(0, pos), " ");
+			value = trim(_config[i].substr(pos, _config[i].size()), " ");
 			if (key == "location" || is_line_valid(value))
 				callFunctionByName(key, value);
 			else
@@ -96,10 +112,8 @@ void    Location::autoindex(std::string & str) {
 
 	if (str == "on")
 		this->_autoIndex = true;
-	else if (str == "off")
+	else if (str == "off" || str.empty())
 		this->_autoIndex = false;
-	else if (str.empty())
-		return;
 	else
 		throw std::runtime_error(_error_massage + str);
 }
@@ -112,17 +126,11 @@ void    Location::methods(std::string & str)
 	for (size_t i = 0; i < temp.size(); i++)
 	{
 		if (temp[i] == "GET")
-		{
 			this->_GET = true;
-		}
 		else if (temp[i] == "POST")
-		{
 			this->_POST = true;
-		}
 		else if (temp[i] == "DELETE")
-		{
 			this->_DELETE = true;
-		}
 		else
 			throw std::runtime_error(_error_massage + str);
 	}
@@ -130,15 +138,6 @@ void    Location::methods(std::string & str)
 
 void Location::callFunctionByName(const std::string & fun_name, std::string & arg)
 {
-	std::map<std::string, void (Location::*)(std::string &)> func_map;
-
-	func_map.insert(std::make_pair("location", &Location::location));
-	func_map.insert(std::make_pair("root", &Location::root));
-	func_map.insert(std::make_pair("index", &Location::index));
-	func_map.insert(std::make_pair("autoindex", &Location::autoindex));
-	func_map.insert(std::make_pair("methods", &Location::methods));
-	func_map.insert(std::make_pair("redirect", &Location::redirect));
-
 	try
 	{
 		std::map<std::string, void (Location::*) (std::string &)>::iterator	it = func_map.find(fun_name);

@@ -55,9 +55,11 @@ void	Request::analize_request()
 {
 	std::vector<std::string> req = split(client_ref.buffer, "\r\n", true);
 	std::vector<std::string> header = split(req[0], " ", true);
+	
 	this->method = header[0];
 	this->path = header[1];
 	this->protocol = header[2];
+
 	for (size_t i = 1; i < req.size(); i++)
 	{
 		size_t post = req[i].find(":");
@@ -68,8 +70,8 @@ void	Request::analize_request()
 
 		request.insert(std::make_pair(key, value + "\r\n"));
 	}
-}
 
+}
 
 bool	Request::is_directory(const std::string & path)
 {
@@ -89,6 +91,7 @@ std::string	Request::is_defoult_location(const std::string & loc)
 	}
 	return "";
 }
+
 std::string Request::get_best_mach(std::string & url_path)
 {
     size_t best_index = -1;
@@ -104,7 +107,6 @@ std::string Request::get_best_mach(std::string & url_path)
             best_index = i;
         }
     }
-
     if (best_index != (size_t)-1)
     {
         std::string relative_path = url_path.substr(best_loc.size());
@@ -116,18 +118,19 @@ std::string Request::get_best_mach(std::string & url_path)
         best_location_index = best_index;
         return real_path;
     }
-
     return server_ref._root + url_path;
 }
 
 void	Request::run()
 {
-	std::string path = getPath();
 	std::string	best_mach = get_best_mach(path);
+
 	best_mach = abs_Path(best_mach);
+
 	std::ostringstream t;
-	std::string ext;
-	std::string body;
+
+	std::string ext, body;
+
 	size_t		post = best_mach.rfind(".");
 
 	if (post != std::string::npos)

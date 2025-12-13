@@ -9,7 +9,9 @@
 class Location : public StringUtils
 {
 	private:
-		void	init();
+		std::map<std::string, void (Location::*)(std::string &)> func_map;
+
+		void	location_pars();
 		void	location(std::string &);
 		void	redirect(std::string &);
 		void	root(std::string &);
