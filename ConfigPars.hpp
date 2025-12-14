@@ -25,6 +25,10 @@ class ConfigPars : public StringUtils
 		std::string 				_error_404;
 		std::string 				_error_500;
 		std::string					_error_massage;
+		std::map<std::string, bool> _methods;
+		std::map<std::string, void (ConfigPars::*) (void)>	func_map;
+
+		std::map<std::string, void (ConfigPars::*) (void)> init_fun_map();
 		ConfigPars();
 		ConfigPars(const ConfigPars &);
 		ConfigPars & operator = (const ConfigPars &);
@@ -45,8 +49,8 @@ class ConfigPars : public StringUtils
 		void	error_page_404();
 		void	error_page_500();
 		void	root();
+		void	method();
 		bool	check_config_blocks(const std::string &);
-		
 		void	close_blocks();
 
 	public:

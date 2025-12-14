@@ -20,10 +20,8 @@ class Location : public StringUtils
 		void	methods(std::string &);
 		bool	is_line_valid(std::string &);
 		std::vector<std::string>	_config;
+		std::map<std::string, bool> _methods;
 	public:
-		bool		_GET;
-		bool		_POST;
-		bool		_DELETE;
 		bool		_autoIndex;
 		std::string	_root;
 		std::string	_redirection;
@@ -37,6 +35,7 @@ class Location : public StringUtils
 		Location(const Location &);
 		Location & operator = (const Location &);
 		void	callFunctionByName(const std::string &, std::string &);
+		bool	get_method(const std::string &);
 };
 
 #endif

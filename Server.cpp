@@ -17,6 +17,7 @@ Server::Server() :
 }
 
 Server::Server(const Server & obj) : 
+    _methods(obj._methods),
     _locations(obj._locations),
     _root(obj._root),
     _index(obj._index),
@@ -45,6 +46,7 @@ Server & Server::operator = (const Server & obj)
         this->_addr.sin_family = obj._addr.sin_family;
         this->_addr.sin_addr = obj._addr.sin_addr;
         this->_addr.sin_port = obj._addr.sin_port;
+        this->_methods = obj._methods;
     }
     return *this;
 }

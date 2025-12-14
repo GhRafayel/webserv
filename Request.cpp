@@ -4,36 +4,24 @@ Request::~Request() {}
 
 //Request::Request() : StringUtils(), server_ref(Server()), client_ref(Client) {}
 
-Request::Request(Server & S_obj, Client & C_obj) :
-	StringUtils(), server_ref(S_obj), client_ref(C_obj), best_location_index(-1)
+Request::Request(Server & S_obj, Client & C_obj) : StringUtils(),
+	server_ref(S_obj),
+	client_ref(C_obj),
+	best_location_index(-1)
 {
 	analize_request();
 	run();
 }
 
-Request::Request(const Request & obj) :
-	StringUtils(), server_ref(obj.server_ref), client_ref(obj.client_ref)
+Request::Request(const Request & obj) : StringUtils(),
+	server_ref(obj.server_ref),
+	client_ref(obj.client_ref)
 {
 	this->method = obj.method;
-	this->path = obj.path;
+	this->url_path = obj.url_path;
 	this->protocol = obj.protocol;
 	this->request = obj.request;
 	this->best_location_index = obj.best_location_index;
-}
-std::string Request::getProtocol(){
-	return this->protocol;
-};
-
-std::string	Request::getMethod(){
-	return this->method;	
-};
-
-std::string	Request::getPath() {
-	return this->path;
-};
-
-std::map<std::string, std::string> & Request::getRequest() {
-	return this->request;
 }
 
 Request &	Request::operator = (const Request & obj)
@@ -43,7 +31,7 @@ Request &	Request::operator = (const Request & obj)
 		this->server_ref = obj.server_ref;
 		this->client_ref = obj.client_ref;
 		this->method = obj.method;
-		this->path = obj.path;
+		this->url_path = obj.url_path;
 		this->protocol = obj.protocol;
 		this->request = obj.request;
 		this->best_location_index = obj.best_location_index;
@@ -57,7 +45,7 @@ void	Request::analize_request()
 	std::vector<std::string> header = split(req[0], " ", true);
 	
 	this->method = header[0];
-	this->path = header[1];
+	this->url_path = header[1];
 	this->protocol = header[2];
 
 	for (size_t i = 1; i < req.size(); i++)
@@ -73,30 +61,36 @@ void	Request::analize_request()
 
 }
 
-bool	Request::is_directory(const std::string & path)
+bool	Request::is_directory()
 {
-	(void)path;
+	DIR *dir = opendir(client_ref.best_mach.c_str());
+
+	if (dir == NULL) return false;
+	closedir(dir);
+	return true;
+}
+
+bool	Request::is_defoult_location()
+{
+	if (url_path == "/")
+	{
+		client_ref.best_mach =  abs_Path(server_ref._root + server_ref._index);
+		return true;
+	}
+	if (url_path.substr(1, url_path.size()).find("/") == std::string::npos)
+	{
+		client_ref.best_mach =  abs_Path(server_ref._root + url_path);
+		return true;
+	}
 	return false;
 }
 
-std::string	Request::is_defoult_location(const std::string & loc)
+void Request::get_best_mach()
 {
-	if (loc == "/")
-	{
-		return server_ref._root + server_ref._index;
-	}
-	if (loc.substr(1, loc.size()).find("/") == std::string::npos)
-	{
-		return server_ref._root + loc;
-	}
-	return "";
-}
-
-std::string Request::get_best_mach(std::string & url_path)
-{
-    size_t best_index = -1;
-    std::string best_loc = is_defoult_location(url_path);
-	if (!best_loc.empty()) return best_loc;
+    int	best_index = -1;
+	std::string		best_loc;
+	
+	if (is_defoult_location()) return;
 	
     for (size_t i = 0; i < server_ref._locations.size(); i++)
     {
@@ -107,7 +101,7 @@ std::string Request::get_best_mach(std::string & url_path)
             best_index = i;
         }
     }
-    if (best_index != (size_t)-1)
+    if (best_index != -1)
     {
         std::string relative_path = url_path.substr(best_loc.size());
         std::string real_path = server_ref._locations[best_index]._root + relative_path;
@@ -116,29 +110,65 @@ std::string Request::get_best_mach(std::string & url_path)
             real_path += server_ref._locations[best_index]._index;
 
         best_location_index = best_index;
-        return real_path;
+		client_ref.best_mach = abs_Path(real_path);
     }
-    return server_ref._root + url_path;
+	else
+		client_ref.best_mach = abs_Path(server_ref._root + url_path);
+}
+
+bool	Request::is_method_allowed()
+{
+	if (best_location_index != -1 && server_ref._locations[best_location_index].get_method(method))
+		return true;
+	else if (server_ref._methods.find(method) != server_ref._methods.end())
+		return true;
+	return false;
 }
 
 void	Request::run()
 {
-	std::string	best_mach = get_best_mach(path);
+	get_best_mach();
 
-	best_mach = abs_Path(best_mach);
-
+	if (client_ref.best_mach.empty())
+	{
+		client_ref.statuc_code = 404;
+		client_ref.best_mach = server_ref._error_404;
+		return ;
+	}
+	if (!is_method_allowed())
+	{
+		client_ref.statuc_code = 405;
+		return ;
+	}
+	if (is_directory())
+	{
+		if (best_location_index == -1)
+			client_ref.statuc_code = 403;
+		else if (!server_ref._locations[best_location_index]._autoIndex)
+		{
+			client_ref.statuc_code = 403;
+			return ;
+		}
+		else
+		{
+			client_ref.statuc_code = 200;
+			return ;
+		}
+	}
+	
 	std::ostringstream t;
 
 	std::string ext, body;
 
-	size_t		post = best_mach.rfind(".");
+	size_t		post = client_ref.best_mach.rfind(".");
 
 	if (post != std::string::npos)
-		ext = best_mach.substr(post, best_mach.size());
+		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
+
 	try
 	{
-		body = get_file_content(best_mach);
-		t	<<  getProtocol() << "200 OK\r\n"
+		body = get_file_content(client_ref.best_mach);
+		t	<<  protocol << "200 OK\r\n"
 			<<  get_my_taype(ext)
 			<<	request.find("Connection")->first
 			<< 	request.find("Connection")->second
@@ -150,7 +180,7 @@ void	Request::run()
 		body = get_file_content(server_ref._error_404);
 
 		std::cout << get_my_taype(ext) << std::endl;
-		t << getProtocol() << " 404 Not Found\r\n"
+		t << protocol << " 404 Not Found\r\n"
 		<< "Content-Type: " << get_my_taype(ext)
 		<< "Content-Length: " <<  body.size()  << "\r\n"
 		<< "Connection: close\r\n\r\n" << body;

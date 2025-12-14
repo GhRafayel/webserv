@@ -7,6 +7,7 @@ ConfigPars::~ConfigPars()
 	_is_open_location.clear();
 	_key_value.clear();
 	_file_content.clear();
+	_methods.clear();
 }
 
 ConfigPars::ConfigPars(std::string & file_path) :
@@ -18,9 +19,34 @@ ConfigPars::ConfigPars(std::string & file_path) :
 	_token_nl(),
 	_is_open_location(),
 	_key_value(),
-	_error_massage("Configuration Error:\nAn invalid line was detected in the server block of the configuration file: > ")
+	_error_massage("Configuration Error:\nAn invalid line was detected in the server block of the configuration file: > "),
+	_methods(),
+	func_map(init_fun_map())
 {
 	read_config_file(file_path);
+}
+
+std::map<std::string, void (ConfigPars::*) (void)> ConfigPars::init_fun_map()
+{
+	std::map<std::string, void (ConfigPars::*) (void)> temp;
+
+	temp.insert(std::make_pair("http_block", &ConfigPars::http_block));
+	temp.insert(std::make_pair("server_block", &ConfigPars::server_block));
+	temp.insert(std::make_pair("location_block", &ConfigPars::location_block));
+	temp.insert(std::make_pair("is_valid_line", &ConfigPars::is_valid_line));
+	temp.insert(std::make_pair("listen", &ConfigPars::listen));
+	temp.insert(std::make_pair("client_max_body_size", &ConfigPars::client_max_body_size));
+	temp.insert(std::make_pair("server_name", &ConfigPars::server_name));
+	temp.insert(std::make_pair("error_page_404", &ConfigPars::error_page_404));
+	temp.insert(std::make_pair("error_page_500", &ConfigPars::error_page_500));
+	temp.insert(std::make_pair("close_blocks", &ConfigPars::close_blocks));
+	temp.insert(std::make_pair("root", &ConfigPars::root));
+	temp.insert(std::make_pair("index", &ConfigPars::index));
+	temp.insert(std::make_pair("method", &ConfigPars::method));
+	temp.insert(std::make_pair("methods", &ConfigPars::method));
+
+
+	return temp;
 }
 
 void	ConfigPars::read_config_file(std::string & file_name)
@@ -126,6 +152,7 @@ void	ConfigPars::create_server_class()
 		temp._port = _ports[i];
 		temp._index = _index;
 		temp._addr.sin_port = htons(_ports[i]);
+		temp._methods = _methods;
 		this->servers.push_back(temp);
 	}
 }
@@ -143,6 +170,7 @@ void	ConfigPars::clear_all()
 	_error_404.clear();
 	_error_500.clear();
 	_error_massage.clear();
+	_methods.clear();
 }
 
 void	ConfigPars::close_blocks()
@@ -214,21 +242,13 @@ bool	ConfigPars::check_config_blocks(const std::string & str) {
 void	ConfigPars::is_valid_line()
 {
 	if (check_config_blocks("http"))
-	{
 		callFunctionByName("http_block");
-	}
 	else if (check_config_blocks("server"))
-	{
 		callFunctionByName("server_block");
-	}
 	else if (check_config_blocks("location"))
-	{
 		callFunctionByName("location_block");
-	}
 	else if (_token_nl[_ind] == "}")
-	{
 		callFunctionByName("close_blocks");
-	}
 	else if (_token_nl[_ind][_token_nl[_ind].size() - 1] == ';')
 	{
 		_token_nl[_ind][_token_nl[_ind].size() - 1] = ' ';
@@ -246,6 +266,21 @@ void	ConfigPars::listen()
 	if (_key_value.size() != 2 || !is_digitS(_key_value[1]))
 		throw std::runtime_error(_error_massage + _token_nl[_ind]);
 	_ports.push_back(str_to_int(_key_value[1]));
+}
+
+void	ConfigPars::method()
+{
+	if (_key_value.size() == 1 || !_key_value[1].size())
+	{
+		_methods.insert(std::make_pair("GET", true));
+	}
+	else
+	{
+		for (size_t i = 1; i < _key_value.size(); i++)
+		{
+			_methods.insert(std::make_pair(_key_value[i], true));
+		}		
+	}
 }
 
 void	ConfigPars::client_max_body_size() {
@@ -290,25 +325,9 @@ void	ConfigPars::root()
 }
 
 void	ConfigPars::callFunctionByName(const std::string & fun_name)
-{
-	std::map<std::string, void (ConfigPars::*) (void)>	func_map;
-	
-	func_map.insert(std::make_pair("http_block", &ConfigPars::http_block));
-	func_map.insert(std::make_pair("server_block", &ConfigPars::server_block));
-	func_map.insert(std::make_pair("location_block", &ConfigPars::location_block));
-	func_map.insert(std::make_pair("is_valid_line", &ConfigPars::is_valid_line));
-	func_map.insert(std::make_pair("listen", &ConfigPars::listen));
-	func_map.insert(std::make_pair("client_max_body_size", &ConfigPars::client_max_body_size));
-	func_map.insert(std::make_pair("server_name", &ConfigPars::server_name));
-	func_map.insert(std::make_pair("error_page_404", &ConfigPars::error_page_404));
-	func_map.insert(std::make_pair("error_page_500", &ConfigPars::error_page_500));
-	func_map.insert(std::make_pair("close_blocks", &ConfigPars::close_blocks));
-	func_map.insert(std::make_pair("root", &ConfigPars::root));
-	func_map.insert(std::make_pair("index", &ConfigPars::index));
-
+{	
 	std::map<std::string, void (ConfigPars::*) (void)>::iterator	it = func_map.find(fun_name);
 	if(it == func_map.end())
 		throw std::runtime_error(_error_massage + fun_name);
 	(this->*func_map[it->first])();
 }
-

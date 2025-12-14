@@ -106,7 +106,8 @@ void	My_server::start_server()
 			std::cerr << e.what() << '\n';
 		}
 	}
-	accept_loop();
+	if (_pollfds.size())
+		accept_loop();
 }
 
 void	My_server::initConfig()
@@ -210,6 +211,17 @@ void	My_server::poll_in(int index)
 void	My_server::poll_out(int index)
 {
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
+	// ssize_t n = send(_pollfds[index].fd, c_ref.outbuf.data(), c_ref.outbuf.size(), 0);
+	// if (n > 0)
+	// {
+	// 	c_ref.outbuf.erase(0, n);
+	// 	_pollfds[index].events |= POLLOUT;
+	// }
+	// else if (c_ref.end_request && c_ref.outbuf.empty())
+	// {
+	// 	remove_conection(index);
+	// 	return;
+	// }
 
 	while (!c_ref.outbuf.empty())
 	{
@@ -263,7 +275,7 @@ void    My_server::accept_loop()
 	{
 		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
 
-		//if (n == 0) time_out();
+		if (n == 0) time_out();
 			
 		size_t i = 0;
 		while (n > 0 && g_running && i < _pollfds.size())

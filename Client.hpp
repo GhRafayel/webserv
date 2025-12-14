@@ -15,6 +15,7 @@ class Client
 		bool		end_request;
 		std::string	buffer;
 		std::string	outbuf;
+		std::string	best_mach;
 		
 		~Client();
 		Client();

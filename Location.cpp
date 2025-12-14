@@ -2,8 +2,7 @@
 
 Location::~Location() {  this->_config.clear(); }
 
-Location::Location() : func_map(),
-_config(), _GET(true), _POST(true), _DELETE(true), _autoIndex(false),
+Location::Location() : func_map(),_config(), _methods(), _autoIndex(false),
 _root("/www/public/"), _redirection(""), _index("index.html"), _location("/"),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > ")
  {
@@ -12,11 +11,12 @@ _error_massage("Configuration Error:\nAn invalid line was detected in the locati
 	func_map.insert(std::make_pair("index", &Location::index));
 	func_map.insert(std::make_pair("autoindex", &Location::autoindex));
 	func_map.insert(std::make_pair("methods", &Location::methods));
+	func_map.insert(std::make_pair("method", &Location::methods));
 	func_map.insert(std::make_pair("redirect", &Location::redirect));
  }
 
 Location::Location(std::vector<std::string> & array) : func_map(),
-_config(array), _GET(false), _POST(false), _DELETE(false), _autoIndex(false),
+_config(array), _methods(), _autoIndex(false),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > ")
 {
 	func_map.insert(std::make_pair("location", &Location::location));
@@ -24,6 +24,7 @@ _error_massage("Configuration Error:\nAn invalid line was detected in the locati
 	func_map.insert(std::make_pair("index", &Location::index));
 	func_map.insert(std::make_pair("autoindex", &Location::autoindex));
 	func_map.insert(std::make_pair("methods", &Location::methods));
+	func_map.insert(std::make_pair("method", &Location::methods));
 	func_map.insert(std::make_pair("redirect", &Location::redirect));
 	location_pars();
 }	
@@ -31,9 +32,7 @@ _error_massage("Configuration Error:\nAn invalid line was detected in the locati
 Location::Location(const Location & obj) : StringUtils() ,
 	_error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > ")
 {
-	this->_GET = obj._GET;
-	this->_POST = obj._POST;
-	this->_DELETE = obj._DELETE;
+	this->_methods = obj._methods;
 	this->_autoIndex = obj._autoIndex;
 	this->_root = obj._root;
 	this->_redirection = obj._redirection;
@@ -46,9 +45,7 @@ Location & Location::operator = (const Location & obj)
 {
 	if (this != & obj)
 	{
-		this->_GET = obj._GET;
-		this->_POST = obj._POST;
-		this->_DELETE = obj._DELETE;
+		this->_methods = obj._methods;
 		this->_autoIndex = obj._autoIndex;
 		this->_root = obj._root;
 		this->_redirection = obj._redirection;
@@ -126,14 +123,21 @@ void    Location::methods(std::string & str)
 	for (size_t i = 0; i < temp.size(); i++)
 	{
 		if (temp[i] == "GET")
-			this->_GET = true;
+			_methods.insert(std::make_pair(temp[i], true));
 		else if (temp[i] == "POST")
-			this->_POST = true;
+			_methods.insert(std::make_pair(temp[i], true));
 		else if (temp[i] == "DELETE")
-			this->_DELETE = true;
+			_methods.insert(std::make_pair(temp[i], true));
 		else
 			throw std::runtime_error(_error_massage + str);
 	}
+}
+
+bool	Location::get_method(const std::string & method)
+{
+	if (_methods.find(method) == _methods.end())
+		return false;
+	return true;
 }
 
 void Location::callFunctionByName(const std::string & fun_name, std::string & arg)
