@@ -181,7 +181,7 @@ int	My_server::to_read(Client & obj)
 	char	buffer[1025];
 
 	int n = recv(obj.fd, buffer, 1024, 0);
-	if (n)
+	if (n > 0)
 	{
 		buffer[n] = '\0';
 		obj.buffer.append(buffer);
@@ -214,17 +214,25 @@ void	My_server::poll_out(int index)
 	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
 
 	Respons res(s_ref, c_ref);
-	
-	ssize_t n = send(_pollfds[index].fd, c_ref.outbuf.data(), c_ref.outbuf.size(), 0);
-	if (n > 0)
+	ssize_t n = 1;
+	while (n)
 	{
-		c_ref.outbuf.erase(0, n);
-		_pollfds[index].events |= POLLOUT;
+		n = send(_pollfds[index].fd, c_ref.outbuf.data(), c_ref.outbuf.size(), 0);
+		if (n > 0)
+		{
+			c_ref.outbuf.erase(0, n);
+			continue;
+		}
+		else if (n < 0)
+		{
+			_pollfds[index].events |= POLLOUT;
+			return;
+		}
 	}
-	else if (c_ref.end_request && c_ref.outbuf.empty())
+
+	if (c_ref.end_request && c_ref.outbuf.empty())
 	{
 		remove_conection(index);
-		return;
 	}
 }
 
@@ -259,6 +267,10 @@ void    My_server::accept_loop()
 
 	while (g_running && this->_pollfds.size())
 	{
+		if (!_pollfds.size())
+		{
+			std::cout << "------------------------yes it is " << std::endl;
+		}
 		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
 
 		if (n == 0) time_out();

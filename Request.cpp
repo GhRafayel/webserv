@@ -2,8 +2,6 @@
 
 Request::~Request() {}
 
-//Request::Request() : StringUtils(), server_ref(Server()), client_ref(Client) {}
-
 Request::Request(Server & S_obj, Client & C_obj) : StringUtils(),
 	server_ref(S_obj),
 	client_ref(C_obj),
@@ -49,7 +47,7 @@ void	Request::analize_request()
 	for (size_t i = 1; i < req.size(); i++)
 	{
 		size_t post = req[i].find(":");
-
+		
 		std::string key = trim(req[i].substr(0, post), " ");
 
 		std::string value = trim(req[i].substr(post, req[i].size()), " ");

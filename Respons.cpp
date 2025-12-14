@@ -52,25 +52,3 @@ void Respons::callFunctionByStatusCode(unsigned int fun_code)
 	if (it == fun_map.end()) return ;
 	(this->*(it->second))();
 }
-
-/*
-	if (post != std::string::npos)
-		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
-
-	try
-	{
-		
-	}
-	catch(const std::exception& e)
-	{
-		body = get_file_content(server_ref._error_404);
-
-		std::cout << get_my_taype(ext) << std::endl;
-		t << protocol << " 404 Not Found\r\n"
-		<< "Content-Type: " << get_my_taype(ext)
-		<< "Content-Length: " <<  body.size()  << "\r\n"
-		<< "Connection: close\r\n\r\n" << body;
-		client_ref.outbuf = t.str();
-	}
-
-*/

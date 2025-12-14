@@ -19,6 +19,8 @@ Client::Client(const Client & obj)
 	this->server_conf_key = obj.server_conf_key;
 	this->statuc_code = obj.statuc_code;
 	this->timeOut = obj.timeOut;
+	this->request = obj.request;
+	this->is_dir = obj.is_dir;
 }
 
 Client::Client(int FD) :
@@ -44,6 +46,8 @@ Client & Client::operator = (const Client & obj)
 		this->buffer = obj.buffer;
 		this->outbuf = obj.outbuf;
 		this->timeOut = obj.timeOut;
+		this->request = obj.request;
+		this->is_dir = obj.is_dir;
 	}
 	return *this;
 }
