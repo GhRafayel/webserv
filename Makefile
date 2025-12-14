@@ -4,6 +4,7 @@ SRC =	main.cpp \
 		Server.cpp \
 		Location.cpp \
 		Request.cpp \
+		Respons.cpp \
 		Client.cpp \
 		ConfigPars.cpp
 OBJ = $(SRC:%.cpp=$(OBJ_FOLDER)/%.o)

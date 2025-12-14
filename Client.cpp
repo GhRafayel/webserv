@@ -6,6 +6,7 @@ Client::Client() :
 	server_conf_key(-1),
 	fd(-1),
 	statuc_code(-1),
+	is_dir(false),
 	end_request(false)
 { timeOut = std::time(NULL);}
 
@@ -24,6 +25,7 @@ Client::Client(int FD) :
 	server_conf_key(-1),
 	fd(FD),
 	statuc_code(0),
+	is_dir(false),
 	end_request(false), 
 	buffer(""),
 	outbuf("") 

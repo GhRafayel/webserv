@@ -30,6 +30,9 @@ class Server
 		std::string					_error_500;
 		int							_port;
 		struct  sockaddr_in			_addr;
+
+		bool	get_method(const std::string &);
+
 };
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef STRINGUTILS_HPP
 #define STRINGUTILS_HPP
 
+#include <dirent.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -30,7 +32,11 @@ class StringUtils
 		std::string					get_file_content(const std::string & );
 		std::string 				int_to_string(int);
 		std::string					get_my_taype(const std::string &);
-
+		bool						is_directory(const std::string &);
+		bool						readable(const std::string &);
+		bool						writable(const std::string &);
+		bool						executable(const std::string &);
+		bool						exists(const std::string &);
 };
 
 #endif

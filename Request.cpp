@@ -20,7 +20,6 @@ Request::Request(const Request & obj) : StringUtils(),
 	this->method = obj.method;
 	this->url_path = obj.url_path;
 	this->protocol = obj.protocol;
-	this->request = obj.request;
 	this->best_location_index = obj.best_location_index;
 }
 
@@ -33,7 +32,6 @@ Request &	Request::operator = (const Request & obj)
 		this->method = obj.method;
 		this->url_path = obj.url_path;
 		this->protocol = obj.protocol;
-		this->request = obj.request;
 		this->best_location_index = obj.best_location_index;
 	}
 	return *this;
@@ -56,18 +54,9 @@ void	Request::analize_request()
 
 		std::string value = trim(req[i].substr(post, req[i].size()), " ");
 
-		request.insert(std::make_pair(key, value + "\r\n"));
+		client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 	}
-
-}
-
-bool	Request::is_directory()
-{
-	DIR *dir = opendir(client_ref.best_mach.c_str());
-
-	if (dir == NULL) return false;
-	closedir(dir);
-	return true;
+	client_ref.request.insert(std::make_pair("protocol", protocol));
 }
 
 bool	Request::is_defoult_location()
@@ -118,9 +107,13 @@ void Request::get_best_mach()
 
 bool	Request::is_method_allowed()
 {
-	if (best_location_index != -1 && server_ref._locations[best_location_index].get_method(method))
-		return true;
-	else if (server_ref._methods.find(method) != server_ref._methods.end())
+	bool s_method = server_ref.get_method(method);
+	bool l_method = false;
+
+	if (best_location_index != -1)
+		l_method = server_ref._locations[best_location_index].get_method(method);
+	
+	if (l_method || s_method)
 		return true;
 	return false;
 }
@@ -129,61 +122,56 @@ void	Request::run()
 {
 	get_best_mach();
 
-	// if (client_ref.best_mach.empty())
-	// {
-	// 	client_ref.statuc_code = 404;
-	// 	client_ref.best_mach = server_ref._error_404;
-	// 	return ;
-	// }
-	// if (!is_method_allowed())
-	// {
-	// 	client_ref.statuc_code = 405;
-	// 	return ;
-	// }
-	// if (is_directory())
-	// {
-	// 	if (best_location_index == -1)
-	// 		client_ref.statuc_code = 403;
-	// 	else if (!server_ref._locations[best_location_index]._autoIndex)
-	// 	{
-	// 		client_ref.statuc_code = 403;
-	// 		return ;
-	// 	}
-	// 	else
-	// 	{
-	// 		client_ref.statuc_code = 200;
-	// 		return ;
-	// 	}
-	// }
+	if (client_ref.best_mach.empty())
+	{
+		client_ref.statuc_code = 404;
+		client_ref.best_mach = server_ref._error_404;
+	}
+	else if (!is_method_allowed())
+	{
+		client_ref.statuc_code = 405;
+	}
+	else if (is_directory(client_ref.best_mach))
+	{
+		if (best_location_index == -1 || !server_ref._locations[best_location_index]._autoIndex)
+			client_ref.statuc_code = 403;
+		else
+		{
+			client_ref.statuc_code = 200;
+			client_ref.is_dir = true;
+		}
+	}
+	else
+		client_ref.statuc_code = 200;
+
 	
-	std::ostringstream t;
+	// std::ostringstream t;
 
-	std::string ext, body;
+	// std::string ext, body;
 
-	size_t		post = client_ref.best_mach.rfind(".");
+	// size_t		post = client_ref.best_mach.rfind(".");
 
-	if (post != std::string::npos)
-		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
+	// if (post != std::string::npos)
+	// 	ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
 
-	try
-	{
-		body = get_file_content(client_ref.best_mach);
-		t	<<  protocol << "200 OK\r\n"
-			<<  get_my_taype(ext)
-			<<	request.find("Connection")->first
-			<< 	request.find("Connection")->second
-			<< "Content-Length: " << body.size()  <<  "\r\n\r\n" << body;
-		client_ref.outbuf = t.str();
-	}
-	catch(const std::exception& e)
-	{
-		body = get_file_content(server_ref._error_404);
+	// try
+	// {
+	// 	body = get_file_content(client_ref.best_mach);
+	// 	t	<<  protocol << "200 OK\r\n"
+	// 		<<  get_my_taype(ext)
+	// 		<<	client_ref.request.find("Connection")->first
+	// 		<< 	client_ref.request.find("Connection")->second
+	// 		<< "Content-Length: " << body.size()  <<  "\r\n\r\n" << body;
+	// 	client_ref.outbuf = t.str();
+	// }
+	// catch(const std::exception& e)
+	// {
+	// 	body = get_file_content(server_ref._error_404);
 
-		std::cout << get_my_taype(ext) << std::endl;
-		t << protocol << " 404 Not Found\r\n"
-		<< "Content-Type: " << get_my_taype(ext)
-		<< "Content-Length: " <<  body.size()  << "\r\n"
-		<< "Connection: close\r\n\r\n" << body;
-		client_ref.outbuf = t.str();
-	}
+	// 	t << protocol << " 404 Not Found\r\n"
+	// 	<< "Content-Type: " << get_my_taype(ext)
+	// 	<< "Content-Length: " <<  body.size()  << "\r\n"
+	// 	<< "Connection: close\r\n\r\n" << body;
+	// 	client_ref.outbuf = t.str();
+	// }
 }

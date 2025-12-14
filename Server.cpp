@@ -50,3 +50,11 @@ Server & Server::operator = (const Server & obj)
     }
     return *this;
 }
+
+bool	Server::get_method(const std::string & method)
+{
+	std::map<std::string,bool>::iterator it = _methods.find(method);
+	if (it == _methods.end())
+		return false;
+	return it->second;
+}

@@ -135,9 +135,10 @@ void    Location::methods(std::string & str)
 
 bool	Location::get_method(const std::string & method)
 {
-	if (_methods.find(method) == _methods.end())
+	std::map<std::string,bool>::iterator it = _methods.find(method);
+	if (it == _methods.end())
 		return false;
-	return true;
+	return it->second;
 }
 
 void Location::callFunctionByName(const std::string & fun_name, std::string & arg)

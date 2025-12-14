@@ -211,6 +211,10 @@ void	My_server::poll_in(int index)
 void	My_server::poll_out(int index)
 {
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
+	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
+
+	Respons res(s_ref, c_ref);
+	
 	ssize_t n = send(_pollfds[index].fd, c_ref.outbuf.data(), c_ref.outbuf.size(), 0);
 	if (n > 0)
 	{
@@ -222,24 +226,6 @@ void	My_server::poll_out(int index)
 		remove_conection(index);
 		return;
 	}
-
-	// while (!c_ref.outbuf.empty())
-	// {
-	// 	ssize_t n = send(_pollfds[index].fd, c_ref.outbuf.data(), c_ref.outbuf.size(), 0);
-	// 	if (n > 0)
-	// 	{
-	// 		c_ref.outbuf.erase(0, n);
-	// 		continue;
-	// 	}
-	// 	if (n == -1) break;
-	// }
-	// if (c_ref.end_request && c_ref.outbuf.empty())
-	// {
-	// 	remove_conection(index);
-	// 	return;
-	// }
-	// if (!c_ref.outbuf.empty())
-    //     _pollfds[index].events |= POLLOUT;
 }
 
 void My_server::time_out()
