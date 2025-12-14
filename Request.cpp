@@ -129,32 +129,32 @@ void	Request::run()
 {
 	get_best_mach();
 
-	if (client_ref.best_mach.empty())
-	{
-		client_ref.statuc_code = 404;
-		client_ref.best_mach = server_ref._error_404;
-		return ;
-	}
-	if (!is_method_allowed())
-	{
-		client_ref.statuc_code = 405;
-		return ;
-	}
-	if (is_directory())
-	{
-		if (best_location_index == -1)
-			client_ref.statuc_code = 403;
-		else if (!server_ref._locations[best_location_index]._autoIndex)
-		{
-			client_ref.statuc_code = 403;
-			return ;
-		}
-		else
-		{
-			client_ref.statuc_code = 200;
-			return ;
-		}
-	}
+	// if (client_ref.best_mach.empty())
+	// {
+	// 	client_ref.statuc_code = 404;
+	// 	client_ref.best_mach = server_ref._error_404;
+	// 	return ;
+	// }
+	// if (!is_method_allowed())
+	// {
+	// 	client_ref.statuc_code = 405;
+	// 	return ;
+	// }
+	// if (is_directory())
+	// {
+	// 	if (best_location_index == -1)
+	// 		client_ref.statuc_code = 403;
+	// 	else if (!server_ref._locations[best_location_index]._autoIndex)
+	// 	{
+	// 		client_ref.statuc_code = 403;
+	// 		return ;
+	// 	}
+	// 	else
+	// 	{
+	// 		client_ref.statuc_code = 200;
+	// 		return ;
+	// 	}
+	// }
 	
 	std::ostringstream t;
 
