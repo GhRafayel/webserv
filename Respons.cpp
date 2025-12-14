@@ -13,16 +13,31 @@ Respons::Respons(Server & S, Client & C) : StringUtils(),
 
 void Respons::send_respons()
 {
-	size_t		post = client_ref.best_mach.rfind(".");
-	if (post != std::string::npos)
-		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
-	callFunctionByStatusCode(client_ref.statuc_code);
+	ssize_t n = 1;
+	while (n)
+	{
+		n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), 0);
+		if (n > 0)
+		{
+			client_ref.outbuf.erase(0, n);
+			continue;
+		}
+		// else if (n < 0)
+		// {
+		// 	//_pollfds[index].events |= POLLOUT;
+		// 	return;
+		// }
+	}
 }
 
 void	Respons::init_fun_map()
 {
+	size_t		post = client_ref.best_mach.rfind(".");
+	if (post != std::string::npos)
+		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
 	fun_map.insert(std::make_pair(404, &Respons::fun_404));
 	fun_map.insert(std::make_pair(200, &Respons::fun_200));
+	callFunctionByStatusCode(client_ref.statuc_code);
 }
 
 void Respons::fun_404()

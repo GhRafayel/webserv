@@ -12,24 +12,24 @@ class Request : public StringUtils
 {
 	private:
 		Request();
-		Server								&server_ref;
-		Client								&client_ref;
-		std::string							method;
-		std::string							url_path;
-		std::string							protocol;
-		int									best_location_index;
+		Server		&server_ref;
+		Client		&client_ref;
+		std::string	method;
+		std::string	url_path;
+		std::string	protocol;
+		int			best_location_index;
 
-	public:
-		void	analize_request();
+		void	pars_request();
 		void	get_best_mach();
 		bool	is_defoult_location();
 		bool	is_method_allowed();
+		void	start_request();
 
+	public:
 		~Request();
 		Request(Server &, Client &);
 		Request(const Request &);
 		Request &	operator = (const Request &);
-		void		run();
 };
 
 #endif

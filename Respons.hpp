@@ -18,15 +18,14 @@ class Respons : public StringUtils
 		std::ostringstream						strim;
 		std::string 							ext;
 		std::string								body;
-		void		init_fun_map();
+		void	fun_404();
+		void	fun_200();
+		void	init_fun_map();
+		void	callFunctionByStatusCode(unsigned int);
 	public:
 		~Respons();
 		Respons( Server &,  Client &);
-		void	fun_404();
-		void	fun_200();
-
 		void	send_respons();
-		void	callFunctionByStatusCode(unsigned int);
 };
 
 #endif

@@ -7,8 +7,8 @@ Request::Request(Server & S_obj, Client & C_obj) : StringUtils(),
 	client_ref(C_obj),
 	best_location_index(-1)
 {
-	analize_request();
-	run();
+	pars_request();
+	start_request();
 }
 
 Request::Request(const Request & obj) : StringUtils(),
@@ -35,7 +35,7 @@ Request &	Request::operator = (const Request & obj)
 	return *this;
 }
 
-void	Request::analize_request()
+void	Request::pars_request()
 {
 	std::vector<std::string> req = split(client_ref.buffer, "\r\n", true);
 	std::vector<std::string> header = split(req[0], " ", true);
@@ -116,7 +116,7 @@ bool	Request::is_method_allowed()
 	return false;
 }
 
-void	Request::run()
+void	Request::start_request()
 {
 	get_best_mach();
 
@@ -141,35 +141,4 @@ void	Request::run()
 	}
 	else
 		client_ref.statuc_code = 200;
-
-	
-	// std::ostringstream t;
-
-	// std::string ext, body;
-
-	// size_t		post = client_ref.best_mach.rfind(".");
-
-	// if (post != std::string::npos)
-	// 	ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
-
-	// try
-	// {
-	// 	body = get_file_content(client_ref.best_mach);
-	// 	t	<<  protocol << "200 OK\r\n"
-	// 		<<  get_my_taype(ext)
-	// 		<<	client_ref.request.find("Connection")->first
-	// 		<< 	client_ref.request.find("Connection")->second
-	// 		<< "Content-Length: " << body.size()  <<  "\r\n\r\n" << body;
-	// 	client_ref.outbuf = t.str();
-	// }
-	// catch(const std::exception& e)
-	// {
-	// 	body = get_file_content(server_ref._error_404);
-
-	// 	t << protocol << " 404 Not Found\r\n"
-	// 	<< "Content-Type: " << get_my_taype(ext)
-	// 	<< "Content-Length: " <<  body.size()  << "\r\n"
-	// 	<< "Connection: close\r\n\r\n" << body;
-	// 	client_ref.outbuf = t.str();
-	// }
 }
