@@ -2,19 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Default </title>
+    <title>Server Test Client</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <h1>Server Test Page</h1>
+
+    <!-- GET -->
     <section>
-  <h1>Welcome to 42</h1>
+        <h2>GET Request</h2>
+        <button onclick="sendGet()">Send GET</button>
+        <pre id="get-result"></pre>
+    </section>
 
-  <video controls width="1000" height="400" autoplay muted loop>
-    <source src="video/NGINX.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-  
-</section>
+    <!-- POST -->
+    <section>
+        <h2>POST Request</h2>
+        <input type="text" id="post-input" placeholder="Enter data">
+        <button onclick="sendPost()">Send POST</button>
+        <pre id="post-result"></pre>
+    </section>
 
+    <!-- DELETE -->
+    <section>
+        <h2>DELETE Request</h2>
+        <button onclick="sendDelete()">Send DELETE</button>
+        <pre id="delete-result"></pre>
+    </section>
+
+    <!-- Image -->
+    <section>
+        <h2>Image Test</h2>
+        <img src="img/poto.jpg" alt="Test Image">
+    </section>
+
+    <!-- Video -->
+    <section>
+        <h2>Video Test</h2>
+        <video controls>
+            <source src="video/NGINX.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </section>
+
+    <script src="script.js"></script>
 </body>
 </html>
