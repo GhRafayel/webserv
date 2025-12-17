@@ -12,22 +12,24 @@ class Location : public StringUtils
 		std::map<std::string, void (Location::*)(std::string &)> func_map;
 
 		void	location_pars();
-		void	location(std::string &);
-		void	redirect(std::string &);
-		void	root(std::string &);
-		void	index(std::string &) ;
-		void	autoindex(std::string &);
-		void	methods(std::string &);
+
+		void	loc_location(std::string &);
+		void	loc_return(std::string &);
+		void	loc_root(std::string &);
+		void	loc_index(std::string &) ;
+		void	loc_autoindex(std::string &);
+		void	loc_methods(std::string &);
 		bool	is_line_valid(std::string &);
+
 		std::vector<std::string>	_config;
 		std::map<std::string, bool> _methods;
 	public:
-		bool		_autoIndex;
-		std::string	_root;
-		std::string	_redirection;
-		std::string	_index;
-		std::string	_location;
-		std::string _error_massage;
+		bool						_autoIndex;
+		std::string					_root;
+		std::string					_index;
+		std::string					_location;
+		std::string					_error_massage;
+		std::vector<std::string>	_return;
 
 		~Location();
 		Location();

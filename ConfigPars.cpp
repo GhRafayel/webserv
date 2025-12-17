@@ -44,8 +44,6 @@ std::map<std::string, void (ConfigPars::*) (void)> ConfigPars::init_fun_map()
 	temp.insert(std::make_pair("index", &ConfigPars::index));
 	temp.insert(std::make_pair("method", &ConfigPars::method));
 	temp.insert(std::make_pair("methods", &ConfigPars::method));
-
-
 	return temp;
 }
 

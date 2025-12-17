@@ -37,7 +37,19 @@ void	Respons::init_fun_map()
 		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
 	fun_map.insert(std::make_pair(404, &Respons::fun_404));
 	fun_map.insert(std::make_pair(200, &Respons::fun_200));
+	fun_map.insert(std::make_pair(301, &Respons::fun_301));
+
 	callFunctionByStatusCode(client_ref.statuc_code);
+}
+
+void Respons::fun_301()
+{
+	strim << client_ref.request.find("protocol")->second;
+	strim << " 301 Moved Permanently\r\n";
+	strim << "Location: " << client_ref.best_mach << "\r\n";
+	strim << "Content-Length: 0\r\n";
+	strim << "Connection: close \r\n\r\n";
+	client_ref.outbuf = strim.str();
 }
 
 void Respons::fun_404()

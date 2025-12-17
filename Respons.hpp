@@ -20,6 +20,8 @@ class Respons : public StringUtils
 		std::string								body;
 		void	fun_404();
 		void	fun_200();
+		void	fun_301();
+
 		void	init_fun_map();
 		void	callFunctionByStatusCode(unsigned int);
 	public:

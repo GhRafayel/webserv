@@ -3,39 +3,42 @@
 Location::~Location() {  this->_config.clear(); }
 
 Location::Location() : func_map(),_config(), _methods(), _autoIndex(false),
-_root("/www/public/"), _redirection(""), _index("index.html"), _location("/"),
-_error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > ")
+_root("/www/public/"), _index("index.html"), _location("/"),
+_error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
+_return()
  {
-	func_map.insert(std::make_pair("location", &Location::location));
-	func_map.insert(std::make_pair("root", &Location::root));
-	func_map.insert(std::make_pair("index", &Location::index));
-	func_map.insert(std::make_pair("autoindex", &Location::autoindex));
-	func_map.insert(std::make_pair("methods", &Location::methods));
-	func_map.insert(std::make_pair("method", &Location::methods));
-	func_map.insert(std::make_pair("redirect", &Location::redirect));
+	func_map.insert(std::make_pair("location", &Location::loc_location));
+	func_map.insert(std::make_pair("root", &Location::loc_root));
+	func_map.insert(std::make_pair("index", &Location::loc_index));
+	func_map.insert(std::make_pair("autoindex", &Location::loc_autoindex));
+	func_map.insert(std::make_pair("methods", &Location::loc_methods));
+	func_map.insert(std::make_pair("method", &Location::loc_methods));
+	func_map.insert(std::make_pair("return", &Location::loc_return));
  }
 
 Location::Location(std::vector<std::string> & array) : func_map(),
 _config(array), _methods(), _autoIndex(false),
-_error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > ")
+_error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
+_return()
 {
-	func_map.insert(std::make_pair("location", &Location::location));
-	func_map.insert(std::make_pair("root", &Location::root));
-	func_map.insert(std::make_pair("index", &Location::index));
-	func_map.insert(std::make_pair("autoindex", &Location::autoindex));
-	func_map.insert(std::make_pair("methods", &Location::methods));
-	func_map.insert(std::make_pair("method", &Location::methods));
-	func_map.insert(std::make_pair("redirect", &Location::redirect));
+	func_map.insert(std::make_pair("location", &Location::loc_location));
+	func_map.insert(std::make_pair("root", &Location::loc_root));
+	func_map.insert(std::make_pair("index", &Location::loc_index));
+	func_map.insert(std::make_pair("autoindex", &Location::loc_autoindex));
+	func_map.insert(std::make_pair("methods", &Location::loc_methods));
+	func_map.insert(std::make_pair("method", &Location::loc_methods));
+	func_map.insert(std::make_pair("return", &Location::loc_return));
 	location_pars();
 }	
 
 Location::Location(const Location & obj) : StringUtils() ,
-	_error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > ")
+	_error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
+	_return()
 {
 	this->_methods = obj._methods;
 	this->_autoIndex = obj._autoIndex;
 	this->_root = obj._root;
-	this->_redirection = obj._redirection;
+	this->_return = obj._return;
 	this->_index = obj._index;
 	this->_location = obj._location;
 	this->func_map = obj.func_map;
@@ -48,7 +51,7 @@ Location & Location::operator = (const Location & obj)
 		this->_methods = obj._methods;
 		this->_autoIndex = obj._autoIndex;
 		this->_root = obj._root;
-		this->_redirection = obj._redirection;
+		this->_return = obj._return;
 		this->_index = obj._index;
 		this->_location = obj._location;
 		this->func_map = obj.func_map;
@@ -85,27 +88,29 @@ void	Location::location_pars()
 	}
 }
 
-void    Location::location(std::string & str)
+void    Location::loc_location(std::string & str)
 {
 	if (str.empty())
 		throw std::runtime_error(_error_massage + str);
 	this->_location = str;
 }
 
-void	Location::redirect(std::string & str)
+void	Location::loc_return(std::string & str)
 {
-	this->_redirection = str;
+	this->_return = split(str, " ", true);
+	if (_return.size() != 2 || !is_digitS(_return[0]))
+		throw std::runtime_error(_error_massage + str);
 }
 
-void    Location::root(std::string & str) {
+void    Location::loc_root(std::string & str) {
 	this->_root = str;
 }
 
-void    Location::index(std::string & str) {
+void    Location::loc_index(std::string & str) {
 	this->_index = str;
 }
 
-void    Location::autoindex(std::string & str) {
+void    Location::loc_autoindex(std::string & str) {
 
 	if (str == "on")
 		this->_autoIndex = true;
@@ -115,7 +120,7 @@ void    Location::autoindex(std::string & str) {
 		throw std::runtime_error(_error_massage + str);
 }
 
-void    Location::methods(std::string & str)
+void    Location::loc_methods(std::string & str)
 {
 	if (str.empty()) return;
 
@@ -141,13 +146,13 @@ bool	Location::get_method(const std::string & method)
 	return it->second;
 }
 
-void Location::callFunctionByName(const std::string & fun_name, std::string & arg)
+void Location::callFunctionByName(const std::string & loc_name, std::string & arg)
 {
 	try
 	{
-		std::map<std::string, void (Location::*) (std::string &)>::iterator	it = func_map.find(fun_name);
+		std::map<std::string, void (Location::*) (std::string &)>::iterator	it = func_map.find(loc_name);
 		if (it == func_map.end())
-			throw std::runtime_error(_error_massage + fun_name + " " + arg);
+			throw std::runtime_error(_error_massage + loc_name + " " + arg);
 		if (arg.empty())
 			return ;
 		(this->*(it->second))(arg);

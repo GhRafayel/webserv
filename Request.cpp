@@ -74,31 +74,37 @@ bool	Request::is_defoult_location()
 
 void Request::get_best_mach()
 {
-    int	best_index = -1;
+	int	best_index = -1;
 	std::string		best_loc;
 	
 	if (is_defoult_location()) return;
 	
-    for (size_t i = 0; i < server_ref._locations.size(); i++)
-    {
-        std::string loc = server_ref._locations[i]._location;
-        if (url_path.find(loc) == 0 && loc.size() > best_loc.size())
-        {
-            best_loc = loc;
-            best_index = i;
-        }
-    }
-    if (best_index != -1)
-    {
-        std::string relative_path = url_path.substr(best_loc.size());
-        std::string real_path = server_ref._locations[best_index]._root + relative_path;
+	for (size_t i = 0; i < server_ref._locations.size(); i++)
+	{
+		std::string loc = server_ref._locations[i]._location;
+		if (url_path.find(loc) == 0 && loc.size() > best_loc.size())
+		{
+			best_loc = loc;
+			best_index = i;
+		}
+	}
+	if (best_index != -1)
+	{
+		if (!server_ref._locations[best_index]._return.empty())
+		{
+			client_ref.statuc_code = str_to_int(server_ref._locations[best_index]._return[0]);
+			client_ref.best_mach = server_ref._locations[best_index]._return[1];
+			return ;
+		}
+		std::string relative_path = url_path.substr(best_loc.size());
+		std::string real_path = server_ref._locations[best_index]._root + relative_path;
 
-        if (!server_ref._locations[best_index]._index.empty() && relative_path.empty())
-            real_path += server_ref._locations[best_index]._index;
+		if (!server_ref._locations[best_index]._index.empty() && relative_path.empty())
+			real_path += server_ref._locations[best_index]._index;
 
-        best_location_index = best_index;
+		best_location_index = best_index;
 		client_ref.best_mach = abs_Path(real_path);
-    }
+	}
 	else
 		client_ref.best_mach = abs_Path(server_ref._root + url_path);
 }
@@ -120,6 +126,11 @@ void	Request::start_request()
 {
 	get_best_mach();
 
+	if (client_ref.statuc_code)
+	{
+		return ;
+	}
+		
 	if (client_ref.best_mach.empty())
 	{
 		client_ref.statuc_code = 404;
