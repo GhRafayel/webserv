@@ -38,6 +38,8 @@ void	Respons::init_fun_map()
 	fun_map.insert(std::make_pair(404, &Respons::fun_404));
 	fun_map.insert(std::make_pair(200, &Respons::fun_200));
 	fun_map.insert(std::make_pair(301, &Respons::fun_301));
+	fun_map.insert(std::make_pair(302, &Respons::fun_301));
+
 
 	callFunctionByStatusCode(client_ref.statuc_code);
 }
@@ -45,7 +47,7 @@ void	Respons::init_fun_map()
 void Respons::fun_301()
 {
 	strim << client_ref.request.find("protocol")->second;
-	strim << " 301 Moved Permanently\r\n";
+	strim << " " + int_to_string(client_ref.statuc_code) << " Moved Permanently\r\n";
 	strim << "Location: " << client_ref.best_mach << "\r\n";
 	strim << "Content-Length: 0\r\n";
 	strim << "Connection: close \r\n\r\n";
@@ -55,10 +57,10 @@ void Respons::fun_301()
 void Respons::fun_404()
 {
 	body = get_file_content(server_ref._error_404);
-	strim << client_ref.request.find("protocol")->second << "404 Not Found\r\n";
-	strim << "Content-Type: " << get_my_taype(ext);
-	strim << "Content-Length: " << body.size() << "\r\n";
-	strim << "Connection: close\r\n\r\n" << body;
+	strim	<< client_ref.request.find("protocol")->second << "404 Not Found\r\n"
+			<< "Content-Type: " << get_my_taype(ext) << "\r\n"
+			<< "Content-Length: " << body.size() << "\r\n"
+			<< "Connection: close\r\n\r\n" << body;
 	client_ref.outbuf = strim.str();
 }
 
@@ -66,9 +68,9 @@ void Respons::fun_200()
 {
 	body = get_file_content(client_ref.best_mach);
 	strim	<<  client_ref.request.find("protocol")->second  << " 200 OK\r\n"
-		<<  get_my_taype(ext)
-		<<	client_ref.request.find("Connection")->first
-		<< 	client_ref.request.find("Connection")->second
+		<<  get_my_taype(ext) << "\r\n"
+		<<	client_ref.request.find("Connection")->first << "\r\n"
+		<< 	client_ref.request.find("Connection")->second << "\r\n"
 		<< "Content-Length: " << body.size()  <<  "\r\n\r\n" << body;
 		client_ref.outbuf = strim.str();
 }
