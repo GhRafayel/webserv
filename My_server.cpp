@@ -8,34 +8,29 @@ My_server::~My_server() {
 	}
 }
 
-My_server::My_server() : 
-	StringUtils(),
+My_server::My_server() : StringUtils(),
 	_client(), 
 	_servers(), 
 	_pollfds(),
 	_time(1000),
-	_conf_file_path("conf/default.conf"),
+	_conf_file_path(abs_Path("conf/default.conf")),
 	_env()
 {
-	_conf_file_path = abs_Path(_conf_file_path);
-	if(!_conf_file_path.size())
+	if(!_conf_file_path.empty())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
 
-My_server::My_server( char **env) :
+My_server::My_server(char **env) :
 	StringUtils(),
 	_client(),
 	_servers(), 
 	_pollfds(),
 	_time(1000),
-	_conf_file_path(),
+	_conf_file_path(abs_Path("conf/default.conf")),
 	_env()
 {
 	for (size_t i = 0; env && env[i]; i++)
 		_env.push_back(env[i]);
-	// _conf_file_path = abs_Path(_conf_file_path);
-	// if (_env.empty())
-	// 	throw std::runtime_error("Env is empy ! ");
 	if(_conf_file_path.empty())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
@@ -46,16 +41,13 @@ My_server::My_server(const std::string & conf_file_path,  char **env) :
 	_servers(), 
 	_pollfds(),
 	_time(1000),
-	_conf_file_path(conf_file_path),
+	_conf_file_path(abs_Path(conf_file_path)),
 	_env()
 {
-	for (size_t i = 0; env && env[i]; i++)
-		_env.push_back(env[i]);
-	// _conf_file_path = abs_Path(_conf_file_path);
-	// if (_env.empty())
-	// 	throw std::runtime_error("Env is empy ! ");
 	if(_conf_file_path.empty())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
+	for (size_t i = 0; env && env[i]; i++)
+		_env.push_back(env[i]);
 }
 
 My_server::My_server(const My_server & obj) :
@@ -108,6 +100,8 @@ void	My_server::start_server()
 	}
 	if (_pollfds.size())
 		accept_loop();
+	else
+		std::cerr << "Error: No server available to start." << std::endl;
 }
 
 void	My_server::initConfig()

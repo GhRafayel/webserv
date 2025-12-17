@@ -53,7 +53,7 @@ void Respons::fun_404()
 void Respons::fun_200()
 {
 	body = get_file_content(client_ref.best_mach);
-	strim	<<  client_ref.request.find("protocol")->second  << "200 OK\r\n"
+	strim	<<  client_ref.request.find("protocol")->second  << " 200 OK\r\n"
 		<<  get_my_taype(ext)
 		<<	client_ref.request.find("Connection")->first
 		<< 	client_ref.request.find("Connection")->second

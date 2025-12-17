@@ -32,7 +32,6 @@ class Server
 		struct  sockaddr_in			_addr;
 
 		bool	get_method(const std::string &);
-
 };
 
 #endif
