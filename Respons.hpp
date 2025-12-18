@@ -21,12 +21,12 @@ class Respons : public StringUtils
 		void	fun_404();
 		void	fun_200();
 		void	fun_301();
-
+		void	fun_405();
 		void	init_fun_map();
 		void	callFunctionByStatusCode(unsigned int);
 	public:
 		~Respons();
-		Respons( Server &,  Client &);
+		Respons(Server &, Client &);
 		void	send_respons();
 };
 

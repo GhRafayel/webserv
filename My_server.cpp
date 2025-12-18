@@ -196,8 +196,7 @@ void	My_server::poll_in(int index)
 		remove_conection(index);
 		return;
 	}
-	if (!c_ref.end_request)
-		return;
+	if (!c_ref.end_request)	return;
 	Request	req(s_ref, c_ref);
 	_pollfds[index].events |= POLLOUT;
 }

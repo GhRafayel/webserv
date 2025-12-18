@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <ctime>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -37,6 +38,8 @@ class StringUtils
 		bool						writable(const std::string &);
 		bool						executable(const std::string &);
 		bool						exists(const std::string &);
+
+		std::string 				get_http_date();
 };
 
 #endif
