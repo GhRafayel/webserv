@@ -37,8 +37,18 @@ Request &	Request::operator = (const Request & obj)
 
 void	Request::pars_request()
 {
+
+	if (client_ref.buffer.find("Range:") == 0)
+	{
+		client_ref.statuc_code = 206;
+		
+		std::cout << client_ref.buffer << std::endl;
+		return ;
+	}
 	std::vector<std::string> req = split(client_ref.buffer, "\r\n", true);
+	
 	std::vector<std::string> header = split(req[0], " ", true);
+	
 	
 	this->method = header[0];
 	this->url_path = header[1];
@@ -124,13 +134,9 @@ bool	Request::is_method_allowed()
 
 void	Request::start_request()
 {
+	if (client_ref.statuc_code) return ;
+	
 	get_best_mach();
-
-	if (client_ref.statuc_code)
-	{
-		return ;
-	}
-		
 	if (client_ref.best_mach.empty())
 	{
 		client_ref.statuc_code = 404;

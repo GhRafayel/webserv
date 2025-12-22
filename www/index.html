@@ -1,51 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Server Test Client</title>
-    <link rel="stylesheet" href="style.css">
+	<meta charset="UTF-8">
+	<title>Server Test Client</title>
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <h1>Server Test Page</h1>
+	<h1>Server Test Page</h1>
 
-    <!-- GET -->
-    <section>
-        <h2>GET Request</h2>
-        <button onclick="sendGet()">Send GET</button>
-        <pre id="get-result"></pre>
-    </section>
+	<!-- GET -->
+	<section>
+		<h2>GET Request</h2>
+		<button onclick="sendGet()">Send GET</button>
+		<pre id="get-result"></pre>
+	</section>
 
-    <!-- POST -->
-    <section>
-        <h2>POST Request</h2>
-        <input type="text" id="post-input" placeholder="Enter data">
-        <button onclick="sendPost()">Send POST</button>
-        <pre id="post-result"></pre>
-    </section>
+	<!-- POST -->
+	<section>
+		<h2>POST Request</h2>
+		<input type="text" id="post-input" placeholder="Enter data">
+		<button onclick="sendPost()">Send POST</button>
+		<pre id="post-result"></pre>
+	</section>
 
-    <!-- DELETE -->
-    <section>
-        <h2>DELETE Request</h2>
-        <button onclick="sendDelete()">Send DELETE</button>
-        <pre id="delete-result"></pre>
-    </section>
+	<!-- DELETE -->
+	<section>
+		<h2>DELETE Request</h2>
+		<button onclick="sendDelete()">Send DELETE</button>
+		<pre id="delete-result"></pre>
+	</section>
 
-    <!-- Image -->
-    <section>
-        <h2>Image Test</h2>
-        <img src="img/poto.jpg" alt="Test Image">
-    </section>
+	<!-- Image -->
+	<section>
+		<h2>Image Test</h2>
+		<img src="img/poto.jpg" alt="Test Image">
+	</section>
 
-    <!-- Video -->
-    <section>
-        <h2>Video Test</h2>
-        <video controls>
-            <source src="video/NGINX.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-    </section>
+	<!-- Video -->
+	<section>
+		<h2>Video Test</h2>
+		<div>
+			<video controls>
+				<source src="video/NGINX.mp4" type="video/mp4">
+					Your browser does not support the video tag.
+			</video>
+		</div>
+		<div>
+			<iframe
+				width="560"
+				height="315"
+				src="https://www.youtube.com/embed/JKxlsvZXG7c"
+				frameborder="0"
+				allowfullscreen>
+			</iframe>
+		</div>
+		<div>
+			<iframe
+				width="560"
+				height="315"
+				src="https://www.youtube.com/"
+				frameborder="0"
+				allowfullscreen>
+			</iframe>
+		</div>
+		<!-- https://www.youtube.com/ -->
+	
+	</section>
 
-    <script src="script.js"></script>
+	<script src="script.js"></script>
 </body>
 </html>

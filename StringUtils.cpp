@@ -72,6 +72,24 @@ std::string StringUtils::get_my_taype(const std::string & file_name)
 	return it->second;
 }
 
+std::string	StringUtils::get_file_content(const std::string & file_path, size_t start, size_t len)
+{
+	std::string res;
+	res.resize(len);
+
+	std::ifstream file(file_path.c_str(), std::ios::binary);
+	if (!file)
+		return res;
+
+	file.seekg(start);
+	
+	file.read(&res[0], len);
+
+	res.resize(file.gcount());
+
+	return res;
+}
+
 std::string StringUtils::get_file_content(const std::string & file_path)
 {
 	if (file_path.empty()) return file_path;
@@ -96,7 +114,7 @@ std::string StringUtils::int_to_string(int num)
 	return   ss.str();
 }
 
-int	StringUtils::str_to_int(std::string & str)
+int	StringUtils::str_to_int(const std::string & str)
 {
 	std::stringstream	ss;
 	int					res;
@@ -254,8 +272,15 @@ std::string StringUtils::get_http_date()
 	now = std::time(NULL);
 	gmt = std::gmtime(&now);
 
-	std::strftime(buffer, sizeof(buffer),
-		"Date: %a, %d %b %Y %H:%M:%S GMT", gmt);
-
+	std::strftime(buffer, sizeof(buffer), "Date: %a, %d %b %Y %H:%M:%S GMT", gmt);
 	return std::string(buffer);
+}
+
+std::vector<std::string>	StringUtils::Range_pars(const std::string & req)
+{
+	std::string copy_req = req;
+	std::vector<std::string> temp = split(copy_req, "=", true);
+	copy_req = temp[1];
+	temp  = split(copy_req, "-", true);
+	return temp;
 }

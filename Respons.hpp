@@ -10,23 +10,27 @@
 class Respons : public StringUtils
 {
 	private:
-		Respons();
-		
 		std::map<int, void (Respons::*) (void)>	fun_map;
-		Client &								client_ref;
 		Server &								server_ref;
+		Client &								client_ref;
 		std::ostringstream						strim;
+		std::string								status_code;
 		std::string 							ext;
 		std::string								body;
-		void	fun_404();
 		void	fun_200();
+		void	fun_206();
 		void	fun_301();
+		void	fun_400();
+		void	fun_403();
+		void	fun_404();
 		void	fun_405();
 		void	init_fun_map();
 		void	callFunctionByStatusCode(unsigned int);
 	public:
 		~Respons();
 		Respons(Server &, Client &);
+		Respons(const Respons &);
+		Respons & operator=(const Respons &);
 		void	send_respons();
 };
 

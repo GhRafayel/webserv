@@ -197,6 +197,7 @@ void	My_server::poll_in(int index)
 		return;
 	}
 	if (!c_ref.end_request)	return;
+
 	Request	req(s_ref, c_ref);
 	_pollfds[index].events |= POLLOUT;
 }
@@ -206,9 +207,7 @@ void	My_server::poll_out(int index)
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
 	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
 
-	Respons res(s_ref, c_ref);
-
-	res.send_respons();
+	Respons respons(s_ref, c_ref);
 	
 	if (c_ref.end_request && c_ref.outbuf.empty())
 		remove_conection(index);
@@ -258,6 +257,7 @@ void    My_server::accept_loop()
 					to_connect(i);
 				else
 					poll_in(i);
+				
 			}
 			else if (_pollfds[i].revents & POLLOUT)
 				poll_out(i);
