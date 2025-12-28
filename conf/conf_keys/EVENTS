@@ -1,5 +1,0 @@
-worker_connections
-use
-multi_accept
-accept_mutex
-accept_mutex_delay

@@ -9,10 +9,15 @@
 class Client
 {		
 	public:
-		std::time_t	timeOut;
-		int 		server_conf_key, fd, statuc_code;
-		bool		is_dir,	end_request;
-		std::string	buffer,	outbuf,	best_mach;
+		std::time_t							timeOut;
+		int 								server_conf_key;
+		int									fd;
+		int									statuc_code;
+		bool								is_dir;
+		bool								end_request;
+		std::string							buffer;
+		std::string							outbuf;
+		std::string							best_mach;
 		std::map<std::string, std::string>	request;
 		
 		~Client();

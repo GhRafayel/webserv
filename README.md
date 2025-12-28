@@ -253,3 +253,39 @@ std::string tmp(buf, n);
 c.req_buf += tmp;
 if (c.req_buf.find("\r\n\r\n") != std::string::npos)
     // հարցումը լրիվ է, հիմա կարող եք parse անել
+
+
+
+
+
+//////////////////// GET //////////////////////////
+
+GET – only the codes you really have to care about:
+200 OK
+206 Partial Content (if you support Range)
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+411 Length Required (only if you demand Content-Length on GET with body)
+413 URI Too Long
+414 URI Too Long
+500 Internal Server Error
+503 Service Unavailable
+
+//////////////////// POST //////////////////////////
+
+200 OK
+201 Created
+204 No Content
+400 / 401 / 403 / 404
+413 Payload Too Large
+500 / 503
+
+//////////////////// DELETE //////////////////////////
+
+200 OK
+204 No Content
+202 Accepted
+400 / 401 / 403 / 404
+500 / 503
