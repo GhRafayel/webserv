@@ -1,18 +1,18 @@
 SRC =	main.cpp \
-		My_server.cpp \
-		StringUtils.cpp  \
-		Server.cpp \
-		Location.cpp \
-		Request.cpp \
-		Respons.cpp \
-		Client.cpp \
-		ConfigPars.cpp
+		src/My_server.cpp \
+		src/StringUtils.cpp  \
+		src/Server.cpp \
+		src/Location.cpp \
+		src/Request.cpp \
+		src/Response.cpp \
+		src/Client.cpp \
+		src/ConfigPars.cpp
+
+OBJ_FOLDER = output
 OBJ = $(SRC:%.cpp=$(OBJ_FOLDER)/%.o)
 DEP = $(OBJ:.o=.d)
 
-DEBUG = "debug.sh"
-OBJ_FOLDER = output
-NAME = webserv 
+NAME = webserv
 C	 = c++
 FLAG = -Wall -Wextra -Werror -std=c++98 -MMD  -g3
 COMP = $(C) $(FLAG)
@@ -20,7 +20,7 @@ COMP = $(C) $(FLAG)
 all : create-dirs $(NAME)
 
 create-dirs :
-	mkdir -p $(OBJ_FOLDER)
+	mkdir -p $(OBJ_FOLDER)/src
 
 $(NAME) : $(OBJ)
 	$(COMP) -o $(NAME) $(OBJ)

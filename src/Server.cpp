@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "../hpp/Server.hpp"
 
 Server::~Server() {}
 

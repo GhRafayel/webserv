@@ -1,18 +1,18 @@
-#include "Respons.hpp"
+#include "../hpp/Response.hpp"
 
-Respons::~Respons() {}
+Response::~Response() {}
 
-Respons::Respons(Server & S_ref, Client & C_ref) : StringUtils(),
+Response::Response(Server & S_ref, Client & C_ref) : StringUtils(),
     fun_map(),
     server_ref(S_ref),
 	client_ref(C_ref),
 	status_code(int_to_string(C_ref.statuc_code))
 {
 	init_fun_map();
-	send_respons();
+	send_response();
 }
 
-Respons::Respons(const Respons & obj) : StringUtils(),
+Response::Response(const Response & obj) : StringUtils(),
 	server_ref(obj.server_ref),
 	client_ref(obj.client_ref),
 	status_code(obj.status_code)
@@ -23,7 +23,7 @@ Respons::Respons(const Respons & obj) : StringUtils(),
 	this->body = obj.body;
 }
 
-Respons & Respons::operator=(const Respons & obj)
+Response & Response::operator=(const Response & obj)
 {
 	if (this != &obj)
 	{
@@ -34,7 +34,7 @@ Respons & Respons::operator=(const Respons & obj)
 	return *this;
 }
 
-void Respons::send_respons()
+void Response::send_response()
 {
 	ssize_t n = 1;
 	// while (n)
@@ -53,24 +53,24 @@ void Respons::send_respons()
 	//}
 }
 
-void	Respons::init_fun_map()
+void	Response::init_fun_map()
 {
 	size_t		post = client_ref.best_mach.rfind(".");
 	if (post != std::string::npos)
 		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
-	
-	fun_map.insert(std::make_pair(200, &Respons::fun_200));
-	fun_map.insert(std::make_pair(206, &Respons::fun_206));
-	fun_map.insert(std::make_pair(301, &Respons::fun_301));
-	fun_map.insert(std::make_pair(302, &Respons::fun_301));
-	fun_map.insert(std::make_pair(400, &Respons::fun_400));
-	fun_map.insert(std::make_pair(403, &Respons::fun_403));
-	fun_map.insert(std::make_pair(404, &Respons::fun_404));
-	fun_map.insert(std::make_pair(405, &Respons::fun_405));
+
+	fun_map.insert(std::make_pair(200, &Response::fun_200));
+	fun_map.insert(std::make_pair(206, &Response::fun_206));
+	fun_map.insert(std::make_pair(301, &Response::fun_301));
+	fun_map.insert(std::make_pair(302, &Response::fun_301));
+	fun_map.insert(std::make_pair(400, &Response::fun_400));
+	fun_map.insert(std::make_pair(403, &Response::fun_403));
+	fun_map.insert(std::make_pair(404, &Response::fun_404));
+	fun_map.insert(std::make_pair(405, &Response::fun_405));
 	callFunctionByStatusCode(client_ref.statuc_code);
 }
 
-void Respons::fun_200()
+void Response::fun_200()
 {
 	std::map<std::string, std::string>::iterator it = client_ref.request.find("Connection");
 	body = get_file_content(client_ref.best_mach);
@@ -83,7 +83,7 @@ void Respons::fun_200()
 		client_ref.outbuf = strim.str();
 }
 
-void Respons::fun_206()
+void Response::fun_206()
 {
 	if (!readable(client_ref.best_mach))
 	{
@@ -113,7 +113,7 @@ void Respons::fun_206()
 			client_ref.outbuf = strim.str();
 }
 
-void Respons::fun_301()
+void Response::fun_301()
 {
 	strim << client_ref.request.find("protocol")->second;
 	strim << " " + int_to_string(client_ref.statuc_code) << " Moved Permanently\r\n";
@@ -123,14 +123,14 @@ void Respons::fun_301()
 	client_ref.outbuf = strim.str();
 }
 
-void Respons::fun_400()
+void Response::fun_400()
 {
 	strim	<<	client_ref.request.find("protocol")->second << " 400 Bad Request";
 	strim	<<	"Content-Length: 0\r\n";
 	strim	<<	"Connection: close\r\n";
 }
 
-void Respons::fun_403()
+void Response::fun_403()
 {
 	strim	<<	client_ref.request.find("protocol")->second << " 403 Forbidden";
 	strim	<<	get_my_taype(ext) + "\r\n";
@@ -140,7 +140,7 @@ void Respons::fun_403()
 	client_ref.outbuf = strim.str();
 }
 
-void Respons::fun_404()
+void Response::fun_404()
 {
 	body = get_file_content(server_ref._error_404);
 	strim	<< client_ref.request.find("protocol")->second << " 404 Not Found\r\n"
@@ -151,7 +151,7 @@ void Respons::fun_404()
 	client_ref.outbuf = strim.str();
 }
 
-void Respons::fun_405()
+void Response::fun_405()
 {
 	strim <<  client_ref.request.find("protocol")->second + " 405 Not Allowed\r\n";
 	strim << "Server: my Server \r\n";
@@ -162,9 +162,9 @@ void Respons::fun_405()
 	client_ref.outbuf = strim.str();
 }
 
-void Respons::callFunctionByStatusCode(unsigned int fun_code)
+void Response::callFunctionByStatusCode(unsigned int fun_code)
 {
-	std::map<int, void (Respons::*) (void)>::iterator it = fun_map.find(fun_code);
+	std::map<int, void (Response::*) (void)>::iterator it = fun_map.find(fun_code);
 	if (it == fun_map.end()) return ;
 	(this->*(it->second))();
 }

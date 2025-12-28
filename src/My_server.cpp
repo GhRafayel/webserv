@@ -1,4 +1,4 @@
-#include "My_server.hpp"
+#include "../hpp/My_server.hpp"
 
 My_server::~My_server() {
 	for (size_t i = 0; i < _pollfds.size(); i++)
@@ -207,7 +207,7 @@ void	My_server::poll_out(int index)
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
 	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
 
-	Respons respons(s_ref, c_ref);
+	Response response(s_ref, c_ref);
 	
 	if (c_ref.end_request && c_ref.outbuf.empty())
 		remove_conection(index);
@@ -257,7 +257,6 @@ void    My_server::accept_loop()
 					to_connect(i);
 				else
 					poll_in(i);
-				
 			}
 			else if (_pollfds[i].revents & POLLOUT)
 				poll_out(i);
@@ -265,3 +264,4 @@ void    My_server::accept_loop()
 		}
 	}
 }
+

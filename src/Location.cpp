@@ -1,4 +1,4 @@
-#include "Location.hpp"
+#include "../hpp/Location.hpp"
 
 Location::~Location() {  this->_config.clear(); }
 

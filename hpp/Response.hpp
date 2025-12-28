@@ -1,5 +1,5 @@
-#ifndef RESPONS_HPP
-#define RESPONS_HPP
+#ifndef Response_HPP
+#define Response_HPP
 
 #include "StringUtils.hpp"
 #include "Client.hpp"
@@ -7,10 +7,10 @@
 #include <iostream>
 #include <map>
 
-class Respons : public StringUtils
+class Response : public StringUtils
 {
 	private:
-		std::map<int, void (Respons::*) (void)>	fun_map;
+		std::map<int, void (Response::*) (void)>	fun_map;
 		Server &								server_ref;
 		Client &								client_ref;
 		std::ostringstream						strim;
@@ -27,11 +27,11 @@ class Respons : public StringUtils
 		void	init_fun_map();
 		void	callFunctionByStatusCode(unsigned int);
 	public:
-		~Respons();
-		Respons(Server &, Client &);
-		Respons(const Respons &);
-		Respons & operator=(const Respons &);
-		void	send_respons();
+		~Response();
+		Response(Server &, Client &);
+		Response(const Response &);
+		Response & operator=(const Response &);
+		void	send_response();
 };
 
 #endif
