@@ -9,7 +9,7 @@ Get::Get(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
 
 	fun_map.insert(std::make_pair(200, &Get::fun_200));
-	fun_map.insert(std::make_pair(206, &Get::fun_206));
+	fun_map.insert(std::make_pair(206, &Get::fun_200));
 	fun_map.insert(std::make_pair(301, &Get::fun_301));
 	fun_map.insert(std::make_pair(302, &Get::fun_301));
 

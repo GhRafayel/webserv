@@ -8,6 +8,8 @@
 #include "Client.hpp"
 #include "Server.hpp"
 #include "Get.hpp"
+#include "Post.hpp"
+#include "Delete.hpp"
 
 #include <sys/socket.h>
 #include <fcntl.h>
@@ -44,10 +46,11 @@ class My_server : public StringUtils
 		My_server(char **env);
 		My_server(const std::string &,  char **env);
 		My_server & operator = (const My_server &);
-		void    start_server();
-		void	poll_in(int);
-		void	poll_out(int);
-		void	time_out();
+		Response * 	get_class(Server &, Client &);
+		void    	start_server();
+		void		poll_in(int);
+		void		poll_out(int);
+		void		time_out();
 		
 };
 

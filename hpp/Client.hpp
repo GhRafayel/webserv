@@ -18,6 +18,7 @@ class Client
 		std::string							buffer;
 		std::string							outbuf;
 		std::string							best_mach;
+		std::string							method;
 		std::map<std::string, std::string>	request;
 		
 		~Client();

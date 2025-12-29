@@ -15,7 +15,6 @@ Request::Request(const Request & obj) : StringUtils(),
 	server_ref(obj.server_ref),
 	client_ref(obj.client_ref)
 {
-	this->method = obj.method;
 	this->url_path = obj.url_path;
 	this->protocol = obj.protocol;
 	this->best_location_index = obj.best_location_index;
@@ -27,7 +26,6 @@ Request &	Request::operator = (const Request & obj)
 	{
 		this->server_ref = obj.server_ref;
 		this->client_ref = obj.client_ref;
-		this->method = obj.method;
 		this->url_path = obj.url_path;
 		this->protocol = obj.protocol;
 		this->best_location_index = obj.best_location_index;
@@ -37,20 +35,19 @@ Request &	Request::operator = (const Request & obj)
 
 void	Request::pars_request()
 {
+	std::cout << client_ref.buffer << std::endl;
 
 	if (client_ref.buffer.find("Range:") == 0)
 	{
 		client_ref.statuc_code = 206;
-		
-		std::cout << client_ref.buffer << std::endl;
+		client_ref.method = "GET";
 		return ;
 	}
+
 	std::vector<std::string> req = split(client_ref.buffer, "\r\n", true);
-	
 	std::vector<std::string> header = split(req[0], " ", true);
 	
-	
-	this->method = header[0];
+	client_ref.method = header[0];
 	this->url_path = header[1];
 	this->protocol = header[2];
 
@@ -64,6 +61,7 @@ void	Request::pars_request()
 
 		client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 	}
+	
 	client_ref.request.insert(std::make_pair("protocol", protocol));
 }
 
@@ -84,7 +82,7 @@ bool	Request::is_defoult_location()
 
 void Request::get_best_mach()
 {
-	int	best_index = -1;
+	int				best_index = -1;
 	std::string		best_loc;
 	
 	if (is_defoult_location()) return;
@@ -121,11 +119,11 @@ void Request::get_best_mach()
 
 bool	Request::is_method_allowed()
 {
-	bool s_method = server_ref.get_method(method);
+	bool s_method = server_ref.get_method(client_ref.method);
 	bool l_method = false;
 
 	if (best_location_index != -1)
-		l_method = server_ref._locations[best_location_index].get_method(method);
+		l_method = server_ref._locations[best_location_index].get_method(client_ref.method);
 	
 	if (l_method || s_method)
 		return true;

@@ -203,14 +203,30 @@ void	My_server::poll_in(int index)
 	_pollfds[index].events |= POLLOUT;
 }
 
+Response * My_server::get_class(Server & s_obj, Client & c_obj)
+{
+	if (c_obj.method == "GET")
+	{
+		return (new Get(s_obj, c_obj));
+	}
+	else if (c_obj.method == "POST")
+	{
+		return (new Post(s_obj, c_obj));
+	}
+	else if (c_obj.method == "DELETE"){
+		return (new Delete(s_obj, c_obj));
+	}
+	return NULL;
+}
+
 void	My_server::poll_out(int index)
 {
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
 	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
 
-	Response * response = new Get(s_ref, c_ref);
-	response->send_response();
-	
+	Response * response = get_class(s_ref, c_ref);
+	if (response)
+		response->send_response();
 	if (c_ref.end_request && c_ref.outbuf.empty())
 		remove_conection(index);
 	delete response;

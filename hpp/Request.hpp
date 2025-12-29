@@ -14,7 +14,6 @@ class Request : public StringUtils
 		Request();
 		Server		&server_ref;
 		Client		&client_ref;
-		std::string	method;
 		std::string	url_path;
 		std::string	protocol;
 		int			best_location_index;
