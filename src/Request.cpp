@@ -104,10 +104,7 @@ void Request::get_best_mach()
 		{
 			client_ref.statuc_code = str_to_int(server_ref._locations[best_index]._return[0]);
 			client_ref.best_mach = server_ref._locations[best_index]._return[1];
-			
-			//is_defoult_location();
 			return ;
-
 		}
 		std::string relative_path = url_path.substr(best_loc.size());
 		std::string real_path = server_ref._locations[best_index]._root + relative_path;
@@ -142,6 +139,7 @@ void	Request::start_request()
 	get_best_mach();
 
 	if (client_ref.statuc_code) return ;
+	
 	if (client_ref.best_mach.empty())
 	{
 		client_ref.statuc_code = 404;

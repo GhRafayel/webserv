@@ -7,6 +7,7 @@
 #include "Response.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
+#include "Get.hpp"
 
 #include <sys/socket.h>
 #include <fcntl.h>

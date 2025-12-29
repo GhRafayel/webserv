@@ -9,29 +9,19 @@
 
 class Response : public StringUtils
 {
-	private:
-		std::map<int, void (Response::*) (void)>	fun_map;
-		Server &								server_ref;
-		Client &								client_ref;
-		std::ostringstream						strim;
-		std::string								status_code;
-		std::string 							ext;
-		std::string								body;
-		void	fun_200();
-		void	fun_206();
-		void	fun_301();
-		void	fun_400();
-		void	fun_403();
-		void	fun_404();
-		void	fun_405();
-		void	init_fun_map();
-		void	callFunctionByStatusCode(unsigned int);
+	protected:
+		Server &									server_ref;
+		Client &									client_ref;
+		std::ostringstream							strim;
+		std::string									status_code;
 	public:
-		~Response();
+
+		virtual ~Response();
 		Response(Server &, Client &);
 		Response(const Response &);
-		Response & operator=(const Response &);
-		void	send_response();
+		Response &		operator=(const Response &);
+		void			send_response();
+		virtual void	callFunctionByStatusCode(unsigned int) = 0;
 };
 
 #endif
