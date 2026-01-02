@@ -16,6 +16,9 @@ class Post : virtual public Response
 		void	callFunctionByStatusCode(unsigned int);
 		void	create_response();
 		void	fun_200();
+		void	fun_405();
+		void	fun_404();
+
 	public:
 		~Post();
 		Post(Server &, Client &);

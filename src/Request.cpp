@@ -59,10 +59,10 @@ bool	Request::pars_request()
 		{
 			key = trim(req[i].substr(0, post), " ");
 			value = trim(req[i].substr(post, req[i].size()), " ");
+			client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 		}
 		else if (client_ref.method == "POST")
-			client_ref.request.insert(std::make_pair("body", req[i] + "\r\n"));
-		client_ref.request.insert(std::make_pair(key, value + "\r\n"));
+			client_ref.request.insert(std::make_pair("body", req[i]));
 	}
 	client_ref.request.insert(std::make_pair("protocol", protocol));
 	return true;
