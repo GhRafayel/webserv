@@ -31,9 +31,9 @@ void	Post::create_response()
 	}
 	if (client_ref.best_mach.empty())
 	{
-		std::string aa = client_ref.request.find("url_path")->second;
-		//aa = aa.substr(aa.rfind("/") + 1);
-		std::ofstream file(aa.c_str());
+		std::string temp = client_ref.request.find("url_path")->second;
+		temp ="www/Todo/" + temp.substr(temp.rfind("/") + 1);
+		std::ofstream file(temp.c_str());
 		if (!file.is_open())
 		{
 			client_ref.statuc_code = 404;
