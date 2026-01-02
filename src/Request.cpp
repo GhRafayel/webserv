@@ -52,12 +52,16 @@ bool	Request::pars_request()
 
 	for (size_t i = 1; i < req.size(); i++)
 	{
-		size_t post = req[i].find(":");
-		
-		std::string key = trim(req[i].substr(0, post), " ");
+		std::string	key, value;
+		size_t 		post = req[i].find(":");
 
-		std::string value = trim(req[i].substr(post, req[i].size()), " ");
-
+		if (post != std::string::npos)
+		{
+			key = trim(req[i].substr(0, post), " ");
+			value = trim(req[i].substr(post, req[i].size()), " ");
+		}
+		else if (client_ref.method == "POST")
+			client_ref.request.insert(std::make_pair("body", req[i] + "\r\n"));
 		client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 	}
 	client_ref.request.insert(std::make_pair("protocol", protocol));
