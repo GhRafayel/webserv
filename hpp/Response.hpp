@@ -10,18 +10,20 @@
 class Response : public StringUtils
 {
 	protected:
-		Server &									server_ref;
-		Client &									client_ref;
-		std::ostringstream							strim;
-		std::string									status_code;
-	public:
+		Server &			server_ref;
+		Client &			client_ref;
+		std::ostringstream	strim;
+		std::string			status_code;
 
-		virtual ~Response();
+		bool				is_method_allowed();
+		virtual void		create_response() = 0;
+		virtual void		callFunctionByStatusCode(unsigned int) = 0;
 		Response(Server &, Client &);
 		Response(const Response &);
 		Response &		operator=(const Response &);
+	public:
+		virtual ~Response();
 		void			send_response();
-		virtual void	callFunctionByStatusCode(unsigned int) = 0;
 };
 
 #endif

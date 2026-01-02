@@ -10,6 +10,7 @@ class Client
 {		
 	public:
 		std::time_t							timeOut;
+		int									best_location_index;
 		int 								server_conf_key;
 		int									fd;
 		int									statuc_code;

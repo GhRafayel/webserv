@@ -14,6 +14,7 @@ class Delete : virtual public Response
 		Delete ();
 		Delete  &	operator = (const Delete  &);
 		void		callFunctionByStatusCode(unsigned int);
+		void		create_response();
 	public:
 		~Delete ();
 		Delete (Server &, Client &);

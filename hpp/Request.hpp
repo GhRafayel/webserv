@@ -16,14 +16,11 @@ class Request : public StringUtils
 		Client		&client_ref;
 		std::string	url_path;
 		std::string	protocol;
-		int			best_location_index;
 
-		void	pars_request();
-		void	get_best_mach();
+		bool	pars_request();
+		void	get_best_mach(std::string &);
 		bool	is_defoult_location();
-		bool	is_method_allowed();
-		void	start_request();
-
+		
 	public:
 		~Request();
 		Request(Server &, Client &);

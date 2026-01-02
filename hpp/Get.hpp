@@ -14,9 +14,7 @@ class Get : virtual public Response
 		Get();
 		Get &	operator = (const Get &);
 		void	callFunctionByStatusCode(unsigned int);
-	public:
-		~Get();
-		Get(Server &, Client &);
+		void	create_response();
 		void	fun_200();
 		void	fun_206();
 		void	fun_301();
@@ -31,6 +29,9 @@ class Get : virtual public Response
 		// void	fun_414(); // URI Too Long
 		// void	fun_500(); // Internal Server Error
 		// void	fun_503(); // Service Unavailable
+	public:
+		~Get();
+		Get(Server &, Client &);
 };
 
 #endif

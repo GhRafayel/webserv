@@ -26,7 +26,8 @@ Get::Get(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 	// fun_map.insert(std::make_pair(500, &Get::fun_500));
 	// fun_map.insert(std::make_pair(503, &Get::fun_503));
 
-	callFunctionByStatusCode(client_ref.statuc_code);
+	//callFunctionByStatusCode(client_ref.statuc_code);
+	create_response();
 }
 
 void Get::fun_200()
@@ -39,7 +40,7 @@ void Get::fun_200()
 			<<  get_my_taype(ext) << (it != client_ref.request.end() ? it->first + it->second : "application/octet-stream\r\n")
 			<< "Content-Length: " << body.size()
 			<<  "\r\n\r\n" << body;
-		client_ref.outbuf = strim.str();
+	client_ref.outbuf = strim.str();
 }
 
 void Get::fun_206()
@@ -121,10 +122,35 @@ void Get::fun_405()
 	client_ref.outbuf = strim.str();
 }
 
+void	Get::create_response()
+{
+	if (client_ref.best_mach.empty())
+	{
+		client_ref.statuc_code = 404;
+		client_ref.best_mach = server_ref._error_404;
+	}
+	else if (!is_method_allowed())
+	{
+		client_ref.statuc_code = 405;
+	}
+	else if (is_directory(client_ref.best_mach))
+	{
+		if (client_ref.best_location_index == -1 || !server_ref._locations[client_ref.best_location_index]._autoIndex)
+			client_ref.statuc_code = 403;
+		else
+		{
+			client_ref.statuc_code = 200;
+			client_ref.is_dir = true;
+		}
+	}
+	else
+		client_ref.statuc_code = 200;
+	callFunctionByStatusCode(client_ref.statuc_code);
+}
+
 void Get::callFunctionByStatusCode(unsigned int fun_code)
 {
 	std::map<int, void (Get::*) (void)>::iterator it = fun_map.find(fun_code);
 	if (it == fun_map.end()) return ;
 	(this->*(it->second))();
 }
-

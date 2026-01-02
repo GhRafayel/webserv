@@ -47,3 +47,16 @@ void Response::send_response()
 		// }
 	//}
 }
+
+bool	Response::is_method_allowed()
+{
+	bool s_method = server_ref.get_method(client_ref.method);
+	bool l_method = false;
+
+	if (client_ref.best_location_index != -1)
+		l_method = server_ref._locations[client_ref.best_location_index].get_method(client_ref.method);
+	
+	if (l_method || s_method)
+		return true;
+	return false;
+}

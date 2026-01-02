@@ -14,9 +14,12 @@ class Post : virtual public Response
 		Post();
 		Post &	operator = (const Post &);
 		void	callFunctionByStatusCode(unsigned int);
+		void	create_response();
+		void	fun_200();
 	public:
 		~Post();
 		Post(Server &, Client &);
+
 };
 
 #endif 

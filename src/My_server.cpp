@@ -199,23 +199,37 @@ void	My_server::poll_in(int index)
 	if (!c_ref.end_request)	return;
 
 	Request	req(s_ref, c_ref);
-
 	_pollfds[index].events |= POLLOUT;
 }
 
 Response * My_server::get_class(Server & s_obj, Client & c_obj)
 {
-	if (c_obj.method == "GET")
-	{
+	if (c_obj.method == "GET") {
 		return (new Get(s_obj, c_obj));
 	}
-	else if (c_obj.method == "POST")
-	{
+	else if (c_obj.method == "POST") {
 		return (new Post(s_obj, c_obj));
 	}
-	else if (c_obj.method == "DELETE"){
+	else if (c_obj.method == "DELETE") {
 		return (new Delete(s_obj, c_obj));
 	}
+	// else if (c_obj.method == "OPTIONS")
+	// {
+	// 	std::ostringstream s;
+
+	// 	s << "HTTP/1.1 405 OK";
+	// 	s << "Access-Control-Allow-Origin: *";
+	// 	s << "Access-Control-Allow-Methods: POST, GET, OPTIONS ";
+	// 	s << "Access-Control-Allow-Headers: Content-Type";
+	// 	c_obj.outbuf = s.str();
+	// 	ssize_t n = 1;
+	
+	// 	n = send(c_obj.fd, c_obj.outbuf.data(), c_obj.outbuf.size(), 0);
+	// 	if (n > 0)
+	// 	{
+	// 		c_obj.outbuf.erase(0, n);
+	// 	}
+	// }
 	return NULL;
 }
 

@@ -3,6 +3,7 @@
 Client::~Client() { }
 
 Client::Client() :
+	best_location_index(-1),
 	server_conf_key(-1),
 	fd(-1),
 	statuc_code(-1),
@@ -12,6 +13,7 @@ Client::Client() :
 
 Client::Client(const Client & obj)
 {
+	this->best_location_index = obj.best_location_index;
 	this->fd = obj.fd;
 	this->end_request = obj.end_request;
 	this->buffer = obj.buffer;
@@ -24,6 +26,7 @@ Client::Client(const Client & obj)
 }
 
 Client::Client(int FD) :
+	best_location_index(-1),
 	server_conf_key(-1),
 	fd(FD),
 	statuc_code(0),
@@ -39,6 +42,7 @@ Client & Client::operator = (const Client & obj)
 {
 	if (this != & obj)
 	{
+		this->best_location_index = obj.best_location_index;
 		this->server_conf_key = obj.server_conf_key;
 		this->fd = obj.fd;
 		this->statuc_code = obj.statuc_code;

@@ -4,11 +4,9 @@ Request::~Request() {}
 
 Request::Request(Server & S_obj, Client & C_obj) : StringUtils(),
 	server_ref(S_obj),
-	client_ref(C_obj),
-	best_location_index(-1)
+	client_ref(C_obj)
 {
 	pars_request();
-	start_request();
 }
 
 Request::Request(const Request & obj) : StringUtils(),
@@ -17,7 +15,6 @@ Request::Request(const Request & obj) : StringUtils(),
 {
 	this->url_path = obj.url_path;
 	this->protocol = obj.protocol;
-	this->best_location_index = obj.best_location_index;
 }
 
 Request &	Request::operator = (const Request & obj)
@@ -28,28 +25,30 @@ Request &	Request::operator = (const Request & obj)
 		this->client_ref = obj.client_ref;
 		this->url_path = obj.url_path;
 		this->protocol = obj.protocol;
-		this->best_location_index = obj.best_location_index;
 	}
 	return *this;
 }
 
-void	Request::pars_request()
+bool	Request::pars_request()
 {
-	std::cout << client_ref.buffer << std::endl;
-
 	if (client_ref.buffer.find("Range:") == 0)
-	{
-		client_ref.statuc_code = 206;
-		client_ref.method = "GET";
-		return ;
-	}
+		return (client_ref.statuc_code = 206, client_ref.method = "GET", false);
 
 	std::vector<std::string> req = split(client_ref.buffer, "\r\n", true);
-	std::vector<std::string> header = split(req[0], " ", true);
+
+	if (req.size() < 3)
+		return (client_ref.statuc_code = 400, false);
 	
+	std::vector<std::string> header = split(req[0], " ", true);
+	if (header.size() < 3)
+		return (client_ref.statuc_code = 400, false);
 	client_ref.method = header[0];
 	this->url_path = header[1];
-	this->protocol = header[2];
+	get_best_mach(header[1]);
+
+	client_ref.request.insert(std::make_pair("method", header[0]));
+	client_ref.request.insert(std::make_pair("url_path", header[1]));
+	client_ref.request.insert(std::make_pair("protocol", header[2]));
 
 	for (size_t i = 1; i < req.size(); i++)
 	{
@@ -61,8 +60,8 @@ void	Request::pars_request()
 
 		client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 	}
-	
 	client_ref.request.insert(std::make_pair("protocol", protocol));
+	return true;
 }
 
 bool	Request::is_defoult_location()
@@ -80,7 +79,7 @@ bool	Request::is_defoult_location()
 	return false;
 }
 
-void Request::get_best_mach()
+void Request::get_best_mach(std::string & url_path)
 {
 	int				best_index = -1;
 	std::string		best_loc;
@@ -110,53 +109,10 @@ void Request::get_best_mach()
 		if (!server_ref._locations[best_index]._index.empty() && relative_path.empty())
 			real_path += server_ref._locations[best_index]._index;
 
-		best_location_index = best_index;
+		client_ref.best_location_index = best_index;
 		client_ref.best_mach = abs_Path(real_path);
 	}
 	else
 		client_ref.best_mach = abs_Path(server_ref._root + url_path);
 }
 
-bool	Request::is_method_allowed()
-{
-	bool s_method = server_ref.get_method(client_ref.method);
-	bool l_method = false;
-
-	if (best_location_index != -1)
-		l_method = server_ref._locations[best_location_index].get_method(client_ref.method);
-	
-	if (l_method || s_method)
-		return true;
-	return false;
-}
-
-void	Request::start_request()
-{
-	if (client_ref.statuc_code) return ;
-	
-	get_best_mach();
-
-	if (client_ref.statuc_code) return ;
-	
-	if (client_ref.best_mach.empty())
-	{
-		client_ref.statuc_code = 404;
-		client_ref.best_mach = server_ref._error_404;
-	}
-	else if (!is_method_allowed())
-	{
-		client_ref.statuc_code = 405;
-	}
-	else if (is_directory(client_ref.best_mach))
-	{
-		if (best_location_index == -1 || !server_ref._locations[best_location_index]._autoIndex)
-			client_ref.statuc_code = 403;
-		else
-		{
-			client_ref.statuc_code = 200;
-			client_ref.is_dir = true;
-		}
-	}
-	else
-		client_ref.statuc_code = 200;
-}
