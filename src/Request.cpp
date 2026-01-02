@@ -70,16 +70,35 @@ bool	Request::pars_request()
 
 bool	Request::is_defoult_location()
 {
-	if (url_path == "/")
+	std::string 	temp = url_path;
+	size_t			count = 0;
+	size_t			post;
+	while ((post = temp.find("/")) != std::string::npos)
 	{
-		client_ref.best_mach =  abs_Path(server_ref._root + server_ref._index);
+		temp = temp.substr(post + 1);
+		count++;
+	}
+	
+	if (count == 1)
+	{
+		if (url_path.length() == 1)
+			client_ref.best_mach = abs_Path(server_ref._root + server_ref._index);
+		else
+		{
+			client_ref.best_mach = abs_Path(server_ref._root + url_path);
+		}
 		return true;
 	}
-	if (url_path.substr(1, url_path.size()).find("/") == std::string::npos)
-	{
-		client_ref.best_mach =  abs_Path(server_ref._root + url_path);
-		return true;
-	}
+	// if (url_path == "/")
+	// {
+	// 	client_ref.best_mach =  abs_Path(server_ref._root + server_ref._index);
+	// 	return true;
+	// }
+	// if (url_path.substr(1, url_path.size()).find("/") == std::string::npos)
+	// {
+	// 	client_ref.best_mach =  abs_Path(server_ref._root + url_path);
+	// 	return true;
+	// }
 	return false;
 }
 

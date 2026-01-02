@@ -32,7 +32,7 @@ void	Post::create_response()
 	if (client_ref.best_mach.empty())
 	{
 		std::string aa = client_ref.request.find("url_path")->second;
-		aa = aa.substr(aa.rfind("/"));
+		//aa = aa.substr(aa.rfind("/") + 1);
 		std::ofstream file(aa.c_str());
 		if (!file.is_open())
 		{
