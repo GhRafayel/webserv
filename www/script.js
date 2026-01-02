@@ -1,7 +1,7 @@
 const BASE_URL = "http://localhost:8080";
 
 function sendGet() {
-    fetch(`${BASE_URL}/get`)
+    fetch()
         .then(res => res.text())
         .then(data => {
             document.getElementById("get-result").textContent = data;
@@ -17,7 +17,13 @@ function sendPost() {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ message: value })
+        body: JSON.stringify(
+            {
+                message:        value,
+                "Name" :        "Alex",
+                "Last name" :   "valod",
+                "pass" :        "1234"
+            })
     })
     .then(res => res.text())
     .then(data => {

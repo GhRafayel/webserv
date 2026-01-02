@@ -199,6 +199,15 @@ void	My_server::poll_in(int index)
 	if (!c_ref.end_request)	return;
 
 	Request	req(s_ref, c_ref);
+	// try
+	// {
+	// 	Request	req(s_ref, c_ref);
+	// }
+	// catch(const std::exception& e)
+	// {
+	// 	c_ref.best_mach = s_ref._error_500;
+	// 	std::cout << "====================\n" << std::endl;
+	// }
 	_pollfds[index].events |= POLLOUT;
 }
 
