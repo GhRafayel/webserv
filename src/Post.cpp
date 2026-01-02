@@ -24,49 +24,36 @@ Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 }
 
 void	Post::create_response()
-{
-	for (std::map<std::string, std::string>::iterator it = client_ref.request.begin(); it != client_ref.request.end(); it++)
-	{
-		std::cout << it->first << " == " <<   it->second << std::endl;
-	}
-	if (client_ref.best_mach.empty())
-	{
-		std::string temp = client_ref.request.find("url_path")->second;
-		temp ="www/Todo/" + temp.substr(temp.rfind("/") + 1);
-		std::ofstream file(temp.c_str());
-		if (!file.is_open())
-		{
-			client_ref.statuc_code = 404;
-			// client_ref.best_mach = server_ref._error_404;
-			file.close();
-			callFunctionByStatusCode(client_ref.statuc_code);
-			return ;
-		}
-		file << client_ref.request.find("body")->second;
-		file.close();
-	}
-	else
-	{
-		if (writable(client_ref.best_mach))
-		{
-			std::ofstream file(client_ref.request.find("url_path")->second.c_str());
-			file << client_ref.request.find("body")->second;
-			file.close();
-		}
-	}
-
+{	
 	if (!is_method_allowed())
 	{
 		client_ref.statuc_code = 405;
 	}
+	else if (client_ref.best_mach.empty())
+	{
+		client_ref.statuc_code = 404;
+	}
+	std::ofstream file(client_ref.best_mach.c_str());
+	if (!writable(client_ref.best_mach))
+		client_ref.statuc_code = 500;
 	else
-		this->client_ref.statuc_code = 200;
+		client_ref.statuc_code = 200;
+	file.close();
 	callFunctionByStatusCode(client_ref.statuc_code);
 }
 
 void	Post::fun_200()
 {
+	std::map<std::string, std::string>::iterator it =	client_ref.request.find("body");
+	std::ofstream										file(client_ref.best_mach.c_str());
 
+	if (it == client_ref.request.end())
+	{
+		client_ref.statuc_code = 400;
+		callFunctionByStatusCode(client_ref.statuc_code);
+		return ;
+	}
+	file << it->second;
 	strim	<<  "HTTP/1.1 200 OK";
 	client_ref.outbuf = strim.str();
 }
@@ -99,5 +86,3 @@ void Post::callFunctionByStatusCode(unsigned int fun_code)
 		return ;
 	(this->*(it->second))();
 }
-
-

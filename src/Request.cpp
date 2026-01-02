@@ -55,14 +55,17 @@ bool	Request::pars_request()
 		std::string	key, value;
 		size_t 		post = req[i].find(":");
 
-		if (post != std::string::npos)
+		if (i + 1 == req.size() && client_ref.method == "POST")
+		{
+			client_ref.request.insert(std::make_pair("body", req[i]));
+			break;
+		}
+		else if (post != std::string::npos)
 		{
 			key = trim(req[i].substr(0, post), " ");
 			value = trim(req[i].substr(post, req[i].size()), " ");
 			client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 		}
-		else if (client_ref.method == "POST")
-			client_ref.request.insert(std::make_pair("body", req[i]));
 	}
 	client_ref.request.insert(std::make_pair("protocol", protocol));
 	return true;
@@ -82,11 +85,16 @@ bool	Request::is_defoult_location()
 	if (count == 1)
 	{
 		if (url_path.length() == 1)
-			client_ref.best_mach = abs_Path(server_ref._root + server_ref._index);
-		else
 		{
-			client_ref.best_mach = abs_Path(server_ref._root + url_path);
+			client_ref.best_mach = abs_Path(server_ref._root + server_ref._index);
+			return true;
 		}
+		else if (client_ref.best_mach.empty() && client_ref.method == "POST")
+		{
+			client_ref.best_mach = abs_Path(server_ref._root) + url_path;
+			return true;
+		}
+		client_ref.best_mach = abs_Path(server_ref._root + url_path);
 		return true;
 	}
 	// if (url_path == "/")

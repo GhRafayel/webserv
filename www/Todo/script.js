@@ -1,34 +1,21 @@
 const BASE_URL = "http://localhost:3030";
 
 const root = document.getElementById('to_do_list_root');
-let todo =  
-	[
-		{
-			id: Math.random(), text: "Html", 
-			bul:false
-		},
-		{
-			id: Math.random(),
-			text: "Css",
-			bul:false
-		},
-		{
-			id: Math.random(),
-			text: "Java",
-			bul:false
-		}
-	];
 
-fetch(`${BASE_URL}/data.json`)
-.then(res => {
-	if (!res.ok) {
-		throw new Error("Network response was not ok");
-	}
-		return res.json();
-	})
-	.then(res => {
-		if (res && res.length > 0) { todo = res; }
-	}).catch(err => console.log(err));
+let todo = [];
+
+async function getData() {
+  try {
+    const res = await fetch(`${BASE_URL}/data.json`);
+    todo = await res.json();
+	console.log(todo);
+    App();
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+getData();
 
 function send_post(){
 	fetch(`${BASE_URL}/data.json`, {
@@ -38,7 +25,6 @@ function send_post(){
 		},
 		body: JSON.stringify(todo)
 	})
-	.then(res => res.json())
 	.then(res => console.log(res))
 	.catch(err => console.log(err));
 }
@@ -56,7 +42,6 @@ container.innerHTML = `
 container.addEventListener('submit', (e) => {
 	e.preventDefault();
 	let text = container.querySelector('input');
-	console.log("Add");
 	if(text.value.trim().length >= 2){
 		todo.unshift({
 			id: Math.random() * 1,
@@ -73,10 +58,10 @@ return root.appendChild(container);
 };
 
 function list(){
-const continer = document.createElement("div");
-continer. id = 'scroll'
+	const continer = document.createElement("div");
+	continer. id = 'scroll'
 
-root.appendChild(continer);
+	root.appendChild(continer);
 }
 
 function listItem() {
@@ -166,4 +151,5 @@ function App()
 	listItem();
 	footer();
 }
-App();
+
+
