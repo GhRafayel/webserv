@@ -56,10 +56,7 @@ bool	Request::pars_request()
 		size_t 		post = req[i].find(":");
 
 		if (i + 1 == req.size() && client_ref.method == "POST")
-		{
 			client_ref.request.insert(std::make_pair("body", req[i]));
-			break;
-		}
 		else if (post != std::string::npos)
 		{
 			key = trim(req[i].substr(0, post), " ");
@@ -139,7 +136,6 @@ void Request::get_best_mach(std::string & url_path)
 
 		if (!server_ref._locations[best_index]._index.empty() && relative_path.empty())
 			real_path += server_ref._locations[best_index]._index;
-
 		client_ref.best_location_index = best_index;
 		client_ref.best_mach = abs_Path(real_path);
 	}
