@@ -12,7 +12,7 @@ function sendGet() {
 function sendPost() {
     const value = document.getElementById("post-input").value;
 
-    fetch(`${BASE_URL}/upload/data.json`, {
+    fetch(`${BASE_URL}/upload/get.json`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -20,9 +20,6 @@ function sendPost() {
         body: JSON.stringify(
             {
                 message:        value,
-                "Name" :        "Alex",
-                "Last name" :   "valod",
-                "pass" :        "1234"
             })
     })
     .then(res => res.text())

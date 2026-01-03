@@ -11,14 +11,14 @@ class Location : public StringUtils
 	private:
 		std::map<std::string, void (Location::*)(std::string &)> func_map;
 
+		void	init();
 		void	location_pars();
-
 		void	loc_location(std::string &);
 		void	loc_return(std::string &);
 		void	loc_root(std::string &);
 		void	loc_index(std::string &) ;
 		void	loc_autoindex(std::string &);
-		void	loc_methods(std::string &);
+		void	loc_allow_methods(std::string &);
 		bool	is_line_valid(std::string &);
 
 		std::vector<std::string>	_config;

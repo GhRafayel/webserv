@@ -7,13 +7,8 @@ _root("/www/public/"), _index("index.html"), _location("/"),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
 _return()
  {
-	func_map.insert(std::make_pair("location", &Location::loc_location));
-	func_map.insert(std::make_pair("root", &Location::loc_root));
-	func_map.insert(std::make_pair("index", &Location::loc_index));
-	func_map.insert(std::make_pair("autoindex", &Location::loc_autoindex));
-	func_map.insert(std::make_pair("methods", &Location::loc_methods));
-	func_map.insert(std::make_pair("method", &Location::loc_methods));
-	func_map.insert(std::make_pair("return", &Location::loc_return));
+	init();
+	location_pars();
  }
 
 Location::Location(std::vector<std::string> & array) : func_map(),
@@ -21,13 +16,7 @@ _config(array), _methods(), _autoIndex(false),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
 _return()
 {
-	func_map.insert(std::make_pair("location", &Location::loc_location));
-	func_map.insert(std::make_pair("root", &Location::loc_root));
-	func_map.insert(std::make_pair("index", &Location::loc_index));
-	func_map.insert(std::make_pair("autoindex", &Location::loc_autoindex));
-	func_map.insert(std::make_pair("methods", &Location::loc_methods));
-	func_map.insert(std::make_pair("method", &Location::loc_methods));
-	func_map.insert(std::make_pair("return", &Location::loc_return));
+	init();
 	location_pars();
 }	
 
@@ -57,6 +46,17 @@ Location & Location::operator = (const Location & obj)
 		this->func_map = obj.func_map;
 	}
 	return *this;
+}
+
+void	Location::init()
+{
+	func_map.insert(std::make_pair("location", &Location::loc_location));
+	func_map.insert(std::make_pair("root", &Location::loc_root));
+	func_map.insert(std::make_pair("index", &Location::loc_index));
+	func_map.insert(std::make_pair("autoindex", &Location::loc_autoindex));
+	func_map.insert(std::make_pair("allow_methods", &Location::loc_allow_methods));
+	func_map.insert(std::make_pair("allow_method", &Location::loc_allow_methods));
+	func_map.insert(std::make_pair("return", &Location::loc_return));
 }
 
 bool	Location::is_line_valid(std::string & line)
@@ -120,7 +120,7 @@ void    Location::loc_autoindex(std::string & str) {
 		throw std::runtime_error(_error_massage + str);
 }
 
-void    Location::loc_methods(std::string & str)
+void    Location::loc_allow_methods(std::string & str)
 {
 	if (str.empty()) return;
 
@@ -160,5 +160,6 @@ void Location::callFunctionByName(const std::string & loc_name, std::string & ar
 	catch(const std::exception & e)
 	{
 		std::cerr << e.what() << '\n';
+		throw ;
 	}
 }

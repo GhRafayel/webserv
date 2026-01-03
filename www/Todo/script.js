@@ -4,29 +4,28 @@ const root = document.getElementById('to_do_list_root');
 
 let todo = [];
 
-async function getData() {
+async function getData(url) {
   try {
-    const res = await fetch(`${BASE_URL}/upload/data.json`);
+    const res = await fetch(`${BASE_URL}${url}`);
     todo = await res.json();
 	console.log(todo);
     App();
   } catch (err) {
     console.log(err);
+	todo = [];
 	App();
   }
 }
 
-getData();
-
-function send_post(){
-	fetch(`${BASE_URL}/upload/data.json`, {
+function send_post(url){
+	fetch(`${BASE_URL}${url}`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify(todo)
 	})
-	.then(res => console.log(res))
+	.then(res => {console.log(res); console.log(todo)})
 	.catch(err => console.log(err));
 }
 
@@ -43,7 +42,7 @@ container.innerHTML = `
 container.addEventListener('submit', (e) => {
 	e.preventDefault();
 	let text = container.querySelector('input');
-	if(text.value.trim().length >= 2){
+	if(text.value.trim().length >= 1){
 		todo.unshift({
 			id: Math.random() * 1,
 			text: text.value,
@@ -52,7 +51,11 @@ container.addEventListener('submit', (e) => {
 	}
 	text.value = "";
 	App();
-	send_post();
+	if(text.value.trim().length >= 1)
+	{
+		send_post("/upload/data.json");
+		send_post("/upload/data.js");
+	}
 });
 
 return root.appendChild(container);
@@ -85,7 +88,7 @@ const container = document.createElement('div');
 	container.querySelector('button').addEventListener('click', (e) => {
 		todo = todo.filter( e => e.id != Number(container.id));
 		App();
-		send_post();
+		send_post("/upload/data.json");
 	});
 
 	
@@ -102,7 +105,7 @@ const container = document.createElement('div');
 				return item;
 			});
 			App();
-			send_post();
+			send_post("/upload/data.json");
 		});
 			
 	});
@@ -116,7 +119,7 @@ const container = document.createElement('div');
 		return item;
 		});
 		App();
-		send_post();
+		send_post("/upload/data.json");
 	});
 	document.getElementById('scroll').appendChild(container);
 });
@@ -139,7 +142,7 @@ const container = document.createElement('div');
 	container.querySelector('button').addEventListener('click', (e) => {
 		todo = todo.filter(item => item.bul === false);
 		App();
-		send_post();
+		send_post("/upload/data.json");
 	})
 	root.appendChild(container);
 };
@@ -154,3 +157,5 @@ function App()
 }
 
 
+getData("/upload/data.json");
+	send_post("/upload/data.js");
