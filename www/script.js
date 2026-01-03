@@ -1,7 +1,7 @@
 const BASE_URL = "http://localhost:8080";
 
 function sendGet() {
-     fetch(`${BASE_URL}/get/get.json`)
+     fetch(`${BASE_URL}/upload/get.json`)
         .then(res => res.text())
         .then(data => {
             document.getElementById("get-result").textContent = data;
@@ -12,7 +12,7 @@ function sendGet() {
 function sendPost() {
     const value = document.getElementById("post-input").value;
 
-    fetch(`${BASE_URL}/upload`, {
+    fetch(`${BASE_URL}/upload/data.json`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

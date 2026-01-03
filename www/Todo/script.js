@@ -6,19 +6,20 @@ let todo = [];
 
 async function getData() {
   try {
-    const res = await fetch(`${BASE_URL}/data.json`);
+    const res = await fetch(`${BASE_URL}/upload/data.json`);
     todo = await res.json();
 	console.log(todo);
     App();
   } catch (err) {
     console.log(err);
+	App();
   }
 }
 
 getData();
 
 function send_post(){
-	fetch(`${BASE_URL}/data.json`, {
+	fetch(`${BASE_URL}/upload/data.json`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json"
