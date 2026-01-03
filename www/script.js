@@ -1,7 +1,7 @@
 const BASE_URL = "http://localhost:8080";
 
 function sendGet() {
-    fetch()
+     fetch(`${BASE_URL}/get`)
         .then(res => res.text())
         .then(data => {
             document.getElementById("get-result").textContent = data;
