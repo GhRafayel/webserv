@@ -51,11 +51,8 @@ container.addEventListener('submit', (e) => {
 	}
 	text.value = "";
 	App();
-	if(text.value.trim().length >= 1)
-	{
-		send_post("/upload/data.json");
-		send_post("/upload/data.js");
-	}
+	
+	send_post("/upload/data.json");
 });
 
 return root.appendChild(container);
@@ -155,7 +152,4 @@ function App()
 	listItem();
 	footer();
 }
-
-
 getData("/upload/data.json");
-	send_post("/upload/data.js");

@@ -12,7 +12,7 @@ Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 	fun_map.insert(std::make_pair(405, &Post::fun_405));
 	fun_map.insert(std::make_pair(404, &Post::fun_404));
 	// fun_map.insert(std::make_pair(413, &Post::fun_413));
-	// fun_map.insert(std::make_pair(500, &Post::fun_500));
+	fun_map.insert(std::make_pair(500, &Post::fun_500));
 	create_response();
 }
 
@@ -66,6 +66,17 @@ void Post::fun_405()
 	strim << get_my_taype(ext) + "\r\n";
 	strim << "Content-Length: 0 \r\n";
 	strim << "Connection: close\r\n\r\n";
+	client_ref.outbuf = strim.str();
+}
+
+
+void Post::fun_500()
+{
+	strim <<  client_ref.request.find("protocol")->second + " 404 Not Found\r\n"
+			<< "Server: my Server \r\n" + get_http_date() << "\r\n"
+			<< "Content-Type: " << get_my_taype(ext) << "\r\n"
+			<< "Content-Length: 0\r\n"
+			<< "Connection: close\r\n\r\n";
 	client_ref.outbuf = strim.str();
 }
 
