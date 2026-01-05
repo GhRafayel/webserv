@@ -13,8 +13,13 @@ class Delete : virtual public Response
 		std::map<int, void (Delete ::*) (void)>	fun_map;
 		Delete ();
 		Delete  &	operator = (const Delete  &);
-		void		callFunctionByStatusCode(unsigned int);
+		void		callFunctionByStatusCode();
+		void		inishialize_fun_map();
 		void		create_response();
+		void		fun_200();
+		void		fun_403();
+		void		fun_404();
+		void		fun_500();
 	public:
 		~Delete ();
 		Delete (Server &, Client &);

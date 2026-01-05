@@ -4,28 +4,35 @@ const root = document.getElementById('to_do_list_root');
 
 let todo = [];
 
-async function getData(url) {
+async function getData() {
   try {
-    const res = await fetch(`${BASE_URL}${url}`);
+    const res = await fetch(`${BASE_URL}/upload/data.json`);
     todo = await res.json();
 	console.log(todo);
     App();
   } catch (err) {
-    console.log(err);
-	todo = [];
-	App();
+    	console.log(err);
+		App();
   }
 }
 
-function send_post(url){
-	fetch(`${BASE_URL}${url}`, {
+function send_post(){
+	fetch(`${BASE_URL}/upload/data.json`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify(todo)
 	})
-	.then(res => {console.log(res); console.log(todo)})
+	.then(res => 
+		{
+			if (res.status != 201)
+			{
+				alert("Error server is broken")
+				getData();
+			}
+			console.log(res)
+		})
 	.catch(err => console.log(err));
 }
 
@@ -42,7 +49,7 @@ container.innerHTML = `
 container.addEventListener('submit', (e) => {
 	e.preventDefault();
 	let text = container.querySelector('input');
-	if(text.value.trim().length >= 1){
+	if(text.value.trim().length >= 2){
 		todo.unshift({
 			id: Math.random() * 1,
 			text: text.value,
@@ -51,8 +58,7 @@ container.addEventListener('submit', (e) => {
 	}
 	text.value = "";
 	App();
-	
-	send_post("/upload/data.json");
+	send_post();
 });
 
 return root.appendChild(container);
@@ -60,7 +66,7 @@ return root.appendChild(container);
 
 function list(){
 	const continer = document.createElement("div");
-	continer. id = 'scroll'
+	continer.id = 'scroll'
 
 	root.appendChild(continer);
 }
@@ -85,7 +91,7 @@ const container = document.createElement('div');
 	container.querySelector('button').addEventListener('click', (e) => {
 		todo = todo.filter( e => e.id != Number(container.id));
 		App();
-		send_post("/upload/data.json");
+		send_post();
 	});
 
 	
@@ -102,7 +108,7 @@ const container = document.createElement('div');
 				return item;
 			});
 			App();
-			send_post("/upload/data.json");
+			send_post();
 		});
 			
 	});
@@ -116,11 +122,12 @@ const container = document.createElement('div');
 		return item;
 		});
 		App();
-		send_post("/upload/data.json");
+		send_post();
 	});
 	document.getElementById('scroll').appendChild(container);
 });
 };
+
 function footer(){
 let checked = todo.filter(item => item.bul === true);
 const container = document.createElement('div');
@@ -132,14 +139,12 @@ const container = document.createElement('div');
 		</div>
 		<div class="col-auto ">
 		<button type="button" class="btn btn-outline-success">Clear completed</button>
-
 		</div>
-		
 	`;
 	container.querySelector('button').addEventListener('click', (e) => {
 		todo = todo.filter(item => item.bul === false);
 		App();
-		send_post("/upload/data.json");
+		send_post();
 	})
 	root.appendChild(container);
 };
@@ -152,4 +157,5 @@ function App()
 	listItem();
 	footer();
 }
-getData("/upload/data.json");
+
+getData();

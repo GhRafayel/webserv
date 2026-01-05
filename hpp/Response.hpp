@@ -16,14 +16,16 @@ class Response : public StringUtils
 		std::string			status_code;
 
 		bool				is_method_allowed();
+		virtual void		inishialize_fun_map() = 0;
 		virtual void		create_response() = 0;
-		virtual void		callFunctionByStatusCode(unsigned int) = 0;
+		virtual void		callFunctionByStatusCode() = 0;
+		Response &			operator=(const Response &);
 		Response(Server &, Client &);
 		Response(const Response &);
-		Response &		operator=(const Response &);
+		
 	public:
 		virtual ~Response();
-		void			send_response();
+		void		send_response();
 };
 
 #endif

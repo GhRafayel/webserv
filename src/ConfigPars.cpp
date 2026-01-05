@@ -42,8 +42,8 @@ std::map<std::string, void (ConfigPars::*) (void)> ConfigPars::init_fun_map()
 	temp.insert(std::make_pair("close_blocks", &ConfigPars::close_blocks));
 	temp.insert(std::make_pair("root", &ConfigPars::root));
 	temp.insert(std::make_pair("index", &ConfigPars::index));
-	temp.insert(std::make_pair("method", &ConfigPars::method));
-	temp.insert(std::make_pair("methods", &ConfigPars::method));
+	temp.insert(std::make_pair("allow_methods", &ConfigPars::method));
+	temp.insert(std::make_pair("allow_method", &ConfigPars::method));
 	return temp;
 }
 
@@ -256,13 +256,13 @@ void	ConfigPars::is_valid_line()
 		_ind++;
 	}
 	else
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
 }
 
 void	ConfigPars::listen()
 {
 	if (_key_value.size() != 2 || !is_digitS(_key_value[1]))
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
 	_ports.push_back(str_to_int(_key_value[1]));
 }
 
@@ -284,32 +284,33 @@ void	ConfigPars::method()
 void	ConfigPars::client_max_body_size() {
 
 	if (_key_value.size() != 2 || !is_digitS(_key_value[1]))
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
+
 	this->_body_max_size = _key_value[1];
 }
 
 void	ConfigPars::server_name() {
 	if (_key_value.size() != 2)
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
 	this->_server_name = _key_value[1];
 }
 
 void	ConfigPars::error_page_404() {
 	if (_key_value.size() != 2 || _key_value[1].empty())
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
 	this->_error_404 = _key_value[1];
 }
 
 void	ConfigPars::error_page_500() {
 	if (_key_value.size() != 2 || _key_value[1].empty())
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
 	this->_error_500 = _key_value[1];
 }
 
 void	ConfigPars::index()
 {
 	if (_key_value.size() != 2 || _key_value[1].empty())
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
 	this->_index = _key_value[1];
 }
 
@@ -317,14 +318,14 @@ void	ConfigPars::root()
 {
 	if (_key_value.size() != 2 || _key_value[1].empty())
 	{
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
 	}
 	this->_root = _key_value[1];
 }
 
 void	ConfigPars::callFunctionByName(const std::string & fun_name)
 {	
-	std::map<std::string, void (ConfigPars::*) (void)>::iterator	it = func_map.find(fun_name);
+	std::map<std::string, void (ConfigPars::*) (void)>::iterator it = func_map.find(fun_name);
 	if(it == func_map.end())
 		throw std::runtime_error(_error_massage + fun_name);
 	(this->*func_map[it->first])();

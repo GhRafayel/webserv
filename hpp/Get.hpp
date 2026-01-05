@@ -13,7 +13,8 @@ class Get : virtual public Response
 		std::map<int, void (Get::*) (void)>	fun_map;
 		Get();
 		Get &	operator = (const Get &);
-		void	callFunctionByStatusCode(unsigned int);
+		void	callFunctionByStatusCode();
+		void	inishialize_fun_map();
 		void	create_response();
 		void	fun_200();
 		void	fun_206();

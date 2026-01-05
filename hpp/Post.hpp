@@ -13,7 +13,8 @@ class Post : virtual public Response
 		std::map<int, void (Post::*) (void)>	fun_map;
 		Post();
 		Post &	operator = (const Post &);
-		void	callFunctionByStatusCode(unsigned int);
+		void	callFunctionByStatusCode();
+		void	inishialize_fun_map();
 		void	create_response();
 		void	fun_201();
 		void	fun_405();

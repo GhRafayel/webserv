@@ -6,7 +6,7 @@ StringUtils::StringUtils() : _my_tayps() {
 	init();
 }
 
-bool    StringUtils::is_digitS(const std::string & str)
+bool    					StringUtils::is_digitS(const std::string & str)
 {
 	if (!str.size())
 		return false;
@@ -18,7 +18,7 @@ bool    StringUtils::is_digitS(const std::string & str)
 	return true;
 }
 
-bool    StringUtils::is_end_of_request(const std::string & buffer)
+bool    					StringUtils::is_end_of_request(const std::string & buffer)
 {
 	if (buffer.length() < 4)
 	{
@@ -32,7 +32,7 @@ bool    StringUtils::is_end_of_request(const std::string & buffer)
 	return false;
 }
 
-void    StringUtils::init()
+void    					StringUtils::init()
 {
 	std::string buffer;
 	try
@@ -60,7 +60,7 @@ void    StringUtils::init()
 	}
 }
 
-std::string StringUtils::get_my_taype(const std::string & file_name)
+std::string 				StringUtils::get_my_taype(const std::string & file_name)
 {
 	size_t pos = file_name.rfind('.');
 
@@ -72,7 +72,7 @@ std::string StringUtils::get_my_taype(const std::string & file_name)
 	return it->second;
 }
 
-std::string	StringUtils::get_file_content(const std::string & file_path, size_t start, size_t len)
+std::string					StringUtils::get_file_content(const std::string & file_path, size_t start, size_t len)
 {
 	std::string res;
 	res.resize(len);
@@ -90,7 +90,7 @@ std::string	StringUtils::get_file_content(const std::string & file_path, size_t 
 	return res;
 }
 
-std::string StringUtils::get_file_content(const std::string & file_path)
+std::string 				StringUtils::get_file_content(const std::string & file_path)
 {
 	if (file_path.empty()) return file_path;
 
@@ -107,14 +107,14 @@ std::string StringUtils::get_file_content(const std::string & file_path)
 	return file_content;
 }
 
-std::string StringUtils::int_to_string(int num)
+std::string					StringUtils::int_to_string(int num)
 {
 	std::stringstream ss;
 	ss << num;
 	return   ss.str();
 }
 
-int	StringUtils::str_to_int(const std::string & str)
+int							StringUtils::str_to_int(const std::string & str)
 {
 	std::stringstream	ss;
 	int					res;
@@ -126,7 +126,7 @@ int	StringUtils::str_to_int(const std::string & str)
 	return res;	
 }
 
-std::string StringUtils::trim (const std::string & str, const std::string & del)
+std::string 				StringUtils::trim (const std::string & str, const std::string & del)
 {
 	std::string temp = str;
 	size_t      first;
@@ -144,7 +144,7 @@ std::string StringUtils::trim (const std::string & str, const std::string & del)
 	return temp;
 }
 
-std::string StringUtils::trim (std::string & str, const std::string & del)
+std::string 				StringUtils::trim (std::string & str, const std::string & del)
 {
 	if (str.empty()) return str;
 
@@ -159,7 +159,7 @@ std::string StringUtils::trim (std::string & str, const std::string & del)
 	return str;
 }
 
-std::string StringUtils::chang_char(std::string & src, const char chr1, const char chr2)
+std::string 				StringUtils::chang_char(std::string & src, const char chr1, const char chr2)
 {
 	for (size_t i = 0; i < src.size(); i++)
 	{
@@ -169,7 +169,7 @@ std::string StringUtils::chang_char(std::string & src, const char chr1, const ch
 	return src;
 }
 
-std::vector<std::string> StringUtils::split(std::string & src, const std::string & del, bool val)
+std::vector<std::string>	StringUtils::split(std::string & src, const std::string & del, bool val)
 {
 	std::vector<std::string>    dest;
 	std::string                 temp;
@@ -198,7 +198,7 @@ std::vector<std::string> StringUtils::split(std::string & src, const std::string
 	return dest;
 }
 
-std::string StringUtils::abs_Path(const std::string & name)
+std::string 				StringUtils::abs_Path(const std::string & name)
 {
 	std::string path;
 	char actualpath [1024];
@@ -209,7 +209,7 @@ std::string StringUtils::abs_Path(const std::string & name)
 	return path;
 }
 
-void StringUtils::validate_file(const std::string & fileName) {
+void 						StringUtils::validate_file(const std::string & fileName) {
 
 	std::ifstream file(fileName.c_str());
 
@@ -226,7 +226,7 @@ void StringUtils::validate_file(const std::string & fileName) {
 	file.close();
 }
 
-bool	StringUtils::is_directory(const std::string & path)
+bool						StringUtils::is_directory(const std::string & path)
 {
 	DIR *dir = opendir(path.c_str());
 
@@ -235,35 +235,35 @@ bool	StringUtils::is_directory(const std::string & path)
 	return true;
 }
 
-bool StringUtils::readable(const std::string& path)
+bool 						StringUtils::readable(const std::string& path)
 {
 	if (access(path.c_str(), R_OK) == 0)
 		return true;
 	return false;
 }
 
-bool StringUtils::writable(const std::string& path)
+bool 						StringUtils::writable(const std::string& path)
 {
 	if (access(path.c_str(), W_OK) == 0)
 		return true;
 	return false;
 }
 
-bool StringUtils::executable(const std::string& path)
+bool 						StringUtils::executable(const std::string& path)
 {
 	if (access(path.c_str(), X_OK) == 0)
 		return true;
 	return false;
 }
 
-bool StringUtils::exists(const std::string& path)
+bool						StringUtils::exists(const std::string& path)
 {
 	if(access(path.c_str(), F_OK) == 0)
 		return true;
 	return false;
 }
 
-std::string StringUtils::get_http_date()
+std::string 				StringUtils::get_http_date()
 {
 	char		buffer[100];
 	std::time_t	now;

@@ -4,29 +4,7 @@ Get::~Get() {}
 
 Get::Get(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 {
-  size_t		post = client_ref.best_mach.rfind(".");
-	if (post != std::string::npos)
-		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
-
-	fun_map.insert(std::make_pair(200, &Get::fun_200));
-	fun_map.insert(std::make_pair(206, &Get::fun_200));
-	fun_map.insert(std::make_pair(301, &Get::fun_301));
-	fun_map.insert(std::make_pair(302, &Get::fun_301));
-
-	//fun_map.insert(std::make_pair(401, &Get::fun_401));
-
-	fun_map.insert(std::make_pair(400, &Get::fun_400));
-	fun_map.insert(std::make_pair(403, &Get::fun_403));
-	fun_map.insert(std::make_pair(404, &Get::fun_404));
-	fun_map.insert(std::make_pair(405, &Get::fun_405));
-
-	// fun_map.insert(std::make_pair(411, &Get::fun_411));
-	// fun_map.insert(std::make_pair(413, &Get::fun_413));
-	// fun_map.insert(std::make_pair(414, &Get::fun_414));
-	// fun_map.insert(std::make_pair(500, &Get::fun_500));
-	// fun_map.insert(std::make_pair(503, &Get::fun_503));
-
-	//callFunctionByStatusCode(client_ref.statuc_code);
+	inishialize_fun_map();
 	create_response();
 }
 
@@ -40,6 +18,7 @@ void Get::fun_200()
 			<<  get_my_taype(ext) << (it != client_ref.request.end() ? it->first + it->second : "application/octet-stream\r\n")
 			<< "Content-Length: " << body.size()
 			<<  "\r\n\r\n" << body;
+	std::cout << get_my_taype(ext) << std::endl;
 	client_ref.outbuf = strim.str();
 }
 
@@ -92,7 +71,7 @@ void Get::fun_400()
 
 void Get::fun_403()
 {
-	strim	<<	client_ref.request.find("protocol")->second << " 403 Forbidden";
+	strim	<<	client_ref.request.find("protocol")->second << " 403  Forbidden";
 	strim	<<	get_my_taype(ext) + "\r\n";
 	strim	<<	"charset=utf-8\r\n";
 	strim	<<	"Content-Length: 19\r\n";
@@ -145,12 +124,37 @@ void	Get::create_response()
 	}
 	else
 		client_ref.statuc_code = 200;
-	callFunctionByStatusCode(client_ref.statuc_code);
+	callFunctionByStatusCode();
 }
 
-void Get::callFunctionByStatusCode(unsigned int fun_code)
+void	Get::inishialize_fun_map() {
+
+	size_t		post = client_ref.best_mach.rfind(".");
+	if (post != std::string::npos)
+		ext = client_ref.best_mach.substr(post);
+	
+	fun_map.insert(std::make_pair(200, &Get::fun_200));
+	fun_map.insert(std::make_pair(206, &Get::fun_200));
+	fun_map.insert(std::make_pair(301, &Get::fun_301));
+	fun_map.insert(std::make_pair(302, &Get::fun_301));
+
+	//fun_map.insert(std::make_pair(401, &Get::fun_401));
+
+	fun_map.insert(std::make_pair(400, &Get::fun_400));
+	fun_map.insert(std::make_pair(403, &Get::fun_403));
+	fun_map.insert(std::make_pair(404, &Get::fun_404));
+	fun_map.insert(std::make_pair(405, &Get::fun_405));
+
+	// fun_map.insert(std::make_pair(411, &Get::fun_411));
+	// fun_map.insert(std::make_pair(413, &Get::fun_413));
+	// fun_map.insert(std::make_pair(414, &Get::fun_414));
+	// fun_map.insert(std::make_pair(500, &Get::fun_500));
+	// fun_map.insert(std::make_pair(503, &Get::fun_503));
+}
+
+void Get::callFunctionByStatusCode()
 {
-	std::map<int, void (Get::*) (void)>::iterator it = fun_map.find(fun_code);
+	std::map<int, void (Get::*) (void)>::iterator it = fun_map.find(client_ref.statuc_code);
 	if (it == fun_map.end()) return ;
 	(this->*(it->second))();
 }

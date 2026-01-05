@@ -4,6 +4,12 @@ Post::~Post() {}
 
 Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 {
+	inishialize_fun_map();
+	create_response();
+}
+
+void	Post::inishialize_fun_map()
+{
 	size_t		post = client_ref.best_mach.rfind(".");
 	if (post != std::string::npos)
 		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
@@ -12,8 +18,7 @@ Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 	fun_map.insert(std::make_pair(405, &Post::fun_405));
 	fun_map.insert(std::make_pair(404, &Post::fun_404));
 	// fun_map.insert(std::make_pair(413, &Post::fun_413));
-	fun_map.insert(std::make_pair(500, &Post::fun_500));
-	create_response();
+	// fun_map.insert(std::make_pair(500, &Post::fun_500));
 }
 
 void	Post::create_response()
@@ -36,7 +41,7 @@ void	Post::create_response()
 			client_ref.statuc_code = 201;
 		}
 	}
-	callFunctionByStatusCode(client_ref.statuc_code);
+	callFunctionByStatusCode();
 }
 
 void	Post::fun_201()
@@ -69,20 +74,9 @@ void Post::fun_405()
 	client_ref.outbuf = strim.str();
 }
 
-
-void Post::fun_500()
+void Post::callFunctionByStatusCode()
 {
-	strim <<  client_ref.request.find("protocol")->second + " 404 Not Found\r\n"
-			<< "Server: my Server \r\n" + get_http_date() << "\r\n"
-			<< "Content-Type: " << get_my_taype(ext) << "\r\n"
-			<< "Content-Length: 0\r\n"
-			<< "Connection: close\r\n\r\n";
-	client_ref.outbuf = strim.str();
-}
-
-void Post::callFunctionByStatusCode(unsigned int fun_code)
-{
-	std::map<int, void (Post::*) (void)>::iterator it = fun_map.find(fun_code);
+	std::map<int, void (Post::*) (void)>::iterator it = fun_map.find(client_ref.statuc_code);
 	if (it == fun_map.end())
 		return ;
 	(this->*(it->second))();
