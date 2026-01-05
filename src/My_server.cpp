@@ -223,7 +223,7 @@ Response * My_server::get_class(Server & s_obj, Client & c_obj)
 		return (new Delete(s_obj, c_obj));
 	}
 	else if (c_obj.method == "Create") {
-		//return (new Create(s_obj, c_obj));
+		return (new Create(s_obj, c_obj));
 	}
 	// else if (c_obj.method == "OPTIONS")
 	// {

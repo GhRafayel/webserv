@@ -18,7 +18,6 @@ void Get::fun_200()
 			<<  get_my_taype(ext) << (it != client_ref.request.end() ? it->first + it->second : "application/octet-stream\r\n")
 			<< "Content-Length: " << body.size()
 			<<  "\r\n\r\n" << body;
-	std::cout << get_my_taype(ext) << std::endl;
 	client_ref.outbuf = strim.str();
 }
 
