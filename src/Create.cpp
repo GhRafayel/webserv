@@ -14,8 +14,8 @@ void	Create::inishialize_fun_map()
 	if (post != std::string::npos)
 		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
 
-	fun_map.insert(std::make_pair(201, &Create::fun_201));
-	fun_map.insert(std::make_pair(403, &Create::fun_403));
+	fun_map.insert(std::make_pair(200, &Create::fun_200));
+	fun_map.insert(std::make_pair(405, &Create::fun_405));
 	fun_map.insert(std::make_pair(413, &Create::fun_413));
 	fun_map.insert(std::make_pair(500, &Create::fun_500));
 }
@@ -36,48 +36,54 @@ void	Create::create_response()
 	callFunctionByStatusCode();
 }
 
-void	Create::fun_201()
+void	Create::fun_200()
 {
-	strim <<  client_ref.request.find("protocol")->second + " 201 Created\r\n";
-	strim << "Server: my Server \r\n";
-	strim << get_http_date() + "\r\n";
-	strim << get_my_taype(ext) + "\r\n";
-	strim << "Content-Length: " + int_to_string(body.size()) + " \r\n";
-	strim << "Connection: close\r\n\r\n";
-	strim << body;
+	strim	<< client_ref.request.find("protocol")->second 
+			<< " " << int_to_string(client_ref.statuc_code) << " OK\r\n"
+			<< "Server: my Server \r\n"
+			<< get_http_date() + "\r\n"
+			<< get_my_taype(ext) + "\r\n"
+			<< "Content-Length: " + int_to_string(body.size()) + " \r\n"
+			<< "Connection: close\r\n\r\n" << body;
 	client_ref.outbuf = strim.str();
 }
 
 void Create::fun_413()
 {
-	strim <<  client_ref.request.find("protocol")->second + " 413 Request Entity Too Large\r\n";
-	strim << "Server: my Server \r\n";
-	strim << get_http_date() + "\r\n";
-	strim << get_my_taype(ext) + "\r\n";
-	strim << "Content-Length: 0 \r\n";
-	strim << "Connection: close\r\n\r\n";
+	strim	<<  client_ref.request.find("protocol")->second 
+			<<  " " << int_to_string(client_ref.statuc_code)
+			<< " Request Entity Too Large\r\n"
+			<< "Server: my Server \r\n"
+	 		<< get_http_date() + "\r\n"
+	 		<< get_my_taype(ext) + "\r\n"
+	 		<< "Content-Length: 0 \r\n"
+	 		<< "Connection: close\r\n\r\n";
 	client_ref.outbuf = strim.str();
 }
 
 void Create::fun_405()
 {
-	strim <<  client_ref.request.find("protocol")->second + " 405 Method Not Allowed\r\n";
-	strim << "Server: my Server \r\n";
-	strim << get_http_date() + "\r\n";
-	strim << get_my_taype(ext) + "\r\n";
-	strim << "Content-Length: 0 \r\n";
-	strim << "Connection: close\r\n\r\n";
+	strim	<< client_ref.request.find("protocol")->second 
+			<< " " << int_to_string(client_ref.statuc_code) 
+			<< " Method Not Allowed\r\n"
+			<< "Server: my Server \r\n"
+			<< get_http_date() + "\r\n"
+			<< get_my_taype(ext) + "\r\n"
+			<< "Content-Length: 0 \r\n"
+			<< "Connection: close\r\n\r\n";
 	client_ref.outbuf = strim.str();
 }
 
 void Create::fun_500()
 {
-	strim <<  client_ref.request.find("protocol")->second + " 500 Internal Server Error\r\n";
-	strim << "Server: my Server \r\n";
-	strim << get_http_date() + "\r\n";
-	strim << get_my_taype(ext) + "\r\n";
-	strim << "Content-Length: 0 \r\n";
-	strim << "Connection: close\r\n\r\n";
+	strim	<<  client_ref.request.find("protocol")->second
+			<< " " << int_to_string(client_ref.statuc_code)
+			<< " Internal Server Error\r\n"
+			<< "Server: my Server \r\n"
+			<< get_http_date() + "\r\n"
+			<< get_my_taype(ext) + "\r\n"
+			<< "Content-Length: 0 \r\n"
+			<< "Connection: close\r\n\r\n";
 	client_ref.outbuf = strim.str();
 }
 

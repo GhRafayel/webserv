@@ -16,7 +16,7 @@ class Create : virtual public Response
 		void		callFunctionByStatusCode();
 		void		create_response();
 		void		inishialize_fun_map();
-		void		fun_201();
+		void		fun_200();
 		void		fun_405();
 		void		fun_413();
 		void		fun_500();

@@ -7,6 +7,7 @@ SRC =	main.cpp \
 		src/Response.cpp \
 		src/Client.cpp \
 		src/Get.cpp \
+		src/Create.cpp \
 		src/Post.cpp \
 		src/Delete.cpp \
 		src/ConfigPars.cpp
