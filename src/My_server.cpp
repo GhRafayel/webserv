@@ -9,53 +9,48 @@ My_server::~My_server() {
 }
 
 My_server::My_server() : StringUtils(),
+	_env(NULL),
 	_client(), 
 	_servers(), 
 	_pollfds(),
 	_time(1000),
-	_conf_file_path(abs_Path("conf/default.conf")),
-	_env()
+	_conf_file_path(abs_Path("conf/default.conf"))
 {
 	if(!_conf_file_path.empty())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
 
-My_server::My_server(char **env) :
-	StringUtils(),
+My_server::My_server(char **env) : StringUtils(),
+	_env(env),
 	_client(),
 	_servers(), 
 	_pollfds(),
 	_time(1000),
-	_conf_file_path(abs_Path("conf/default.conf")),
-	_env()
+	_conf_file_path(abs_Path("conf/default.conf"))
 {
-	for (size_t i = 0; env && env[i]; i++)
-		_env.push_back(env[i]);
 	if(_conf_file_path.empty())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
 
 My_server::My_server(const std::string & conf_file_path,  char **env) :
 	StringUtils(),
+	_env(env),
 	_client(),
 	_servers(), 
 	_pollfds(),
 	_time(1000),
-	_conf_file_path(abs_Path(conf_file_path)),
-	_env()
+	_conf_file_path(abs_Path(conf_file_path))
+	
 {
 	if(_conf_file_path.empty())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
-	for (size_t i = 0; env && env[i]; i++)
-		_env.push_back(env[i]);
 }
 
-My_server::My_server(const My_server & obj) :
-	StringUtils(),
+My_server::My_server(const My_server & obj) :StringUtils(),
+	_env(obj._env),
 	_client(obj._client),
 	_servers(obj._servers),
-	_pollfds(obj._pollfds),
-	_env(obj._env)
+	_pollfds(obj._pollfds)
 {
 	this->_conf_file_path = obj._conf_file_path;
 	this->_time = obj._time;
@@ -199,16 +194,25 @@ void	My_server::poll_in(int index)
 	if (!c_ref.end_request)	return;
 
 	Request	req(s_ref, c_ref);
-	// try
-	// {
-	// 	Request	req(s_ref, c_ref);
-	// }
-	// catch(const std::exception& e)
-	// {
-	// 	c_ref.best_mach = s_ref._error_500;
-	// 	std::cout << "====================\n" << std::endl;
-	// }
 	_pollfds[index].events |= POLLOUT;
+}
+
+void	My_server::fun_405(Client & obj)
+{
+	std::ostringstream strim;
+
+	strim << "HTTP/1.1 405 Not Allowed\r\n Content-Type: application/octet-stream\r\n"
+		  << "Content-Length: 0 \r\nServer: my Server \r\n"
+		  << "Date: " << get_http_date() << "\r\nConnection: close \r\n\r\n";
+	obj.outbuf = strim.str();
+	ssize_t n = 1;
+	
+	while (n > 0)
+	{
+		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), 0);
+		if (n > 0)
+			obj.outbuf.erase(0, n);
+	}
 }
 
 Response * My_server::get_class(Server & s_obj, Client & c_obj)
@@ -222,26 +226,7 @@ Response * My_server::get_class(Server & s_obj, Client & c_obj)
 	else if (c_obj.method == "DELETE") {
 		return (new Delete(s_obj, c_obj));
 	}
-	else if (c_obj.method == "Create") {
-		return (new Create(s_obj, c_obj));
-	}
-	// else if (c_obj.method == "OPTIONS")
-	// {
-	// 	std::ostringstream s;
-
-	// 	s << "HTTP/1.1 405 OK";
-	// 	s << "Access-Control-Allow-Origin: *";
-	// 	s << "Access-Control-Allow-Methods: POST, GET, OPTIONS ";
-	// 	s << "Access-Control-Allow-Headers: Content-Type";
-	// 	c_obj.outbuf = s.str();
-	// 	ssize_t n = 1;
-	
-	// 	n = send(c_obj.fd, c_obj.outbuf.data(), c_obj.outbuf.size(), 0);
-	// 	if (n > 0)
-	// 	{
-	// 		c_obj.outbuf.erase(0, n);
-	// 	}
-	// }
+	fun_405(c_obj);
 	return NULL;
 }
 

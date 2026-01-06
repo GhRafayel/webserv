@@ -16,7 +16,8 @@ class Post : virtual public Response
 		void	callFunctionByStatusCode();
 		void	inishialize_fun_map();
 		void	create_response();
-		void	fun_201();
+		bool	check_size();
+		void	fun_200();
 		void	fun_405();
 		void	fun_404();
 		void	fun_413();

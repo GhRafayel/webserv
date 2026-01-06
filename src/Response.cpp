@@ -4,13 +4,12 @@ Response::~Response() {}
 
 Response::Response(Server & S_ref, Client & C_ref) : StringUtils(),
     server_ref(S_ref),
-	client_ref(C_ref),
-	status_code(int_to_string(C_ref.statuc_code)) {}
+	client_ref(C_ref)
+{}
 
 Response::Response(const Response & obj) : StringUtils(),
 	server_ref(obj.server_ref),
-	client_ref(obj.client_ref),
-	status_code(obj.status_code)
+	client_ref(obj.client_ref)
 {
 	this->strim.clear();
 	this->strim << obj.strim;
@@ -22,7 +21,6 @@ Response & Response::operator=(const Response & obj)
 	{
 		this->server_ref = obj.server_ref;
 		this->client_ref = obj.client_ref;
-		this->status_code = obj.status_code;
 		this->strim.clear();
 		this->strim <<  obj.strim;
 	}

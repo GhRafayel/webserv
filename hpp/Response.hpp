@@ -13,8 +13,7 @@ class Response : public StringUtils
 		Server &			server_ref;
 		Client &			client_ref;
 		std::ostringstream	strim;
-		std::string			status_code;
-
+		std::string			path;
 		bool				is_method_allowed();
 		virtual void		inishialize_fun_map() = 0;
 		virtual void		create_response() = 0;

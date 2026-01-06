@@ -1,12 +1,11 @@
 const BASE_URL = "http://localhost:3030";
 
 const root = document.getElementById('to_do_list_root');
-
 let todo = [];
 
 async function getData() {
   try {
-    const res = await fetch(`${BASE_URL}/upload/data.json`);
+    const res = await fetch(`${BASE_URL}/user/list/data.json`);
     todo = await res.json();
 	console.log(todo);
     App();
@@ -17,7 +16,7 @@ async function getData() {
 }
 
 function send_post(){
-	fetch(`${BASE_URL}/upload/data.json`, {
+	fetch(`${BASE_URL}/user/list/data.json`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json"
@@ -28,25 +27,25 @@ function send_post(){
 		{
 			if (res.status != 201)
 			{
-				alert("Error server is broken")
 				getData();
 			}
-			console.log(res)
+			console.log(res);
 		})
 	.catch(err => console.log(err));
 }
 
 function header(){
-const container = document.createElement('form');
-container.className = 'row g-3 ';
-container.id = 'header_form'
-container.innerHTML = `
-<div class="input-group mb-3">
-	<input id="formInput" value="" type="text" class="form-control" placeholder=" Write subjects" aria-label="Recipient's username" aria-describedby="button-addon2">
-	<button class="btn btn-outline-secondary " type="submit" id="button-addon2">Add </button>
-</div>`;
+	const container = document.createElement('form');
+	container.className = 'row g-3 ';
+	container.id = 'header_form'
 
-container.addEventListener('submit', (e) => {
+	container.innerHTML = `
+	<div class="input-group mb-3">
+		<input id="formInput" value="" type="text" class="form-control" placeholder=" Write subjects" aria-label="Recipient's username" aria-describedby="button-addon2">
+		<button class="btn btn-outline-secondary " type="submit" id="button-addon2">Add </button>
+	</div>`;
+
+	container.addEventListener('submit', (e) => {
 	e.preventDefault();
 	let text = container.querySelector('input');
 	if(text.value.trim().length >= 2){
@@ -102,7 +101,7 @@ const container = document.createElement('div');
 				if( item.id === Number(container.id)){
 					item.text = e.target.value;
 					if(item.text.trim() === ''){
-					item.text,e.target.value = '-----';
+						item.text,e.target.value = '-----';
 					}
 				}
 				return item;
@@ -129,10 +128,12 @@ const container = document.createElement('div');
 };
 
 function footer(){
-let checked = todo.filter(item => item.bul === true);
-const container = document.createElement('div');
+
+	let checked = todo.filter(item => item.bul === true);
+	const container = document.createElement('div');
 	container.className = 'row mb-3 m-3';
 	container.id = 'footer';
+
 	container.innerHTML = `
 		<div class="col">
 		<span class="h4"> ${todo.length} / ${checked.length} </span>  
@@ -157,5 +158,6 @@ function App()
 	listItem();
 	footer();
 }
+
 
 getData();

@@ -30,6 +30,8 @@ Location::Location(const Location & obj) : StringUtils() ,
 	this->_index = obj._index;
 	this->_location = obj._location;
 	this->func_map = obj.func_map;
+	this->_max_body_size = obj._max_body_size;
+	this->_cgi = obj._cgi;
 }
 
 Location & Location::operator = (const Location & obj)
@@ -43,6 +45,8 @@ Location & Location::operator = (const Location & obj)
 		this->_index = obj._index;
 		this->_location = obj._location;
 		this->func_map = obj.func_map;
+		this->_max_body_size = obj._max_body_size;
+		this->_cgi = obj._cgi;
 	}
 	return *this;
 }
@@ -56,6 +60,15 @@ void 	Location::init()
 	func_map.insert(std::make_pair("allow_methods", &Location::loc_methods));
 	func_map.insert(std::make_pair("allow_method", &Location::loc_methods));
 	func_map.insert(std::make_pair("return", &Location::loc_return));
+	func_map.insert(std::make_pair("client_max_body_size", &Location::loc_max_body_size));
+	func_map.insert(std::make_pair("cgi_pass", &Location::loc_cgi));
+}
+
+void	Location::loc_cgi(std::string & str)
+{
+		if (str.empty())
+			throw std::runtime_error(_error_massage + str);
+		this->_cgi = str;
 }
 
 bool	Location::is_line_valid(std::string & line)
@@ -86,6 +99,13 @@ void	Location::location_pars()
 		}
 	}
 }
+
+void Location::loc_max_body_size(std::string & str)
+{
+	if (str.empty() || !is_digitS(str))
+		throw std::runtime_error(_error_massage + str);
+	_max_body_size = str_to_int(str);
+}	
 
 void    Location::loc_location(std::string & str)
 {

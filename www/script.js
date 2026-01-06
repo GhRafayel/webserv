@@ -1,8 +1,8 @@
 const BASE_URL = "http://localhost:8080";
 
 function sendGet() {
-     fetch(`${BASE_URL}/upload/get.json`)
-        .then(res => res.text())
+     fetch(`${BASE_URL}/upload/data.json`)
+        .then(res => res.ok ? res.text() : document.getElementById("get-result").textContent = "Get failed")
         .then(data => {
             document.getElementById("get-result").textContent = data;
         })
@@ -12,7 +12,7 @@ function sendGet() {
 function sendPost() {
     const value = document.getElementById("post-input").value;
 
-    fetch(`${BASE_URL}/upload/get.json`, {
+    fetch(`${BASE_URL}/upload/data.json`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -30,12 +30,21 @@ function sendPost() {
 }
 
 function sendDelete() {
-    fetch(`${BASE_URL}/delete`, {
-        method: "DELETE"
-    })
-    .then(res => res.text())
-    .then(data => {
-        document.getElementById("delete-result").textContent = data;
-    })
-    .catch(err => console.error(err));
+  fetch(`${BASE_URL}/upload/data.json`, {
+    method: 'DELETE',
+    headers:
+    { 
+        'Content-Type': 'application/json'
+    } })
+  .then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.text();
+  })
+  .then(data => {
+    document.getElementById('delete-result').textContent = data;
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById('delete-result').textContent = 'Delete failed';
+  });
 }

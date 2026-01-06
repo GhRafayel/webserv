@@ -69,7 +69,7 @@ std::string 				StringUtils::get_my_taype(const std::string & file_name)
 	std::map<std::string, std::string>::iterator it = _my_tayps.find(file_name.substr(pos + 1));
 	if (it == _my_tayps.end())
 		return "Content-Type: application/octet-stream";
-	return it->second;
+	return "Content-Type: " + it->second;
 }
 
 std::string					StringUtils::get_file_content(const std::string & file_path, size_t start, size_t len)

@@ -17,7 +17,7 @@ class Delete : virtual public Response
 		void		inishialize_fun_map();
 		void		create_response();
 		void		fun_200();
-		void		fun_403();
+		void		fun_405();
 		void		fun_404();
 		void		fun_500();
 	public:

@@ -6,7 +6,6 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Server.hpp"
-#include "Create.hpp"
 #include "Get.hpp"
 #include "Post.hpp"
 #include "Delete.hpp"
@@ -24,13 +23,15 @@ extern volatile bool g_running;
 class My_server : public StringUtils
 {
 	private:
+		char						**_env;
 		std::map<int, Client>		_client;
 		std::map<int, Server>		_servers;
 		std::vector<pollfd>			_pollfds;
 		int							_time;
 		std::string					_conf_file_path;
-		std::vector<std::string>	_env;
+		
 
+		void	fun_405(Client &);
 		void	to_connect(int);
 		bool	is_server_socket(int);
 		void	initConfig();

@@ -10,12 +10,8 @@ Request::Request(Server & S_obj, Client & C_obj) : StringUtils(),
 }
 
 Request::Request(const Request & obj) : StringUtils(),
-	server_ref(obj.server_ref),
-	client_ref(obj.client_ref)
-{
-	this->url_path = obj.url_path;
-	this->protocol = obj.protocol;
-}
+	server_ref(obj.server_ref), client_ref(obj.client_ref)
+{}
 
 Request &	Request::operator = (const Request & obj)
 {
@@ -23,8 +19,6 @@ Request &	Request::operator = (const Request & obj)
 	{
 		this->server_ref = obj.server_ref;
 		this->client_ref = obj.client_ref;
-		this->url_path = obj.url_path;
-		this->protocol = obj.protocol;
 	}
 	return *this;
 }
@@ -43,13 +37,12 @@ bool	Request::pars_request()
 	if (header.size() < 3)
 		return (client_ref.statuc_code = 400, false);
 	client_ref.method = header[0];
-	this->url_path = header[1];
-	get_best_mach(header[1]);
-
+	
 	client_ref.request.insert(std::make_pair("method", header[0]));
 	client_ref.request.insert(std::make_pair("url_path", header[1]));
 	client_ref.request.insert(std::make_pair("protocol", header[2]));
 
+	get_best_mach(header[1]);
 	for (size_t i = 1; i < req.size(); i++)
 	{
 		std::string	key, value;
@@ -64,13 +57,14 @@ bool	Request::pars_request()
 			client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 		}
 	}
-	client_ref.request.insert(std::make_pair("protocol", protocol));
+	client_ref.request.insert(std::make_pair("protocol", header[2]));
 	return true;
 }
 
 bool	Request::is_defoult_location()
 {
-	std::string 	temp = url_path;
+	std::string		url_path = client_ref.request.find("url_path")->second;
+	std::string 	temp = url_path;	
 	size_t			count = 0;
 	size_t			post;
 	while ((post = temp.find("/")) != std::string::npos)
@@ -83,27 +77,17 @@ bool	Request::is_defoult_location()
 	{
 		if (url_path.length() == 1)
 		{
-			client_ref.best_mach = abs_Path(server_ref._root + server_ref._index);
+			client_ref.best_mach = server_ref._root + server_ref._index;
 			return true;
 		}
 		else if (client_ref.best_mach.empty() && client_ref.method == "POST")
 		{
-			client_ref.best_mach = abs_Path(server_ref._root) + url_path;
+			client_ref.best_mach = server_ref._root + url_path;
 			return true;
 		}
-		client_ref.best_mach = abs_Path(server_ref._root + url_path);
+		client_ref.best_mach = server_ref._root + url_path;
 		return true;
 	}
-	// if (url_path == "/")
-	// {
-	// 	client_ref.best_mach =  abs_Path(server_ref._root + server_ref._index);
-	// 	return true;
-	// }
-	// if (url_path.substr(1, url_path.size()).find("/") == std::string::npos)
-	// {
-	// 	client_ref.best_mach =  abs_Path(server_ref._root + url_path);
-	// 	return true;
-	// }
 	return false;
 }
 
@@ -112,7 +96,11 @@ void Request::get_best_mach(std::string & url_path)
 	int				best_index = -1;
 	std::string		best_loc;
 	
-	if (is_defoult_location()) return;
+	//if (is_defoult_location()) return;
+	if (client_ref.request.find("url_path")->second == "/"){
+		client_ref.best_mach = server_ref._root + server_ref._index;
+		return ;
+	}
 	
 	for (size_t i = 0; i < server_ref._locations.size(); i++)
 	{
@@ -123,6 +111,7 @@ void Request::get_best_mach(std::string & url_path)
 			best_index = i;
 		}
 	}
+	
 	if (best_index != -1)
 	{
 		if (!server_ref._locations[best_index]._return.empty())
@@ -136,10 +125,11 @@ void Request::get_best_mach(std::string & url_path)
 
 		if (!server_ref._locations[best_index]._index.empty() && relative_path.empty())
 			real_path += server_ref._locations[best_index]._index;
+		
 		client_ref.best_location_index = best_index;
-		client_ref.best_mach = abs_Path(real_path);
+		client_ref.best_mach = real_path;
 	}
 	else
-		client_ref.best_mach = abs_Path(server_ref._root + url_path);
+		client_ref.best_mach = server_ref._root + url_path;
 }
 
