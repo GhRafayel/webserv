@@ -230,7 +230,7 @@ bool	StringUtils::is_directory(const std::string & path)
 {
 	DIR *dir = opendir(path.c_str());
 
-=	if (dir == NULL) return false;
+	if (dir == NULL) return false;
 	closedir(dir);
 	return true;
 }
