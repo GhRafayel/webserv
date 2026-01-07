@@ -8,7 +8,6 @@
 class Post : virtual public Response
 {
 	private:
-		pid_t									pid;
 		std::string								ext;
 		std::string								body;
 		char									**env;
