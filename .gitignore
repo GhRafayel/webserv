@@ -4,8 +4,12 @@
 # PDFs
 *.pdf
 
+# Testers
+other/
+
 # Build / output
 output/
+
 webserv
 
 # Other
