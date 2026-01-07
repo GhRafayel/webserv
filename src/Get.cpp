@@ -138,6 +138,10 @@ void Get::fun_403()
 
 void Get::fun_404()
 {
+
+	size_t		post = client_ref.best_mach.rfind(".");
+	if (post != std::string::npos)
+		ext = client_ref.best_mach.substr(post);
 	body = get_file_content(server_ref._error_404);
 
 	strim	<< client_ref.request.find("protocol")->second  << " 404 Not Found\r\n"

@@ -25,7 +25,7 @@ function send_post(){
 	})
 	.then(res => 
 		{
-			if (res.status != 201)
+			if (res.status != 200)
 			{
 				getData();
 			}
@@ -48,7 +48,7 @@ function header(){
 	container.addEventListener('submit', (e) => {
 	e.preventDefault();
 	let text = container.querySelector('input');
-	if(text.value.trim().length >= 2){
+	if(text.value.trim().length > 0){
 		todo.unshift({
 			id: Math.random() * 1,
 			text: text.value,
