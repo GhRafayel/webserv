@@ -1,4 +1,4 @@
-SRC =	main.cpp \
+SRC =	src/main.cpp \
 		src/My_server.cpp \
 		src/StringUtils.cpp  \
 		src/Server.cpp \

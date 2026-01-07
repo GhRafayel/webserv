@@ -56,7 +56,7 @@ The goal of this project is to understand how web servers work at a low level, i
 │   ├── Request.cpp
 │   ├── Response.cpp
 │   └── CGI.cpp
-├── include/
+├── hpp/
 │   └── webserv.hpp
 ├── www/
 │   └── index.html
