@@ -5,14 +5,15 @@ Get::~Get() {}
 Get::Get(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 {
 	inishialize_fun_map();
+	if (client_ref.statuc_code)
+		callFunctionByStatusCode();
 	create_response();
 }
 
 void	Get::create_response() {
 
-	 if (!is_method_allowed())
+	if (!is_method_allowed())
 		client_ref.statuc_code = 405;
-	
 	else if (path.empty())
 	{
 		client_ref.statuc_code = 404;
