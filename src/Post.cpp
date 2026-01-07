@@ -73,11 +73,11 @@ void	Post::create_response()
 	
 	if (!is_method_allowed())
 		client_ref.statuc_code = 405;
-	else if (is_cgi())
-	{
-		int status = -1;
-		wait(&status);
-	}
+	// else if (is_cgi())
+	// {
+	// 	int status = -1;
+	// 	wait(&status);
+	// }
 	else if (!exists(path))
 		client_ref.statuc_code = 404;
 	else if (check_size())
