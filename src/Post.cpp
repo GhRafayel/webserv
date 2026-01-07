@@ -41,7 +41,7 @@ void	Post::create_response()
 	
 	if (!is_method_allowed())
 		client_ref.statuc_code = 405;
-	else if (!exists(path))
+	else if (!exists(path,'\0'))
 		client_ref.statuc_code = 404;
 	else if (check_size())
 		client_ref.statuc_code = 413;

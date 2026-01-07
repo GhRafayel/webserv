@@ -14,7 +14,7 @@ void	Delete::create_response()
 		client_ref.statuc_code = 405;
 	else
 	{
-		if (!exists(path))
+		if (!exists(path, '\0'))
 			client_ref.statuc_code = 404;
 		else if (!writable(path) || remove(path.c_str()) != 0)
 			client_ref.statuc_code = 500;

@@ -101,7 +101,8 @@ void	My_server::start_server()
 
 void	My_server::initConfig()
 {
-	validate_file(_conf_file_path);
+	if (!exists(_conf_file_path,'r'))
+		throw std::runtime_error("conf path failed\n");
 
 	ConfigPars config(_conf_file_path);
 	
