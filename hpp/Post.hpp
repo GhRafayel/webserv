@@ -8,8 +8,10 @@
 class Post : virtual public Response
 {
 	private:
+		pid_t									pid;
 		std::string								ext;
 		std::string								body;
+		char									**env;
 		std::map<int, void (Post::*) (void)>	fun_map;
 		Post();
 		Post &	operator = (const Post &);
@@ -17,6 +19,7 @@ class Post : virtual public Response
 		void	inishialize_fun_map();
 		void	create_response();
 		bool	check_size();
+		bool	is_cgi();
 		void	fun_200();
 		void	fun_405();
 		void	fun_404();

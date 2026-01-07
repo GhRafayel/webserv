@@ -2,7 +2,7 @@
 
 Post::~Post() {}
 
-Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
+Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj), env(NULL)
 {
 	inishialize_fun_map();
 	create_response();
@@ -34,12 +34,50 @@ bool Post::check_size()
 	return true;
 }
 
+bool	m_fork(int fd[2])
+{
+	(void)fd;
+	pid_t pid = fork();
+	if (pid != 0)
+		return false;
+	std::cout << "hello child process is open " << std::endl;
+	
+
+	// if (fd[0] != STDIN_FILENO)
+	// {
+	// 	dup2(fd[0], STDIN_FILENO);
+	// }
+	// if (fd[1] != STDOUT_FILENO)
+	// {
+	// 	dup2(fd[1], STDOUT_FILENO);
+	// }
+	
+	//execve();
+	return true;
+}
+bool	Post::is_cgi()
+{
+	int	fd[2];
+	// if (pipe(fd) == -1)
+	// {
+	// 	std::cerr << "PIPE_FAILURE" << std::endl;
+	// 	return  false;
+	// }
+	return (m_fork(fd));
+	
+}
+#include <sys/wait.h>
 void	Post::create_response()
 {	
 	std::map<std::string, std::string>::iterator it = client_ref.request.find("body");
 	
 	if (!is_method_allowed())
 		client_ref.statuc_code = 405;
+	else if (is_cgi())
+	{
+		int status = -1;
+		wait(&status);
+	}
 	else if (!exists(path))
 		client_ref.statuc_code = 404;
 	else if (check_size())
@@ -113,6 +151,5 @@ void Post::callFunctionByStatusCode()
 	std::map<int, void (Post::*) (void)>::iterator it = fun_map.find(client_ref.statuc_code);
 	if (it == fun_map.end())
 		return ;
-	//status_code = int_to_string(client_ref.statuc_code);
 	(this->*(it->second))();
 }
