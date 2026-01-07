@@ -1,5 +1,12 @@
-.vscode
-en.subject.pdf
-other
-output
+# Editor
+.vscode/
+
+# PDFs
+*.pdf
+
+# Build / output
+output/
 webserv
+
+# Other
+other/
