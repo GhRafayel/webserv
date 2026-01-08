@@ -144,7 +144,7 @@ void     My_server::to_connect(int index)
 		_pollfds.push_back(create_pollfd(fd));
 		_client.insert(std::make_pair(fd, Client(fd)));
 		_client.find(fd)->second.server_conf_key = _pollfds[index].fd;
-		std::cout << "Client connected successfully" << std::endl;
+		std::cout << "Client connected successfully " << fd <<  std::endl;
 	}
 	else
 		std::cout << "Client connection failed" << std::endl;
