@@ -14,10 +14,11 @@ class Response : public StringUtils
 		Client &			client_ref;
 		std::ostringstream	strim;
 		std::string			path;
+		std::string			body;
+		std::string			ext;
 		bool				is_method_allowed();
-		virtual void		inishialize_fun_map() = 0;
+		void				create_header(const std::string & msg, bool);
 		virtual void		create_response() = 0;
-		virtual void		callFunctionByStatusCode() = 0;
 		Response &			operator=(const Response &);
 		Response(Server &, Client &);
 		Response(const Response &);

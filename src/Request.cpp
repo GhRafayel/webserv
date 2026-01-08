@@ -61,42 +61,11 @@ bool	Request::pars_request()
 	return true;
 }
 
-bool	Request::is_defoult_location()
-{
-	std::string		url_path = client_ref.request.find("url_path")->second;
-	std::string 	temp = url_path;	
-	size_t			count = 0;
-	size_t			post;
-	while ((post = temp.find("/")) != std::string::npos)
-	{
-		temp = temp.substr(post + 1);
-		count++;
-	}
-	
-	if (count == 1)
-	{
-		if (url_path.length() == 1)
-		{
-			client_ref.best_mach = server_ref._root + server_ref._index;
-			return true;
-		}
-		else if (client_ref.best_mach.empty() && client_ref.method == "POST")
-		{
-			client_ref.best_mach = server_ref._root + url_path;
-			return true;
-		}
-		client_ref.best_mach = server_ref._root + url_path;
-		return true;
-	}
-	return false;
-}
-
 void Request::get_best_mach(std::string & url_path)
 {
 	int				best_index = -1;
 	std::string		best_loc;
 	
-	//if (is_defoult_location()) return;
 	if (client_ref.request.find("url_path")->second == "/"){
 		client_ref.best_mach = server_ref._root + server_ref._index;
 		return ;

@@ -49,6 +49,7 @@ std::map<std::string, void (ConfigPars::*) (void)> ConfigPars::init_fun_map()
 
 void	ConfigPars::read_config_file(std::string & file_name)
 {
+	
 	std::ifstream	file(file_name.c_str());
 	std::string		buffer;
 
@@ -268,11 +269,7 @@ void	ConfigPars::listen()
 
 void	ConfigPars::method()
 {
-	if (_key_value.size() == 1 || !_key_value[1].size())
-	{
-		_methods.insert(std::make_pair("GET", true));
-	}
-	else
+	if (_key_value[1].size())
 	{
 		for (size_t i = 1; i < _key_value.size(); i++)
 		{

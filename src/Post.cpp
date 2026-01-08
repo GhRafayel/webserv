@@ -2,24 +2,8 @@
 
 Post::~Post() {}
 
-Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj), env(NULL)
-{
-	inishialize_fun_map();
-	create_response();
-}
-
-void	Post::inishialize_fun_map()
-{
-	path = abs_Path(client_ref.best_mach);
-	size_t		post = path.rfind(".");
-	if (post != std::string::npos)
-		ext = path.substr(post, path.size());
-
-	fun_map.insert(std::make_pair(200, &Post::fun_200));
-	fun_map.insert(std::make_pair(405, &Post::fun_405));
-	fun_map.insert(std::make_pair(404, &Post::fun_404));
-	fun_map.insert(std::make_pair(413, &Post::fun_413));
-	fun_map.insert(std::make_pair(500, &Post::fun_500));
+Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj), env(NULL) { 
+	create_response() ;
 }
 
 bool Post::check_size()
@@ -37,82 +21,39 @@ bool Post::check_size()
 
 void	Post::create_response()
 {	
+	path = abs_Path(client_ref.best_mach);
+	size_t		post = path.rfind(".");
+	if (post != std::string::npos)
+		ext = path.substr(post, path.size());
+
 	std::map<std::string, std::string>::iterator it = client_ref.request.find("body");
 	
 	if (!is_method_allowed())
+	{
 		client_ref.statuc_code = 405;
+		create_header("Not Allowed", false);
+	}
 	else if (!exists(path,'\0'))
+	{
 		client_ref.statuc_code = 404;
+		create_header(" Not Found", false);
+	}
 	else if (check_size())
+	{
 		client_ref.statuc_code = 413;
+		create_header(" Payload Too Large", false);
+	}
 	else
 	{
 		body = it->second;
 		client_ref.statuc_code = 200;
 		std::ofstream file(abs_Path(client_ref.best_mach).c_str());
 		if (!writable(path))
-				client_ref.statuc_code = 500;
+		{
+			client_ref.statuc_code = 500;
+			create_header(" Internal Server Error", true);
+		}
 		file << body;
+		create_header(" ok", false);
 	}
-	callFunctionByStatusCode();
-}
-
-void	Post::fun_200()
-{
-	strim	<<  "HTTP/1.1 200 ok\n\r"
-			<<	get_my_taype(ext) << "\r\n"
-			<<	"Server: my Server\r\n"
-			<<	"Content-Length: 0 \r\n"
-			<< "Date: " << get_http_date() << "\r\n"
-         	<< "Connection: close\r\n\r\n";
-	client_ref.outbuf = strim.str();
-}
-
-void Post::fun_404()
-{
-    const std::string body = "404 Not Found - the requested resource does not exist.\r\n";
-    strim << client_ref.request.find("protocol")->second << " 404 Not Found\r\n"
-          << "Content-Type: text/plain\r\n"
-          << "Server: my Server\r\n"
-          << "Content-Length: " << body.size() << "\r\n"
-          << "Date: " << get_http_date() << "\r\n"
-          << "Connection: close\r\n\r\n"
-          << body;
-
-    client_ref.outbuf = strim.str();
-}
-
-void Post::fun_405()
-{ 
-	strim 	<<  client_ref.request.find("protocol")->second <<" 405 Not Allowed\r\n";
-	strim	<<	"Server: my Server \r\n";
-	strim	<<	"Date: " << get_http_date() << "\r\n";
-	strim	<< 	"Connection: close\r\n\r\n";
-	client_ref.outbuf = strim.str();
-}
-
-void Post::fun_413()
-{ 
-	strim 	<<  client_ref.request.find("protocol")->second << " 413 Payload Too Large\r\n";
-	strim	<<	"Server: my Server \r\n";
-	strim	<<	"Date: " << get_http_date() << "\r\n";
-	strim	<< 	"Connection: close\r\n\r\n";
-	client_ref.outbuf = strim.str();
-}
-
-void Post::fun_500()
-{ 
-	strim 	<<  client_ref.request.find("protocol")->second << " 500 Internal Server Error\r\n";
-	strim	<<	"Server: my Server \r\n";
-	strim	<<	"Date: " << get_http_date() << "\r\n";
-	strim	<< 	"Connection: close\r\n\r\n";
-	client_ref.outbuf = strim.str();
-}
-
-void Post::callFunctionByStatusCode()
-{
-	std::map<int, void (Post::*) (void)>::iterator it = fun_map.find(client_ref.statuc_code);
-	if (it == fun_map.end())
-		return ;
-	(this->*(it->second))();
 }

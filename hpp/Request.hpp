@@ -14,9 +14,8 @@ class Request : public StringUtils
 		Request();
 		Server		&server_ref;
 		Client		&client_ref;
-		bool	pars_request();
-		void	get_best_mach(std::string &);
-		bool	is_defoult_location();
+		bool		pars_request();
+		void		get_best_mach(std::string &);
 		
 	public:
 		~Request();

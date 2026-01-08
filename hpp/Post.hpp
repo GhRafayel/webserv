@@ -8,26 +8,13 @@
 class Post : virtual public Response
 {
 	private:
-		std::string								ext;
-		std::string								body;
-		char									**env;
-		std::map<int, void (Post::*) (void)>	fun_map;
+		char		**env;
 		Post();
-		Post &	operator = (const Post &);
-		void	callFunctionByStatusCode();
-		void	inishialize_fun_map();
 		void	create_response();
 		bool	check_size();
-		bool	is_cgi();
-		void	fun_200();
-		void	fun_405();
-		void	fun_404();
-		void	fun_413();
-		void	fun_500();
 	public:
 		~Post();
 		Post(Server &, Client &);
-
 };
 
 #endif 

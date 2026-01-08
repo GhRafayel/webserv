@@ -112,7 +112,6 @@ void	My_server::initConfig()
 
 		if (fd < 0)
 			throw std::runtime_error("socket failed\n");
-
 		_servers.insert(std::make_pair(fd, Server(config.servers[i])));
 	}
 }

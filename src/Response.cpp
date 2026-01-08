@@ -46,6 +46,20 @@ void Response::send_response()
 	//}
 }
 
+void	Response::create_header(const std::string & msg, bool val)
+{
+	std::string end = "\r\n";
+	body = get_file_content(path);
+	strim << client_ref.request.find("protocol")->second << msg << end;
+	strim << get_my_taype(ext) << end;
+	strim << "Content_Length: " << body.size() << end;
+	strim << "Server: my Server " << end;
+	strim << "Data: " << get_http_date() << end;
+	strim << "Conection:: close" << end << end;
+	if(val) strim << body;
+	client_ref.outbuf = strim.str();
+}
+
 bool	Response::is_method_allowed()
 {
 	bool s_method = server_ref.get_method(client_ref.method);
