@@ -17,25 +17,25 @@ void	Delete::create_response()
 
 	if (!is_method_allowed())
 	{
-		client_ref.statuc_code = 405;
-		create_header(" Forbidden", false);
+		//client_ref.statuc_code = 405;
+		create_header(" 405 Forbidden", false);
 	}
 	else
 	{
 		if (!exists(path, '\0'))
 		{
-			client_ref.statuc_code = 404;
-			create_header(" Not Found", false);
+			//client_ref.statuc_code = 404;
+			create_header(" 404 Not Found", false);
 		}
-		else if (!writable(path) || remove(path.c_str()) != 0)
+		else if (remove(path.c_str()) != 0)
 		{
-			client_ref.statuc_code = 500;
-			create_header("Internal Server Error", false);
+			//client_ref.statuc_code = 500;
+			create_header(" 500 Internal Server Error", false);
 		}
 		else
 		{
-			client_ref.statuc_code = 200;
-			create_header(" ok", false);
+			//client_ref.statuc_code = 200;
+			create_header(" 200 ok", false);
 		}
 	}
 }

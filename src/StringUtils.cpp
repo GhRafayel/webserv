@@ -136,7 +136,6 @@ std::string	StringUtils::trim (const std::string & str, const std::string & del)
 		return temp;
 	first = str.find_first_not_of(del);
 	if (first == std::string::npos) {
-		temp.clear();
 		return str;
 	}
 	last = str.find_last_not_of(del);

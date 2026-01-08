@@ -20,43 +20,43 @@ void	Get::create_response() {
 		ext = client_ref.best_mach.substr(post);
 	if (!is_method_allowed())
 	{
-		client_ref.statuc_code = 405;
-		create_header(" Not Allowed", false);
+		//client_ref.statuc_code = 405;
+		create_header(" 405 Not Allowed", false);
 	}
 	else if (path.empty())
 	{
-		client_ref.statuc_code = 404;
+		//client_ref.statuc_code = 404;
 		client_ref.best_mach = server_ref._error_404;
-		create_header(" Not Found", true);
+		create_header(" 404 Not Found", true);
 	}
 	else if (is_directory(path))
 	{
 		if (client_ref.best_location_index == -1 || !server_ref._locations[client_ref.best_location_index]._autoIndex)
 		{
-			client_ref.statuc_code = 403;
-			create_header(" Forbidden", true);
+			//client_ref.statuc_code = 403;
+			create_header(" 403 Forbidden", true);
 		}
 		else
 		{
-			client_ref.statuc_code = 200;
+			//client_ref.statuc_code = 200;
 			client_ref.is_dir = true;
-			create_header(" ok", true);
+			create_header(" 200 ok", true);
 		}
 	}
 	else
 	{
-		client_ref.statuc_code = 200;
-		create_header(" ok", true);
+		//client_ref.statuc_code = 200;
+		create_header(" 200 ok", true);
 	}
 }
 
 void Get::fun_206()
 {
 	if (!readable(path))
-		create_header(" Forbidden", false);
+		create_header(" 403 Forbidden", false);
 	std::vector<std::string> temp = Range_pars(client_ref.buffer);
 	if (temp.empty()) 
-		create_header(" Bed Request", false);
+		create_header(" 400 Bed Request", false);
 	else
 	{
 		int	start = str_to_int(temp[0]);
@@ -66,7 +66,7 @@ void Get::fun_206()
 		else
 			body = get_file_content(path, start, end - start + 1);
 		std::stringstream s;
-		s << " Partial Content\r\n Content-Range: bytes " << start << "-" << end << "/" << body.size();
+		s << " 200 Partial Content\r\n Content-Range: bytes " << start << "-" << end << "/" << body.size();
 		create_header(s.str(), true);
 	}
 }

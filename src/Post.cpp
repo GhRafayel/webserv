@@ -31,17 +31,17 @@ void	Post::create_response()
 	if (!is_method_allowed())
 	{
 		client_ref.statuc_code = 405;
-		create_header("Not Allowed", false);
+		create_header(" 405 Not Allowed", false);
 	}
 	else if (!exists(path,'\0'))
 	{
 		client_ref.statuc_code = 404;
-		create_header(" Not Found", false);
+		create_header(" 404 Not Found", false);
 	}
 	else if (check_size())
 	{
 		client_ref.statuc_code = 413;
-		create_header(" Payload Too Large", false);
+		create_header(" 423 Payload Too Large", false);
 	}
 	else
 	{
@@ -51,9 +51,9 @@ void	Post::create_response()
 		if (!writable(path))
 		{
 			client_ref.statuc_code = 500;
-			create_header(" Internal Server Error", true);
+			create_header(" 500 Internal Server Error", true);
 		}
 		file << body;
-		create_header(" ok", false);
+		create_header(" 200 ok", false);
 	}
 }
