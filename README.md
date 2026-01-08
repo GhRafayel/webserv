@@ -10,7 +10,7 @@ The goal of this project is to understand how web servers work at a low level, i
 
 ## ⚙️ Features
 
-- HTTP/1.1/HTTP/1.0 protocol support
+- HTTP/1.1 or HTTP/1.0 protocol support
 - Non-blocking server using `poll()` (or equivalent)
 - Multiple clients handled simultaneously
 - Configurable server using a configuration file
