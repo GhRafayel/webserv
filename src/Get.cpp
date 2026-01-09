@@ -5,7 +5,11 @@ Get::~Get() {}
 Get::Get(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 {
 	if (client_ref.statuc_code == 301)
-		create_header(" Moved Permanently", false);
+	{
+		create_header(" 301 Moved Permanently\r\nLocation: " + client_ref.best_mach, false);
+		return ;
+	}
+		
 	else if (client_ref.statuc_code == 206)
 		fun_206();
 	else
@@ -18,36 +22,30 @@ void	Get::create_response() {
 	size_t		post = client_ref.best_mach.rfind(".");
 	if (post != std::string::npos)
 		ext = client_ref.best_mach.substr(post);
+
 	if (!is_method_allowed())
-	{
-		//client_ref.statuc_code = 405;
 		create_header(" 405 Not Allowed", false);
-	}
 	else if (path.empty())
 	{
-		//client_ref.statuc_code = 404;
-		client_ref.best_mach = server_ref._error_404;
-		create_header(" 404 Not Found", true);
+		client_ref.statuc_code = 400;
+		ext = ".html";
+		body = error_page();
+
+		create_header(" 404 Not Found", false);
+		client_ref.outbuf += body;
 	}
 	else if (is_directory(path))
 	{
 		if (client_ref.best_location_index == -1 || !server_ref._locations[client_ref.best_location_index]._autoIndex)
-		{
-			//client_ref.statuc_code = 403;
-			create_header(" 403 Forbidden", true);
-		}
+			create_header(" 403 Forbidden", false);
 		else
 		{
-			//client_ref.statuc_code = 200;
 			client_ref.is_dir = true;
 			create_header(" 200 ok", true);
 		}
 	}
 	else
-	{
-		//client_ref.statuc_code = 200;
 		create_header(" 200 ok", true);
-	}
 }
 
 void Get::fun_206()

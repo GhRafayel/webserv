@@ -46,6 +46,27 @@ void Response::send_response()
 	//}
 }
 
+std::string 	Response::error_page()
+{
+	std::stringstream st;
+
+	st	<< "<!DOCTYPE html>" 
+		<< "<html lang=\"en\"> " 
+		<< "<head> "
+				<< " <meta charset=\"UTF-8\"> " 
+				<< " <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> "
+				<< " <title>Page Not Found | 404 Error</title> "
+		<< "</head> "
+		<< "<body> "
+			<< "<div class=\"container\"> "
+				"<h1 class=\"error-code\">" << int_to_string(client_ref.statuc_code)  << "</h1> "
+				"<h2 class=\"error-title\">" << (client_ref.statuc_code != 404 ? "Server internal Error" : "Oops! Page Not Found") << "</h2> "
+			<< "</div> "
+		<< "</body>"
+		<< "</html>";
+	return st.str();
+}
+	
 void	Response::create_header(const std::string & msg, bool val)
 {
 	std::string end = "\r\n";
@@ -54,10 +75,11 @@ void	Response::create_header(const std::string & msg, bool val)
 		body = get_file_content(path);
 	strim << client_ref.request.find("protocol")->second << msg << end;
 	strim << get_my_taype(ext) << end;
-	strim << "Content_Length: " << body.size() << end;
+	strim << "Content-Length: " << body.size() << end;
 	strim << "Server: my Server " << end;
-	strim << "Data: " << get_http_date() << end;
-	strim << "Conection:: close" << end << end;
+	strim << get_http_date() << end;
+	strim << "Conection: close" << end;
+	strim << end;
 	if(val)
 		strim << body;
 	client_ref.outbuf = strim.str();

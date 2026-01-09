@@ -144,7 +144,7 @@ void     My_server::to_connect(int index)
 		_pollfds.push_back(create_pollfd(fd));
 		_client.insert(std::make_pair(fd, Client(fd)));
 		_client.find(fd)->second.server_conf_key = _pollfds[index].fd;
-		std::cout << "Client connected successfully " << fd <<  std::endl;
+		std::cout << "Client connected successfully " << _pollfds.size() <<  std::endl;
 	}
 	else
 		std::cout << "Client connection failed" << std::endl;
@@ -179,6 +179,7 @@ int	My_server::to_read(Client & obj)
 	return n;
 }
 
+
 void	My_server::poll_in(int index)
 {
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
@@ -191,8 +192,8 @@ void	My_server::poll_in(int index)
 		remove_conection(index);
 		return;
 	}
-	if (!c_ref.end_request)	return;
-
+	if (!c_ref.end_request) return ;
+	
 	Request	req(s_ref, c_ref);
 	_pollfds[index].events |= POLLOUT;
 }
@@ -258,6 +259,8 @@ void My_server::time_out()
 
 				strim	<< "HTTP/1.1 408 Request Timeout \r\n"
 						<< "Content-Length: 0 \r\n"
+						<< get_my_taype("") << "\r\n"
+						<< get_http_date() << "\r\n"
 						<< "Connection: close \r\n"
 						<< "\r\n" ;
 				c_ref.end_request = true;
