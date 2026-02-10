@@ -9,6 +9,7 @@ Client::Client() :
 	fd(-1),
 	statuc_code(-1),
 	is_dir(false),
+	is_cgi(false),
 	end_request(false)
 { }
 

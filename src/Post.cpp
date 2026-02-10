@@ -22,6 +22,7 @@ bool Post::check_size()
 void	Post::create_response()
 {	
 	path = abs_Path(client_ref.best_mach);
+	
 	size_t		post = path.rfind(".");
 	if (post != std::string::npos)
 		ext = path.substr(post, path.size());

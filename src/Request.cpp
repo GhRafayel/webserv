@@ -7,6 +7,19 @@ Request::Request(Server & S_obj, Client & C_obj) : StringUtils(),
 	client_ref(C_obj)
 {
 	pars_request();
+	std::map<std::string, std::string>::iterator it = client_ref.request.find("url_path");
+	if (it != client_ref.request.end())
+	{
+		size_t		post = it->second.rfind(".");
+
+		if (post == std::string::npos) return;
+
+		std::string ext = it->second.substr(post);
+
+		if (ext == ".php") client_ref.is_cgi = true;
+		std::cout << ext << " ------------" <<  std::endl;
+	}
+	 
 }
 
 Request::Request(const Request & obj) : StringUtils(),
