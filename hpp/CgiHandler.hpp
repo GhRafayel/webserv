@@ -29,7 +29,7 @@ class CgiHandler :  virtual public Response
 
 		~CgiHandler();
 
-		void execute();
+		int execute();
 		
 
 		void setMethod(std::string);

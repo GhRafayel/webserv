@@ -26,8 +26,22 @@ CgiHandler::CgiHandler( Server & s_obj,  Client & c_obj) : Response(s_obj, c_obj
 	create_response();
 }
 
-void	CgiHandler::create_response() { 
-	
+void	CgiHandler::create_response() {
+	std::cout << "CGI-Request method: " << client_ref.method << std::endl;
+	if (!is_method_allowed()) {
+		create_header(" 405 Not Allowed", false);
+	}
+	else {
+		if (execute())
+
+		body = getOutput();
+		create_header(" 200 ok", false );
+		strim << body;
+		client_ref.outbuf = strim.str();
+		std::cout << strim.str();
+	}
+
+	std::cout << "CgiHandler finished\n" << std::endl;
 }
 
 void CgiHandler::setMethod(std::string s) {
@@ -42,7 +56,7 @@ void CgiHandler::convertEnv() {
 	}
 }
 
-void CgiHandler::execute() {
+int CgiHandler::execute() {
 	std::map<std::string, std::string>::iterator it = _envMap.find("SCRIPT_FILENAME");
 	char* argv[3];
 	argv[0] = const_cast<char*>("/usr/bin/php-cgi");
@@ -75,12 +89,14 @@ void CgiHandler::execute() {
 	if (!pid) {
 		// redirections || piping
 		execve(argv[0], argv, envp);
-		std::exit(0);
+		std::exit(1);
 	}
 	else {
 		int status;
 		waitpid(pid, &status, 0);
 	}
+
+	return (WEXITSTATUS(status));
 }
 
 void CgiHandler::setEnvVar(std::string key, std::string val) {

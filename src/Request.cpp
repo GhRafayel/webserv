@@ -17,7 +17,6 @@ Request::Request(Server & S_obj, Client & C_obj) : StringUtils(),
 			if (ext == ".php") {
 				client_ref.is_cgi = true;
 			}
-			std::cout << ext << "  " << client_ref.is_cgi << std::endl;
 		}
 	}
 }
