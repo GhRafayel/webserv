@@ -15,6 +15,7 @@ class Client
 		int									fd;
 		int									statuc_code;
 		bool								is_dir;
+		bool								is_cgi;
 		bool								end_request;
 		std::string							buffer;
 		std::string							outbuf;

@@ -1,6 +1,7 @@
 #ifndef MY_SERVER_HPP
 #define MY_SERVER_HPP
 
+#include "CgiHandler.hpp"
 #include "StringUtils.hpp"
 #include "ConfigPars.hpp"
 #include "Request.hpp"

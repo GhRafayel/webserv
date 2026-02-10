@@ -9,7 +9,8 @@ SRC =	src/main.cpp \
 		src/Get.cpp \
 		src/Post.cpp \
 		src/Delete.cpp \
-		src/ConfigPars.cpp
+		src/ConfigPars.cpp \
+		src/CgiHandler.cpp 
 
 OBJ_FOLDER = output
 OBJ = $(SRC:%.cpp=$(OBJ_FOLDER)/%.o)
