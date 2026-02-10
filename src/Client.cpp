@@ -8,6 +8,7 @@ Client::Client() :
 	fd(-1),
 	statuc_code(-1),
 	is_dir(false),
+	is_cgi(false),
 	end_request(false)
 { timeOut = std::time(NULL);}
 
@@ -23,6 +24,7 @@ Client::Client(const Client & obj)
 	this->timeOut = obj.timeOut;
 	this->request = obj.request;
 	this->is_dir = obj.is_dir;
+	this->is_cgi = obj.is_cgi;
 }
 
 Client::Client(int FD) :
@@ -31,6 +33,7 @@ Client::Client(int FD) :
 	fd(FD),
 	statuc_code(0),
 	is_dir(false),
+	is_cgi(false),
 	end_request(false), 
 	buffer(""),
 	outbuf("") 
@@ -52,6 +55,7 @@ Client & Client::operator = (const Client & obj)
 		this->timeOut = obj.timeOut;
 		this->request = obj.request;
 		this->is_dir = obj.is_dir;
+		this->is_cgi = obj.is_cgi;
 	}
 	return *this;
 }

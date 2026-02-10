@@ -1,4 +1,5 @@
 #include "../hpp/My_server.hpp"
+#include "../hpp/CgiHandler.hpp"
 
 My_server::~My_server() {
 	for (size_t i = 0; i < _pollfds.size(); i++)
@@ -201,7 +202,10 @@ void	My_server::fun_405(Client & obj)
 
 Response * My_server::get_class(Server & s_obj, Client & c_obj)
 {
-	if (c_obj.method == "GET") {
+	if (c_obj.is_cgi) {
+		return (new CgiHandler(s_obj, c_obj));
+	}
+	else if (c_obj.method == "GET") {
 		return (new Get(s_obj, c_obj));
 	}
 	else if (c_obj.method == "POST") {
