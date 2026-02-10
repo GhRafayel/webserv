@@ -96,7 +96,7 @@ int CgiHandler::execute() {
 		waitpid(pid, &status, 0);
 	}
 
-	return (WEXITSTATUS(status));
+	return (0);
 }
 
 void CgiHandler::setEnvVar(std::string key, std::string val) {
