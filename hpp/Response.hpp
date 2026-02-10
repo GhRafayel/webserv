@@ -16,7 +16,6 @@ class Response : public StringUtils
 		std::string			path;
 		std::string			body;
 		std::string			ext;
-		std::string			error_page();
 		bool				is_method_allowed();
 		void				create_header(const std::string & msg, bool);
 		virtual void		create_response() = 0;
@@ -25,7 +24,7 @@ class Response : public StringUtils
 		Response(const Response &);
 		
 	public:
-		virtual ~Response();
+		virtual		~Response();
 		void		send_response();
 };
 

@@ -39,6 +39,7 @@ class StringUtils
 		bool						writable(const std::string &);
 		bool						executable(const std::string &);
 		bool						exists(const std::string &, char);
+		bool						is_cgi(std::string & );
 		std::vector<std::string>	Range_pars(const std::string &);
 		std::string 				get_http_date();
 };

@@ -3,15 +3,13 @@
 Client::~Client() { }
 
 Client::Client() :
-	timeOut(std::time(NULL)),
 	best_location_index(-1),
 	server_conf_key(-1),
 	fd(-1),
 	statuc_code(-1),
 	is_dir(false),
-	is_cgi(false),
 	end_request(false)
-{ }
+{ timeOut = std::time(NULL);}
 
 Client::Client(const Client & obj)
 {

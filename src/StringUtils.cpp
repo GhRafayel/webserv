@@ -287,3 +287,11 @@ std::vector<std::string>	StringUtils::Range_pars(const std::string & req)
 	return temp;
 }
 
+bool StringUtils::is_cgi(std::string & ext)
+{
+	if (ext.length() == 0) return false;
+
+	if (ext.substr(1) == "py" || ext.substr(1)  == "cgi")
+		return true;
+	return true;
+}

@@ -29,6 +29,7 @@ Response & Response::operator=(const Response & obj)
 
 void Response::send_response()
 {
+	
 	ssize_t n = 1;
 	// while (n)
 	// {
@@ -46,27 +47,6 @@ void Response::send_response()
 	//}
 }
 
-std::string 	Response::error_page()
-{
-	std::stringstream st;
-
-	st	<< "<!DOCTYPE html>" 
-		<< "<html lang=\"en\"> " 
-		<< "<head> "
-				<< " <meta charset=\"UTF-8\"> " 
-				<< " <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> "
-				<< " <title>Page Not Found | 404 Error</title> "
-		<< "</head> "
-		<< "<body> "
-			<< "<div class=\"container\"> "
-				"<h1 class=\"error-code\">" << int_to_string(client_ref.statuc_code)  << "</h1> "
-				"<h2 class=\"error-title\">" << (client_ref.statuc_code != 404 ? "Server internal Error" : "Oops! Page Not Found") << "</h2> "
-			<< "</div> "
-		<< "</body>"
-		<< "</html>";
-	return st.str();
-}
-	
 void	Response::create_header(const std::string & msg, bool val)
 {
 	std::string end = "\r\n";
@@ -75,11 +55,12 @@ void	Response::create_header(const std::string & msg, bool val)
 		body = get_file_content(path);
 	strim << client_ref.request.find("protocol")->second << msg << end;
 	strim << get_my_taype(ext) << end;
-	strim << "Content-Length: " << body.size() << end;
+	strim << "Content_Length: " << body.size() << end;
 	strim << "Server: my Server " << end;
-	strim << get_http_date() << end;
-	strim << "Conection: close" << end;
-	strim << end;
+	strim << "Data: " << get_http_date() << end;
+	strim << "Conection:: close" << end << end;
+
+	std::cout << strim.str() << std::endl;
 	if(val)
 		strim << body;
 	client_ref.outbuf = strim.str();

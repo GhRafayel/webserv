@@ -8,7 +8,6 @@
 class Post : virtual public Response
 {
 	private:
-		char		**env;
 		Post();
 		void	create_response();
 		bool	check_size();

@@ -11,7 +11,6 @@ static void signal_handler(int) {
 int main()
 {
 	int argc = 2;
-	char **env = NULL;
 	char argv[2][50] = {"./webserv", "conf/server.conf"};
 	My_server * server = NULL;
 
@@ -22,10 +21,10 @@ int main()
 		try
 		{
 			if (argc == 1)
-				server = new My_server(env);
+				server = new My_server();
 			else
 			{
-				server = new My_server(argv[1], env);
+				server = new My_server(argv[1]);
 				server->start_server();
 			}
 		}

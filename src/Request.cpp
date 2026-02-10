@@ -7,19 +7,6 @@ Request::Request(Server & S_obj, Client & C_obj) : StringUtils(),
 	client_ref(C_obj)
 {
 	pars_request();
-	std::map<std::string, std::string>::iterator it = client_ref.request.find("url_path");
-	if (it != client_ref.request.end())
-	{
-		size_t		post = it->second.rfind(".");
-
-		if (post == std::string::npos) return;
-
-		std::string ext = it->second.substr(post);
-
-		if (ext == ".php") client_ref.is_cgi = true;
-		std::cout << ext << " ------------" <<  std::endl;
-	}
-	 
 }
 
 Request::Request(const Request & obj) : StringUtils(),
@@ -84,7 +71,6 @@ void Request::get_best_mach(std::string & url_path)
 		client_ref.best_mach = server_ref._root + server_ref._index;
 		return ;
 	}
-	
 	for (size_t i = 0; i < server_ref._locations.size(); i++)
 	{
 		std::string loc = server_ref._locations[i]._location;
@@ -94,7 +80,6 @@ void Request::get_best_mach(std::string & url_path)
 			best_index = i;
 		}
 	}
-	
 	if (best_index != -1)
 	{
 		if (!server_ref._locations[best_index]._return.empty())

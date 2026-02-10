@@ -1,7 +1,6 @@
 #ifndef MY_SERVER_HPP
 #define MY_SERVER_HPP
 
-#include "CgiHandler.hpp"
 #include "StringUtils.hpp"
 #include "ConfigPars.hpp"
 #include "Request.hpp"
@@ -24,13 +23,11 @@ extern volatile bool g_running;
 class My_server : public StringUtils
 {
 	private:
-		char						**_env;
 		std::map<int, Client>		_client;
 		std::map<int, Server>		_servers;
 		std::vector<pollfd>			_pollfds;
 		int							_time;
 		std::string					_conf_file_path;
-		
 
 		void	fun_405(Client &);
 		void	to_connect(int);
@@ -45,8 +42,7 @@ class My_server : public StringUtils
 		~My_server();
 		My_server();
 		My_server(const My_server &);
-		My_server(char **env);
-		My_server(const std::string &,  char **env);
+		My_server(const std::string &);
 		My_server & operator = (const My_server &);
 		Response * 	get_class(Server &, Client &);
 		void    	start_server();

@@ -16,26 +16,14 @@ void	Delete::create_response()
 		ext = client_ref.best_mach.substr(post, client_ref.best_mach.size());
 
 	if (!is_method_allowed())
-	{
-		//client_ref.statuc_code = 405;
 		create_header(" 405 Forbidden", false);
-	}
 	else
 	{
 		if (!exists(path, '\0'))
-		{
-			//client_ref.statuc_code = 404;
 			create_header(" 404 Not Found", false);
-		}
 		else if (remove(path.c_str()) != 0)
-		{
-			//client_ref.statuc_code = 500;
 			create_header(" 500 Internal Server Error", false);
-		}
 		else
-		{
-			//client_ref.statuc_code = 200;
 			create_header(" 200 ok", false);
-		}
 	}
 }

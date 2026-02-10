@@ -5,11 +5,7 @@ Get::~Get() {}
 Get::Get(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 {
 	if (client_ref.statuc_code == 301)
-	{
-		create_header(" 301 Moved Permanently\r\nLocation: " + client_ref.best_mach, false);
-		return ;
-	}
-		
+		create_header(" 301 Moved Permanently", false);
 	else if (client_ref.statuc_code == 206)
 		fun_206();
 	else
@@ -20,6 +16,7 @@ void	Get::create_response() {
 
 	path = abs_Path(client_ref.best_mach);
 	size_t		post = client_ref.best_mach.rfind(".");
+
 	if (post != std::string::npos)
 		ext = client_ref.best_mach.substr(post);
 
@@ -27,22 +24,18 @@ void	Get::create_response() {
 		create_header(" 405 Not Allowed", false);
 	else if (path.empty())
 	{
-		client_ref.statuc_code = 400;
-		ext = ".html";
-		body = error_page();
-
-		create_header(" 404 Not Found", false);
-		client_ref.outbuf += body;
+		client_ref.best_mach = server_ref._error_404;
+		create_header(" 404 Not Found", true);
 	}
 	else if (is_directory(path))
 	{
 		if (client_ref.best_location_index == -1 || !server_ref._locations[client_ref.best_location_index]._autoIndex)
-			create_header(" 403 Forbidden", false);
-		else
 		{
-			client_ref.is_dir = true;
-			create_header(" 200 ok", true);
+			create_header(" 403 Forbidden", true);
+			return ;
 		}
+		client_ref.is_dir = true;
+		create_header(" 200 ok", true);
 	}
 	else
 		create_header(" 200 ok", true);

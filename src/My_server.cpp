@@ -9,7 +9,6 @@ My_server::~My_server() {
 }
 
 My_server::My_server() : StringUtils(),
-	_env(NULL),
 	_client(), 
 	_servers(), 
 	_pollfds(),
@@ -20,21 +19,8 @@ My_server::My_server() : StringUtils(),
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
 
-My_server::My_server(char **env) : StringUtils(),
-	_env(env),
-	_client(),
-	_servers(), 
-	_pollfds(),
-	_time(1000),
-	_conf_file_path(abs_Path("conf/default.conf"))
-{
-	if(_conf_file_path.empty())
-		throw std::runtime_error("Configuration file dose not exist or worng path!");
-}
-
-My_server::My_server(const std::string & conf_file_path,  char **env) :
+My_server::My_server(const std::string & conf_file_path) :
 	StringUtils(),
-	_env(env),
 	_client(),
 	_servers(), 
 	_pollfds(),
@@ -47,7 +33,6 @@ My_server::My_server(const std::string & conf_file_path,  char **env) :
 }
 
 My_server::My_server(const My_server & obj) :StringUtils(),
-	_env(obj._env),
 	_client(obj._client),
 	_servers(obj._servers),
 	_pollfds(obj._pollfds)
@@ -65,7 +50,6 @@ My_server & My_server::operator = (const My_server & obj)
 		this->_pollfds = obj._pollfds;
 		this->_conf_file_path = obj._conf_file_path;
 		this->_time = obj._time;
-		this->_env = obj._env;
 	}
 	return *this;
 }
@@ -144,7 +128,7 @@ void     My_server::to_connect(int index)
 		_pollfds.push_back(create_pollfd(fd));
 		_client.insert(std::make_pair(fd, Client(fd)));
 		_client.find(fd)->second.server_conf_key = _pollfds[index].fd;
-		std::cout << "Client connected successfully " << _pollfds.size() <<  std::endl;
+		std::cout << "Client connected successfully " << fd <<  std::endl;
 	}
 	else
 		std::cout << "Client connection failed" << std::endl;
@@ -191,8 +175,8 @@ void	My_server::poll_in(int index)
 		remove_conection(index);
 		return;
 	}
-	if (!c_ref.end_request) return ;
-	
+	if (!c_ref.end_request)	return;
+
 	Request	req(s_ref, c_ref);
 	_pollfds[index].events |= POLLOUT;
 }
@@ -217,11 +201,7 @@ void	My_server::fun_405(Client & obj)
 
 Response * My_server::get_class(Server & s_obj, Client & c_obj)
 {
-	if (c_obj.is_cgi)
-	{
-		return (new CgiHandler(s_obj, c_obj));
-	}
-	else if (c_obj.method == "GET") {
+	if (c_obj.method == "GET") {
 		return (new Get(s_obj, c_obj));
 	}
 	else if (c_obj.method == "POST") {
@@ -239,11 +219,9 @@ void	My_server::poll_out(int index)
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
 	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
 
-
 	Response * response = get_class(s_ref, c_ref);
 	if (response)
 		response->send_response();
-
 	if (c_ref.end_request && c_ref.outbuf.empty())
 		remove_conection(index);
 	delete response;
@@ -264,8 +242,6 @@ void My_server::time_out()
 
 				strim	<< "HTTP/1.1 408 Request Timeout \r\n"
 						<< "Content-Length: 0 \r\n"
-						<< get_my_taype("") << "\r\n"
-						<< get_http_date() << "\r\n"
 						<< "Connection: close \r\n"
 						<< "\r\n" ;
 				c_ref.end_request = true;
