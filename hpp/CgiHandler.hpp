@@ -31,9 +31,8 @@ class CgiHandler :  virtual public Response
 
 		int execute();
 		
-
-		void setMethod(std::string);
 		void setEnvVar(std::string, std::string);
+		std::string getEnvVar(std::string);
 		void convertEnv();
 
 
