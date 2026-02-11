@@ -7,18 +7,7 @@ Request::Request(Server & S_obj, Client & C_obj) : StringUtils(),
 	client_ref(C_obj)
 {
 	pars_request();
-	std::map<std::string, std::string>::iterator it = client_ref.request.find("url_path");
-	if (it != client_ref.request.end())
-	{
-		size_t		post = it->second.rfind(".");
-		if (post != std::string::npos) {
-			
-			std::string ext = it->second.substr(post);
-			if (ext == ".php") {
-				client_ref.is_cgi = true;
-			}
-		}
-	}
+	find_cgi();
 }
 
 Request::Request(const Request & obj) : StringUtils(),
@@ -33,6 +22,27 @@ Request &	Request::operator = (const Request & obj)
 		this->client_ref = obj.client_ref;
 	}
 	return *this;
+}
+
+void	Request::find_cgi()
+{
+	std::map<std::string, std::string>::iterator	it = client_ref.request.find("url_path");
+	size_t											post;
+
+	if (it != client_ref.request.end())
+	{
+		post = it->second.find("?");
+		if (post != std::string::npos)
+		{
+			client_ref.question_mark = it->second.substr(post + 1);
+			it->second = it->second.substr(0, post);
+		}
+		post = it->second.rfind(".");
+		if (post != std::string::npos) {
+		
+			if (it->second.substr(post) == ".php") client_ref.is_cgi = true;
+		}
+	}
 }
 
 bool	Request::pars_request()

@@ -124,7 +124,6 @@ int CgiHandler::execute() {
 		_output += buf;
 		close(pipeout[0]);
 	}
-
 	return (0);
 }
 
