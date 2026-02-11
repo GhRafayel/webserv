@@ -14,6 +14,7 @@
 #include "Server.hpp"
 #include <fcntl.h>
 #include <cstdio>
+#include <cctype>
 
 class CgiHandler :  virtual public Response
 {
@@ -37,7 +38,6 @@ class CgiHandler :  virtual public Response
 		CgiHandler( Server & s_obj,  Client & obj);
 		~CgiHandler();
 
-		// void setHeaderEnv(std::map<std::string, std::string>&);
 };
 
 #endif
