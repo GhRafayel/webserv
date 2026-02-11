@@ -44,10 +44,16 @@ void	CgiHandler::create_response() {
 		strim << "Content_Length: " << body.size() << "\r\n";
 		strim << "Server: my Server " << "\r\n";
 		strim << "Data: " << get_http_date() << "\r\n";
-		strim << "Connection: close" << "\r\n\r\n";
+		strim << "Connection: close" << "\r\n";
 		std::cout << strim.str() << std::endl;
 		if (msg == " 200 ok") {
-			strim << body;
+			_output = get_file_content("./www/whatever");
+			size_t i = _output.find(';');
+			strim << _output.substr(0, i) << "\r\n";
+			size_t j = _output.find('\n', i + 1);
+			strim << _output.substr(i+2, j) << "\r\n\r\n";
+			_output.substr(j + 1);
+			strim << _output;
 		}
 		else {
 			strim << get_file_content("./www/errors/500.html");
@@ -93,36 +99,26 @@ int CgiHandler::execute() {
 	char** envp = &ptrs[0];
 
 	convertEnv();
-	int pipeout[2];
-	pipe(pipeout);		// TODO: not safe yet;
+
+
 	int pid;
-
 	pid = fork();
-
-
 	if (pid == -1) {
 		throw;
 	}
 	if (!pid) {
-		// TODO: redirections || piping
-		dup2(pipeout[1], STDOUT_FILENO);	//	=======================================
-		close(pipeout[0]);
-		close(pipeout[1]);
+		int fd = open("./www/whatever", O_WRONLY | O_CREAT, 0777);
+		if (fd == -1)
+			std::exit(1);
+		dup2(fd, STDOUT_FILENO);
+		close(fd);
 		execve(argv[0], argv, envp);
 		std::exit(1);
 	}
 	else {
 		int status;
-		close(pipeout[1]);
-		waitpid(pid, &status, 0);
-		char buf[10000] = {0};
-		ssize_t bread = read(pipeout[0], &buf, 10000);
-		if (bread == -1) {
-			close(pipeout[0]);
-			return 1;
-		}
-		_output += buf;
-		close(pipeout[0]);
+		wait(&status);
+		std::cout << WEXITSTATUS(status) << std::endl;
 	}
 
 	return (0);

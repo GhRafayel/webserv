@@ -12,6 +12,7 @@
 #include "Response.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
+#include <fcntl.h>
 
 class CgiHandler :  virtual public Response
 {
