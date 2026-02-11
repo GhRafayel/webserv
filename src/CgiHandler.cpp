@@ -120,7 +120,6 @@ int CgiHandler::execute() {
 		wait(&status);
 		std::cout << WEXITSTATUS(status) << std::endl;
 	}
-
 	return (0);
 }
 

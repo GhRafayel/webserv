@@ -25,6 +25,7 @@ Client::Client(const Client & obj)
 	this->request = obj.request;
 	this->is_dir = obj.is_dir;
 	this->is_cgi = obj.is_cgi;
+	this->question_mark = obj.question_mark;
 }
 
 Client::Client(int FD) :

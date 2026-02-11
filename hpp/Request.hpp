@@ -14,8 +14,10 @@ class Request : public StringUtils
 		Request();
 		Server		&server_ref;
 		Client		&client_ref;
+		
 		bool		pars_request();
 		void		get_best_mach(std::string &);
+		void		find_cgi();
 		
 	public:
 		~Request();
