@@ -20,6 +20,7 @@ class Client
 		std::string							question_mark;
 		std::string							buffer;
 		std::string							outbuf;
+		std::string							cgibuf;
 		std::string							best_mach;
 		std::string							method;
 		std::map<std::string, std::string>	request;

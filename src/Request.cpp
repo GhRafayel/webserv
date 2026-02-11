@@ -47,6 +47,7 @@ void	Request::find_cgi()
 
 bool	Request::pars_request()
 {
+	client_ref.cgibuf = client_ref.buffer;
 	client_ref.buffer = chang_char(client_ref.buffer, '\t', ' ');
 	if (client_ref.buffer.find("Range:") == 0)
 		return (client_ref.statuc_code = 206, client_ref.method = "GET", false);

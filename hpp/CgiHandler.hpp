@@ -13,6 +13,7 @@
 #include "Client.hpp"
 #include "Server.hpp"
 #include <fcntl.h>
+#include <cstdio>
 
 class CgiHandler :  virtual public Response
 {
@@ -22,22 +23,19 @@ class CgiHandler :  virtual public Response
 		std::vector<std::string>			_envVec;
 		std::string 						_output;
 		void create_response();
+
 		CgiHandler(const CgiHandler&);
 		CgiHandler& operator=(const CgiHandler&);
 		
-	public:		
-		CgiHandler( Server & s_obj,  Client & obj);
-
-		~CgiHandler();
-
+		void createEnvironment();
 		int execute();
-		
 		void setEnvVar(std::string, std::string);
 		std::string getEnvVar(std::string);
 		void convertEnv();
 
-
-		const std::string& getOutput() const;
+	public:		
+		CgiHandler( Server & s_obj,  Client & obj);
+		~CgiHandler();
 
 		// void setHeaderEnv(std::map<std::string, std::string>&);
 };

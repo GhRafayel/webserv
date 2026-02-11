@@ -19,6 +19,7 @@ Client::Client(const Client & obj)
 	this->end_request = obj.end_request;
 	this->buffer = obj.buffer;
 	this->outbuf = obj.outbuf;
+	this->cgibuf = obj.cgibuf;
 	this->server_conf_key = obj.server_conf_key;
 	this->statuc_code = obj.statuc_code;
 	this->timeOut = obj.timeOut;
@@ -52,6 +53,7 @@ Client & Client::operator = (const Client & obj)
 		this->statuc_code = obj.statuc_code;
 		this->end_request = obj.end_request;
 		this->buffer = obj.buffer;
+		this->cgibuf = obj.cgibuf;
 		this->outbuf = obj.outbuf;
 		this->timeOut = obj.timeOut;
 		this->request = obj.request;
