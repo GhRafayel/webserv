@@ -33,6 +33,8 @@ class CgiHandler :  virtual public Response
 		void setEnvVar(std::string, std::string);
 		std::string getEnvVar(std::string);
 		void convertEnv();
+		std::string unchunkReq(std::string);
+		std::string decodeQm(const std::string&);
 
 	public:		
 		CgiHandler( Server & s_obj,  Client & obj);

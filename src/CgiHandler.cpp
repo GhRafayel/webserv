@@ -19,13 +19,9 @@ void CgiHandler::createEnvironment() {
 		vec.push_back(buf);
 		req = req.substr(j + 2);
 	}
-	// for (size_t i = 0; i < vec.size(); i++) {
-	// 	std::cout << vec[i] << std::endl;
-	// }
 
 	std::string reqBody = req.substr(2);
 
-	//	build environment with necessary headers and HTTP_ headers
 	std::vector<std::string>::iterator it;
 	for (it = vec.begin() + 1; it != vec.end(); ++it) {
 		if (!(*it).compare(0, (*it).find(':'), "Content-Length")) {
@@ -49,49 +45,27 @@ void CgiHandler::createEnvironment() {
 			setEnvVar(key, (*it).substr((*it).find_first_of(' ') + 1));
 		}
 	}
-
-	//	set vital meta variables
-	// GET /index.php?...%20... HTTP/1.1
 	setEnvVar("REQUEST_METHOD", vec[0].substr(0, vec[0].find_first_of(' ')));
-
-	// TODO: write unchunk function
 	if (reqBody.size()) {
-		setEnvVar("REQUEST_BODY", reqBody);
-		// setEnvVar("REQUEST_BODY", unchunkReq(reqBody));
+		if (_envMap.find("HTTP_TRANSFER_ENCODING")->second == "chunked") {
+			setEnvVar("REQUEST_BODY", unchunkReq(reqBody));
+		}
+		else {
+			setEnvVar("REQUEST_BODY", reqBody);
+		}
 	}
-	
-	// TODO: write decode function
-	setEnvVar("QUERY_STRING", client_ref.question_mark);
-	// setEnvVar("QUERY_STRING", decodeQm(client_ref.question_mark));
-
+	setEnvVar("QUERY_STRING", decodeQm(client_ref.question_mark));
 	setEnvVar("REDIRECT_STATUS", "200");
 	setEnvVar("SCRIPT_FILENAME", abs_Path("www" + client_ref.request.find("url_path")->second));
-
-
-	// TODO: delete this
-	// std::cout << "======================" << std::endl;
-	// for (std::map<std::string, std::string>::iterator it = _envMap.begin(); it != _envMap.end(); ++it) {
-	// 	std::cout << it->first << "=" << it->second << std::endl;
-	// }
 }
 
 void	CgiHandler::create_response() {
-	std::cout << "======================" << std::endl;	// TODO: delete this
 	createEnvironment();
-	std::cout << "======================" << std::endl; // TODO: delete this
 	if (!is_method_allowed() || _method == "DELETE") {
 		create_header(" 405 Not Allowed", false);
 		return;
 	}
-	// else if (abs_Path(client_ref.best_mach) == "") {
-	// 	std::cout << client_ref.best_mach << std::endl;
-	// 	body = get_file_content("./www/errors/404.html");
-	// 	create_header(" 404 Not Found", true);
-	// 	return;
-	// }
 	if (!execute()) {
-		_output = get_file_content("./www/whatever");
-		std::remove("./www/whatever");
 		strim << client_ref.request.find("protocol")->second << " 200 ok" << "\r\n";
 		strim << "Content_Length: " << _output.size() - _output.find("\r\n") - 4 << "\r\n";
 		strim << "Server: my Server " << "\r\n";
@@ -106,7 +80,6 @@ void	CgiHandler::create_response() {
 		strim << body;
 	}
 	client_ref.outbuf = strim.str();
-	// std::cout << client_ref.outbuf << std::endl;
 }
 
 void CgiHandler::convertEnv() {
@@ -118,10 +91,6 @@ void CgiHandler::convertEnv() {
 
 int CgiHandler::execute() {
 	std::map<std::string, std::string>::iterator it = _envMap.find("SCRIPT_FILENAME");
-
-	if (it == _envMap.end() || it->second.length() == 0) {
-		return 1;
-	}
 	char* argv[3];
 	argv[0] = const_cast<char*>("/usr/bin/php-cgi");
 	argv[1] = const_cast<char*>((*it).second.c_str());
@@ -139,26 +108,62 @@ int CgiHandler::execute() {
 
 	// TODO: implement WORKING!!!! pipes
 		// redir into child REQUEST_BODY -> second;
+	int in[2];
+	int out[2];
 
+	pipe(out);
+	if (_method == "POST") {
+		pipe(in);
+	}
 
 	int pid;
 	pid = fork();
 	if (pid == -1) {
-		throw;
+		throw std::runtime_error("fork failed");
 	}
 	if (!pid) {
-		int fd = open("./www/whatever", O_WRONLY | O_CREAT, 0777);
-		if (fd == -1)
-			std::exit(1);
-		dup2(fd, STDOUT_FILENO);
-		close(fd);
+		dup2(out[1], STDOUT_FILENO);
+		close(out[1]);
+		close(out[0]);
+
+		if (_method == "POST") {
+			dup2(in[0], STDIN_FILENO);
+			close(in[0]);
+			close(in[1]);
+		}
 		execve(argv[0], argv, envp);
 		std::exit(1);
 	}
 	else {
-		int status;
-		wait(&status);
+		close(out[1]);
+		
+		// TODO: write to in[1];
+		if (_method == "POST") {
+			close(in[0]);
+			std::map<std::string, std::string>::iterator it = _envMap.find("REQUEST_BODY");
+			if (it != _envMap.end()) {
+				write(in[1], it->second.c_str(), it->second.size());
+			}
+			close(in[1]);
+		}
+
+		// TODO: read from out[0]
+		int status = 0;
 		std::cout << "CGI-Status: " << WEXITSTATUS(status) << std::endl;
+		while (true) {
+			char buffer[1025] = {0};
+			ssize_t bread = read(out[0], &buffer, 1024);
+			if (bread == 0) break;
+			else if (bread == -1) {
+				close(out[0]);
+				return 1;
+			}
+			_output += buffer;
+		}
+
+		close(out[0]);
+		waitpid(pid, &status, 0);
+
 	}
 	return (0);
 }
@@ -167,13 +172,33 @@ void CgiHandler::setEnvVar(std::string key, std::string val) {
 	_envMap.insert(std::pair<std::string, std::string>(key, val));
 }
 
-// TODO: delete this hilarious debug method
-std::string CgiHandler::getEnvVar(std::string key) {
-	std::map<std::string, std::string>::const_iterator it;
-	for (it = _envMap.begin(); it != _envMap.end(); ++it) {
-		if (it->first == key) {
-			return it->first + "=" + it->second;
+std::string CgiHandler::unchunkReq(std::string body) {
+	std::string out;
+	// TODO: find bug inside of here!!!
+	while (body.size() > 4 && body != "\r\n") {
+		int size = std::strtol(body.c_str(), NULL, 16);
+		body = body.substr(body.find("\r\n") + 2);
+		out += body.substr(0, size);
+		body = body.substr(body.find("\r\n") + 2);
+	}
+	return out;
+}
+
+std::string CgiHandler::decodeQm(const std::string& qm) {
+	std::string out;
+
+	for(size_t i = 0; i < qm.size(); i++) {
+		if (qm[i] == '%'
+			&& (std::isdigit(qm[i + 1]) || (qm[i + 1] >= 'A' && qm[i + 1] <= 'F'))
+			&& (std::isdigit(qm[i + 2]) || (qm[i + 2] >= 'A' && qm[i + 2] <= 'F')))
+		{
+			int c = std::strtol(qm.substr(i + 1, 2).c_str(), NULL, 16);
+			out += c;
+			i += 2;
+		}
+		else {
+			out += qm[i];
 		}
 	}
-	return "help me pls";
+	return out;
 }
