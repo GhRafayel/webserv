@@ -13,14 +13,18 @@ void CgiHandler::createEnvironment() {
 
 	while (true) {
 		size_t j = req.find("\r\n");
-		if (j == std::string::npos || req.find("\r\n") == req.find_last_of('\r'))
+		if (j == std::string::npos || req.find("\r\n") == req.find("\r\n\r\n")) {
 			break;
+		}
 		std::string buf = req.substr(0, j);
 		vec.push_back(buf);
 		req = req.substr(j + 2);
 	}
 
-	std::string reqBody = req.substr(2);
+	std::string reqBody;
+	if (req.size() >= 4) {
+		reqBody = req.substr(4);
+	}
 
 	std::vector<std::string>::iterator it;
 	for (it = vec.begin() + 1; it != vec.end(); ++it) {
@@ -47,7 +51,8 @@ void CgiHandler::createEnvironment() {
 	}
 	setEnvVar("REQUEST_METHOD", vec[0].substr(0, vec[0].find_first_of(' ')));
 	if (reqBody.size()) {
-		if (_envMap.find("HTTP_TRANSFER_ENCODING")->second == "chunked") {
+		std::map<std::string, std::string>::iterator tmp = _envMap.find("HTTP_TRANSFER_ENCODING");
+		if (tmp != _envMap.end() && tmp->second == "chunked") {
 			setEnvVar("REQUEST_BODY", unchunkReq(reqBody));
 		}
 		else {
@@ -66,10 +71,10 @@ void	CgiHandler::create_response() {
 		return;
 	}
 	if (!execute()) {
-		strim << client_ref.request.find("protocol")->second << " 200 ok" << "\r\n";
-		strim << "Content_Length: " << _output.size() - _output.find("\r\n") - 4 << "\r\n";
+		strim << client_ref.request.find("protocol")->second << " 200 OK" << "\r\n";
+		strim << "Content-Length: " << _output.size() - _output.find("\r\n") - 4 << "\r\n";
 		strim << "Server: my Server " << "\r\n";
-		strim << "Data: " << get_http_date() << "\r\n";
+		strim << "Date: " << get_http_date() << "\r\n";
 		strim << "Connection: close" << "\r\n";
 		std::cout << strim.str() << std::endl;
 		strim << _output;
@@ -111,15 +116,25 @@ int CgiHandler::execute() {
 	int in[2];
 	int out[2];
 
-	pipe(out);
-	if (_method == "POST") {
-		pipe(in);
+	if (pipe(out) == -1) {
+		return 1;
+	}
+	if (_method == "POST" && pipe(out) == -1) {
+		close(out[0]);
+		close(out[1]);
+		return 1;
 	}
 
 	int pid;
 	pid = fork();
 	if (pid == -1) {
-		throw std::runtime_error("fork failed");
+		close(out[0]);
+		close(out[1]);
+		if (_method == "POST") {
+			close(in[0]);
+			close(in[1]);
+		}
+		return 1;
 	}
 	if (!pid) {
 		dup2(out[1], STDOUT_FILENO);
@@ -149,20 +164,16 @@ int CgiHandler::execute() {
 
 		// TODO: read from out[0]
 		int status = 0;
-		std::cout << "CGI-Status: " << WEXITSTATUS(status) << std::endl;
 		while (true) {
 			char buffer[1025] = {0};
 			ssize_t bread = read(out[0], &buffer, 1024);
-			if (bread == 0) break;
-			else if (bread == -1) {
-				close(out[0]);
-				return 1;
-			}
-			_output += buffer;
+			if (bread <= 0) break;
+			_output.append(buffer, bread);
 		}
 
 		close(out[0]);
 		waitpid(pid, &status, 0);
+		std::cout << "CGI-Status: " << WEXITSTATUS(status) << std::endl;
 
 	}
 	return (0);
@@ -176,10 +187,19 @@ std::string CgiHandler::unchunkReq(std::string body) {
 	std::string out;
 	// TODO: find bug inside of here!!!
 	while (body.size() > 4 && body != "\r\n") {
+		size_t it;
 		int size = std::strtol(body.c_str(), NULL, 16);
-		body = body.substr(body.find("\r\n") + 2);
-		out += body.substr(0, size);
-		body = body.substr(body.find("\r\n") + 2);
+		if ((it = body.find("\r\n")) != std::string::npos) {
+			body = body.substr(it + 2);
+			out += body.substr(0, size);
+		} else {
+			break;
+		}
+		if ((it = body.find("\r\n")) != std::string::npos) {
+			body = body.substr(body.find("\r\n") + 2);
+		} else {
+			break;
+		}
 	}
 	return out;
 }
@@ -188,9 +208,7 @@ std::string CgiHandler::decodeQm(const std::string& qm) {
 	std::string out;
 
 	for(size_t i = 0; i < qm.size(); i++) {
-		if (qm[i] == '%'
-			&& (std::isdigit(qm[i + 1]) || (qm[i + 1] >= 'A' && qm[i + 1] <= 'F'))
-			&& (std::isdigit(qm[i + 2]) || (qm[i + 2] >= 'A' && qm[i + 2] <= 'F')))
+		if (i + 2 < qm.size() && qm[i] == '%' && std::isxdigit(qm[i + 1]) && std::isxdigit(qm[i + 2]))
 		{
 			int c = std::strtol(qm.substr(i + 1, 2).c_str(), NULL, 16);
 			out += c;
