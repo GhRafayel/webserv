@@ -47,6 +47,37 @@ void Response::send_response()
 	//}
 }
 
+std::string	Response::static_page()
+{
+	std::string str;
+	DIR* dir = opendir(path.c_str());
+	struct dirent* entry;
+	while ((entry = readdir(dir)) != NULL)
+	{
+		str += "<div style='"
+							"display:inline-block;"
+							"margin:10px;"
+							"padding:10px;"
+							"text-align:center;"
+							"border:1px solid #ccc;"
+							"border-radius:8px;"
+							"width:120px;'>";
+		str += "<a href='/'";
+		str += entry->d_name;
+		str += "' style='text-decoration:none;color:black;'>";
+		if (entry->d_type == DT_DIR)
+			str += "<img src='../img/folder.jpg' width='40' height='40'><br>";
+		else
+			str += "<img src='../img/file.jpg' width='40' height='40'><br>";
+		str += entry->d_name;
+		str += "</a>";
+		str += "</div>";
+	}
+	closedir(dir);
+	client_ref.is_dir = true;
+	return str;
+}
+
 void	Response::create_header(const std::string & msg, bool val)
 {
 	std::string end = "\r\n";
@@ -60,7 +91,6 @@ void	Response::create_header(const std::string & msg, bool val)
 	strim << "Data: " << get_http_date() << end;
 	strim << "Conection:: close" << end << end;
 
-	std::cout << strim.str() << std::endl;
 	if(val)
 		strim << body;
 	client_ref.outbuf = strim.str();

@@ -29,7 +29,7 @@ void	Post::create_response()
 	
 	if (!is_method_allowed())
 		create_header(" 405 Not Allowed", false);
-	else if (!exists(path,'\0'))
+	else if (!exists(path))
 		create_header(" 404 Not Found", false);
 	else if (check_size())
 		create_header(" 423 Payload Too Large", false);

@@ -49,7 +49,6 @@ class My_server : public StringUtils
 		void		poll_in(int);
 		void		poll_out(int);
 		void		time_out();
-		
 };
 
 #endif

@@ -19,7 +19,7 @@ void	Delete::create_response()
 		create_header(" 405 Forbidden", false);
 	else
 	{
-		if (!exists(path, '\0'))
+		if (!exists(path))
 			create_header(" 404 Not Found", false);
 		else if (remove(path.c_str()) != 0)
 			create_header(" 500 Internal Server Error", false);

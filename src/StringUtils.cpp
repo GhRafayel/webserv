@@ -255,13 +255,10 @@ bool	StringUtils::executable(const std::string& path)
 	return false;
 }
 
-bool	StringUtils::exists(const std::string& path, char type)
+bool	StringUtils::exists(const std::string& path)
 {
 	if(access(path.c_str(), F_OK) == 0)
 		return true;
-	if (type == 'w') return writable(path);
-	if (type == 'r') return readable(path);
-	if (type == 'e') return executable(path);
 	return false;
 }
 

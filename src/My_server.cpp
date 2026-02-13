@@ -86,7 +86,7 @@ void	My_server::start_server()
 
 void	My_server::initConfig()
 {
-	if (!exists(_conf_file_path,'r'))
+	if (!readable(_conf_file_path))
 		throw std::runtime_error("conf path failed\n");
 
 	ConfigPars config(_conf_file_path);
@@ -272,7 +272,10 @@ void    My_server::accept_loop()
 			if (_pollfds[i].revents & POLLIN)
 			{
 				if (is_server_socket(_pollfds[i].fd))
+				{
 					to_connect(i);
+					break;
+				}	
 				else
 					poll_in(i);
 			}

@@ -24,18 +24,30 @@ void	Get::create_response() {
 		create_header(" 405 Not Allowed", false);
 	else if (path.empty())
 	{
-		client_ref.best_mach = server_ref._error_404;
+		path = abs_Path( server_ref._error_404);
+		ext = ".html";
 		create_header(" 404 Not Found", true);
 	}
+	else if (!readable(path))
+		create_header(" 403 Forbidden", false);
 	else if (is_directory(path))
 	{
-		if (client_ref.best_location_index == -1 || !server_ref._locations[client_ref.best_location_index]._autoIndex)
+		if (!server_ref._locations[client_ref.best_location_index]._autoIndex)
+			create_header(" 403 Forbidden", false);
+		else 
 		{
-			create_header(" 403 Forbidden", true);
-			return ;
+			if (exists(path + "index.html"))
+			{
+				path += "index.html";
+				create_header(" 200 ok", true);
+			}
+			else
+			{
+				ext = ".html";
+				create_header(" 200 ok", false);
+				client_ref.outbuf += static_page();
+			}
 		}
-		client_ref.is_dir = true;
-		create_header(" 200 ok", true);
 	}
 	else
 		create_header(" 200 ok", true);
@@ -61,3 +73,5 @@ void Get::fun_206()
 		create_header(s.str(), true);
 	}
 }
+
+
