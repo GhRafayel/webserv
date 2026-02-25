@@ -67,6 +67,8 @@ bool	Request::pars_request()
 	client_ref.request.insert(std::make_pair("protocol", header[2]));
 
 	get_best_mach(header[1]);
+	// std::cout << "url_path" << header[1] << "------------" << client_ref.best_mach <<  std::endl;
+
 	for (size_t i = 1; i < req.size(); i++)
 	{
 		std::string	key, value;

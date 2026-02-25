@@ -10,6 +10,7 @@ class Get : virtual public Response
 	private:
 		Get();
 		void	create_response();
+		void	redirect();
 		void	fun_206();
 	public:
 		~Get();
