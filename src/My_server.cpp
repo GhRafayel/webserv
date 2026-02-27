@@ -159,7 +159,8 @@ int	My_server::to_read(Client & obj)
 	{
 		buffer[n] = '\0';
 		obj.buffer.append(buffer);
-		obj.end_request = is_end_of_request(buffer);
+		std::cout << obj.buffer << std::endl;
+		obj.end_request = is_end_of_request(obj.buffer);
 	}
 	return n;
 }

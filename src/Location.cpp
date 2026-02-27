@@ -6,7 +6,8 @@ Location::Location() : func_map(),_config(), _methods(), _autoIndex(false),
 _root("/www/public/"), _index("index.html"), _location("/"),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
 _return(),
-_cgi()
+_cgi(),
+_max_body_size(0)
  {
 	init();
  }
@@ -14,7 +15,7 @@ _cgi()
 Location::Location(std::vector<std::string> & array) : func_map(),
 _config(array), _methods(), _autoIndex(false),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
-_return(), _cgi()
+_return(), _cgi(), _max_body_size(0)
 {
 	init();
 	location_pars();
@@ -22,7 +23,7 @@ _return(), _cgi()
 
 Location::Location(const Location & obj) : StringUtils() ,
 	_error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
-	_return(), _cgi()
+	_return(), _cgi(), _max_body_size(0)
 {
 	this->_methods = obj._methods;
 	this->_autoIndex = obj._autoIndex;

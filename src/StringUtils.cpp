@@ -18,18 +18,31 @@ bool	StringUtils::is_digitS(const std::string & str)
 	return true;
 }
 
+size_t	StringUtils::parse_content_length(const std::string & buffer)
+{
+	std::string	temp1 = buffer.substr(buffer.find("Content-Length:"));
+	std::string	temp2 =  temp1.substr(0, temp1.find("\r\n"));
+	temp1 = trim(temp2.substr(temp2.find(" ")), " ");
+	return str_to_int(temp1);
+}
+
 bool	StringUtils::is_end_of_request(const std::string & buffer)
 {
-	if (buffer.length() < 4)
-	{
-		return false;
-	}
 	size_t pos = buffer.find("\r\n\r\n");
-	if (pos != std::string::npos)
+
+	if (buffer.length() < 4 || pos == std::string::npos) 
+		return false;
+
+	if (buffer.compare(0, 4, "POST") == 0)
 	{
-		return true;
+		size_t content_size = parse_content_length(buffer);
+
+		std::cout << content_size << std::endl;
+		std::cout << buffer << std::endl;
+
+		if ((buffer.size() - (pos + 4)) < content_size) return false;
 	}
-	return false;
+	return true;
 }
 
 void	StringUtils::init()

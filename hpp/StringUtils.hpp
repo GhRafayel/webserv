@@ -42,6 +42,7 @@ class StringUtils
 		bool						is_cgi(std::string & );
 		std::vector<std::string>	Range_pars(const std::string &);
 		std::string 				get_http_date();
+		size_t						parse_content_length(const std::string &);
 };
 
 #endif
