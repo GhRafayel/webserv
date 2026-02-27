@@ -5,22 +5,11 @@ Get::~Get() {}
 Get::Get(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 {
 	if (client_ref.statuc_code == 301)
-		redirect();
+		create_header(" 301 Moved Permanently", false);
 	else if (client_ref.statuc_code == 206)
 		fun_206();
 	else
 		create_response();
-}
-
-void	Get::redirect()
-{
-		strim << "HTTP/1.1 301 Moved Permanently\r\n";
-		strim << "Date: " << get_http_date() << "\r\n";
- 		strim << "Server: my Server\r\n";
-		strim << "Location: " << client_ref.best_mach << "\r\n";
-		strim << "Content-Length: 0\r\n";
-		strim << "Connection: close\r\n\r\n";
-		client_ref.outbuf = strim.str();
 }
 
 void	Get::create_response() {

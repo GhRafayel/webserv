@@ -28,6 +28,8 @@ class CgiHandler :  virtual public Response
 		CgiHandler(const CgiHandler&);
 		CgiHandler& operator=(const CgiHandler&);
 		
+		bool	cgi_exist();
+
 		void createEnvironment();
 		int execute();
 		void setEnvVar(std::string, std::string);

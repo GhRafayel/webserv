@@ -16,7 +16,7 @@ My_server::My_server() : StringUtils(),
 	_time(1000),
 	_conf_file_path(abs_Path("conf/default.conf"))
 {
-	if(!_conf_file_path.empty())
+	if(_conf_file_path.empty())
 		throw std::runtime_error("Configuration file dose not exist or worng path!");
 }
 

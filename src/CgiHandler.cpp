@@ -56,10 +56,33 @@ void CgiHandler::createEnvironment() {
 	}
 	setEnvVar("QUERY_STRING", decodeQm(client_ref.question_mark));
 	setEnvVar("REDIRECT_STATUS", "200");
-	setEnvVar("SCRIPT_FILENAME", abs_Path("www" + client_ref.request.find("url_path")->second));
+	// setEnvVar("SCRIPT_FILENAME", abs_Path("www" + client_ref.request.find("url_path")->second));
+	setEnvVar("SCRIPT_FILENAME", abs_Path(client_ref.best_mach));
+}
+
+bool	CgiHandler::cgi_exist()
+{
+	size_t post = client_ref.best_mach.rfind(".");
+	bool val = false;
+
+	for (size_t i = 0; client_ref.best_location_index != -1 && i < server_ref._locations[client_ref.best_location_index]._cgi.size(); i++)
+	{
+		if (client_ref.best_mach.substr(post) == server_ref._locations[client_ref.best_location_index]._cgi[i])
+			val = true;
+	}
+	if (!val)
+	{
+		path = server_ref._error_404;
+		ext = ".html";
+		create_header(" 404 Not Found", true);
+		return val;
+	}
+	return val;
 }
 
 void	CgiHandler::create_response() {
+	
+	if (!cgi_exist()) return ;
 	createEnvironment();
 	if (!is_method_allowed() || _method == "DELETE") {
 		create_header(" 405 Not Allowed", false);
@@ -76,6 +99,7 @@ void	CgiHandler::create_response() {
 	}
 	else {
 		body = get_file_content("./www/errors/500.html");
+		ext = ".html";
 		create_header(" 500 Internal Server Error", false);
 		strim << body;
 	}
@@ -91,6 +115,9 @@ void CgiHandler::convertEnv() {
 
 int CgiHandler::execute() {
 	std::map<std::string, std::string>::iterator it = _envMap.find("SCRIPT_FILENAME");
+	
+	if (it == _envMap.end()) return 1;
+
 	char* argv[3];
 	argv[0] = const_cast<char*>("/usr/bin/php-cgi");
 	argv[1] = const_cast<char*>((*it).second.c_str());
@@ -111,61 +138,73 @@ int CgiHandler::execute() {
 	int in[2];
 	int out[2];
 
-	pipe(out);
+	if (pipe(out) == -1) return  1;
+
 	if (_method == "POST") {
+		if (pipe(in) == -1)
+		{
+			close(out[0]);
+			close(out[1]);
+			return 1;
+		}
 		pipe(in);
 	}
 
-	int pid;
-	pid = fork();
+	int pid = fork();
+
 	if (pid == -1) {
-		throw std::runtime_error("fork failed");
+		close(out[0]);
+		close(out[1]);
+		return 1;
 	}
-	if (!pid) {
+	if (pid == 0) {
+		close(out[0]);
 		dup2(out[1], STDOUT_FILENO);
 		close(out[1]);
-		close(out[0]);
 
 		if (_method == "POST") {
+			close(in[1]);
 			dup2(in[0], STDIN_FILENO);
 			close(in[0]);
-			close(in[1]);
 		}
 		execve(argv[0], argv, envp);
 		std::exit(1);
 	}
 	else {
-		close(out[1]);
-		
-		// TODO: write to in[1];
-		if (_method == "POST") {
-			close(in[0]);
-			std::map<std::string, std::string>::iterator it = _envMap.find("REQUEST_BODY");
-			if (it != _envMap.end()) {
-				write(in[1], it->second.c_str(), it->second.size());
+			close(out[1]);
+
+			if (_method == "POST") {
+				close(in[0]);
+				std::map<std::string, std::string>::iterator body_it = _envMap.find("REQUEST_BODY");
+				if (body_it != _envMap.end() && !body_it->second.empty()) {
+					ssize_t written = write(in[1], body_it->second.c_str(), body_it->second.size());
+					if (written == -1) {
+						close(out[0]);
+						close(out[1]);
+						return 1;
+					}
+				}
+				close(in[1]);
 			}
-			close(in[1]);
-		}
+			_output.clear();
+			char buffer[4096];
+			ssize_t bread;
 
-		// TODO: read from out[0]
-		int status = 0;
-		std::cout << "CGI-Status: " << WEXITSTATUS(status) << std::endl;
-		while (true) {
-			char buffer[1025] = {0};
-			ssize_t bread = read(out[0], &buffer, 1024);
-			if (bread == 0) break;
-			else if (bread == -1) {
-				close(out[0]);
-				return 1;
+			while ((bread = read(out[0], buffer, sizeof(buffer) - 1)) > 0) {
+				buffer[bread] = '\0';
+				_output.append(buffer, bread);
 			}
-			_output += buffer;
+
+			close(out[0]);
+			close(out[1]);
+			int status;
+			waitpid(pid, &status, 0);
+			
+			if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+				return 0;
+			}
 		}
-
-		close(out[0]);
-		waitpid(pid, &status, 0);
-
-	}
-	return (0);
+	return 1;
 }
 
 void CgiHandler::setEnvVar(std::string key, std::string val) {
