@@ -7,7 +7,7 @@ static void signal_handler(int) {
 	g_running = false;
 }
 
-//int main(int argc, char **argv, char **env)
+//int main(int argc, char **argv)
 int main()
 {
 	int argc = 2;
@@ -21,7 +21,10 @@ int main()
 		try
 		{
 			if (argc == 1)
+			{
 				server = new My_server();
+				server->start_server();
+			}
 			else
 			{
 				server = new My_server(argv[1]);

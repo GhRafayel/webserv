@@ -29,7 +29,6 @@ Response & Response::operator=(const Response & obj)
 
 void Response::send_response()
 {
-	
 	ssize_t n = 1;
 	// while (n)
 	// {

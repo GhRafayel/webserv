@@ -40,7 +40,7 @@ void	Request::find_cgi()
 		post = it->second.rfind(".");
 		if (post != std::string::npos) {
 		
-			if (it->second.substr(post) == ".php") client_ref.is_cgi = true;
+			if (it->second.substr(post) == ".php" || it->second.substr(post) == ".py") client_ref.is_cgi = true;
 		}
 	}
 }

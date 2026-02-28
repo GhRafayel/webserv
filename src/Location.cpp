@@ -5,7 +5,9 @@ Location::~Location() {  this->_config.clear(); }
 Location::Location() : func_map(),_config(), _methods(), _autoIndex(false),
 _root("/www/public/"), _index("index.html"), _location("/"),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
-_return()
+_return(),
+_cgi(),
+_max_body_size(0)
  {
 	init();
  }
@@ -13,7 +15,7 @@ _return()
 Location::Location(std::vector<std::string> & array) : func_map(),
 _config(array), _methods(), _autoIndex(false),
 _error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
-_return()
+_return(), _cgi(), _max_body_size(0)
 {
 	init();
 	location_pars();
@@ -21,7 +23,7 @@ _return()
 
 Location::Location(const Location & obj) : StringUtils() ,
 	_error_massage("Configuration Error:\nAn invalid line was detected in the location block of the configuration file: > "),
-	_return()
+	_return(), _cgi(), _max_body_size(0)
 {
 	this->_methods = obj._methods;
 	this->_autoIndex = obj._autoIndex;
@@ -61,14 +63,14 @@ void 	Location::init()
 	func_map.insert(std::make_pair("allow_method", &Location::loc_methods));
 	func_map.insert(std::make_pair("return", &Location::loc_return));
 	func_map.insert(std::make_pair("client_max_body_size", &Location::loc_max_body_size));
-	func_map.insert(std::make_pair("cgi_pass", &Location::loc_cgi));
+	func_map.insert(std::make_pair("cgi_extension", &Location::cgi_extension));
 }
 
-void	Location::loc_cgi(std::string & str)
+void	Location::cgi_extension(std::string & str)
 {
-		if (str.empty())
+		if (str.empty() || (str != ".php" && str != ".py"))
 			throw std::runtime_error(_error_massage + str);
-		this->_cgi = str;
+		this->_cgi.push_back(str);
 }
 
 bool	Location::is_line_valid(std::string & line)
@@ -167,17 +169,12 @@ bool	Location::get_method(const std::string & method)
 
 void Location::callFunctionByName(const std::string & loc_name, std::string & arg)
 {
-	try
-	{
-		std::map<std::string, void (Location::*) (std::string &)>::iterator	it = func_map.find(loc_name);
-		if (it == func_map.end())
-			throw std::runtime_error(_error_massage + loc_name + " " + arg);
-		if (arg.empty())
-			return ;
-		(this->*(it->second))(arg);
-	}
-	catch(const std::exception & e)
-	{
-		std::cerr << e.what() << '\n';
-	}
+	
+	std::map<std::string, void (Location::*) (std::string &)>::iterator	it = func_map.find(loc_name);
+	if (it == func_map.end())
+		throw std::runtime_error(_error_massage + loc_name + " " + arg);
+	if (arg.empty())
+		return ;
+	(this->*(it->second))(arg);
+	
 }

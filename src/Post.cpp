@@ -12,7 +12,7 @@ bool Post::check_size()
 
 	if (client_ref.best_location_index != -1)
 	{
-		if (server_ref._locations[client_ref.best_location_index]._max_body_size < size || server_ref._body_max_size < size)
+		if (server_ref._locations[client_ref.best_location_index]._max_body_size > size || server_ref._body_max_size > size)
 			return false;
 	}
 	return true;
@@ -40,6 +40,7 @@ void	Post::create_response()
 		if (!writable(path))
 			create_header(" 500 Internal Server Error", true);
 		file << body;
+		file.close();
 		create_header(" 200 ok", false);
 	}
 }

@@ -13,7 +13,7 @@ class Location : public StringUtils
 
 		void	init();
 		void	location_pars();
-		void	loc_cgi(std::string &);
+		void	cgi_extension(std::string &);
 		void	loc_location(std::string &);
 		void	loc_return(std::string &);
 		void	loc_root(std::string &);
@@ -31,9 +31,9 @@ class Location : public StringUtils
 		std::string					_root;
 		std::string					_index;
 		std::string					_location;
-		std::string					_cgi;
 		std::string					_error_massage;
 		std::vector<std::string>	_return;
+		std::vector<std::string>	_cgi;
 		int							_max_body_size;
 
 		~Location();

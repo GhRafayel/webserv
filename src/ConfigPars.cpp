@@ -133,7 +133,15 @@ void	ConfigPars::location_block()
 			_ind++;
 		}
 	}
-	this->_locations.push_back(Location(l_block));
+	try
+	{
+		Location tempLocation(l_block);
+		this->_locations.push_back(tempLocation);
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
 }
 
 void	ConfigPars::create_server_class()
