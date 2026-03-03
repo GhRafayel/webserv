@@ -212,14 +212,6 @@ void CgiHandler::setEnvVar(std::string key, std::string val) {
 
 std::string CgiHandler::unchunkReq(std::string body) {
 	std::string out;
-	// TODO: find bug inside of here!!!
-	// while (body.size() > 4 && body != "\r\n") {
-	// 	int size = std::strtol(body.c_str(), NULL, 16);
-	// 	body = body.substr(body.find("\r\n") + 2);
-	// 	out += body.substr(0, size);
-	// 	body = body.substr(body.find("\r\n") + 2);
-	// }
-
 	while (body.size() > 0) {
 		char* end;
 		long size = std::strtol(body.c_str(), &end, 16);
