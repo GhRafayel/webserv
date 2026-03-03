@@ -1,20 +1,31 @@
-
 #include "../hpp/CgiHandler.hpp"
+
+// TODO: cleanup CgiHandler!
+// TODO: figure out, if we should whats up with .php and .py?!
+// TODO: PATH_INFO?!?
+
 CgiHandler::~CgiHandler() {}
 
 CgiHandler::CgiHandler( Server & s_obj,  Client & c_obj) : Response(s_obj, c_obj)
 {
+	_method = client_ref.method;
 	create_response();
 }
 
 void CgiHandler::createEnvironment() {
+	std::string scriptPath = client_ref.best_mach;
+	size_t qpos = scriptPath.find('?');
+	if (qpos != std::string::npos) {
+		scriptPath = scriptPath.substr(0, qpos);
+	}
 	std::string& req = client_ref.cgibuf;
 	std::vector<std::string> vec;
 
 	while (true) {
 		size_t j = req.find("\r\n");
-		if (j == std::string::npos || req.find("\r\n") == req.find_last_of('\r'))
+		if (j == std::string::npos || j == 0) {
 			break;
+		}
 		std::string buf = req.substr(0, j);
 		vec.push_back(buf);
 		req = req.substr(j + 2);
@@ -25,11 +36,9 @@ void CgiHandler::createEnvironment() {
 	std::vector<std::string>::iterator it;
 	for (it = vec.begin() + 1; it != vec.end(); ++it) {
 		if (!(*it).compare(0, (*it).find(':'), "Content-Length")) {
-			std::cout << "found content length" << std::endl;
 			setEnvVar("CONTENT_LENGTH", (*it).substr((*it).find_first_of(' ') + 1));
 		}
 		else if (!(*it).compare(0, (*it).find(':'), "Content-Type")) {
-			std::cout << "found content type" << std::endl;
 			setEnvVar("CONTENT_TYPE", (*it).substr((*it).find_first_of(' ') + 1));
 		}
 		else {
@@ -45,9 +54,13 @@ void CgiHandler::createEnvironment() {
 			setEnvVar(key, (*it).substr((*it).find_first_of(' ') + 1));
 		}
 	}
-	setEnvVar("REQUEST_METHOD", vec[0].substr(0, vec[0].find_first_of(' ')));
+	if (!vec.empty()) {
+		setEnvVar("REQUEST_METHOD", vec[0].substr(0, vec[0].find_first_of(' ')));
+	}
 	if (reqBody.size()) {
-		if (_envMap.find("HTTP_TRANSFER_ENCODING")->second == "chunked") {
+		if (_envMap.find("HTTP_TRANSFER_ENCODING") != _envMap.end()
+			&& _envMap.find("HTTP_TRANSFER_ENCODING")->second == "chunked")
+		{
 			setEnvVar("REQUEST_BODY", unchunkReq(reqBody));
 		}
 		else {
@@ -56,17 +69,24 @@ void CgiHandler::createEnvironment() {
 	}
 	setEnvVar("QUERY_STRING", decodeQm(client_ref.question_mark));
 	setEnvVar("REDIRECT_STATUS", "200");
-	setEnvVar("SCRIPT_FILENAME", abs_Path(client_ref.best_mach));
+	setEnvVar("SCRIPT_FILENAME", abs_Path(scriptPath));
 }
 
 bool	CgiHandler::cgi_exist()
 {
-	size_t post = client_ref.best_mach.rfind(".");
+	std::string pathOnly = client_ref.best_mach;
+	size_t qpos = pathOnly.find('?');
+	if (qpos != std::string::npos) {
+		pathOnly = pathOnly.substr(0, qpos);
+	}
+	size_t post = pathOnly.rfind(".");
+	if (post == std::string::npos)
+		return false;
 	bool val = false;
 
 	for (size_t i = 0; client_ref.best_location_index != -1 && i < server_ref._locations[client_ref.best_location_index]._cgi.size(); i++)
 	{
-		if (client_ref.best_mach.substr(post) == server_ref._locations[client_ref.best_location_index]._cgi[i])
+		if (pathOnly.substr(post) == server_ref._locations[client_ref.best_location_index]._cgi[i])
 			val = true;
 	}
 	if (!val)
@@ -83,17 +103,21 @@ void	CgiHandler::create_response() {
 	
 	if (!cgi_exist()) return ;
 	createEnvironment();
-	if (!is_method_allowed() || _method == "DELETE") {
+	if (!is_method_allowed()) {
 		create_header(" 405 Not Allowed", false);
 		return;
 	}
 	if (!execute()) {
 		strim << client_ref.request.find("protocol")->second << " 200 ok" << "\r\n";
-		strim << "Content_Length: " << _output.size() - _output.find("\r\n") - 4 << "\r\n";
+		if (_output.find("\r\n\r\n") != std::string::npos) {
+			strim << "Content-Length: " << _output.size() - _output.find("\r\n\r\n") - 4 << "\r\n";
+		}
+		else {
+			strim << "Content-Length: " << _output.size() << "\r\n";
+		}
 		strim << "Server: my Server " << "\r\n";
-		strim << "Data: " << get_http_date() << "\r\n";
+		strim << "Date: " << get_http_date() << "\r\n";
 		strim << "Connection: close" << "\r\n";
-		std::cout << strim.str() << std::endl;
 		strim << _output;
 	}
 	else {
@@ -132,21 +156,18 @@ int CgiHandler::execute() {
 	ptrs.push_back(NULL);
 	char** envp = &ptrs[0];
 
-	// TODO: implement WORKING!!!! pipes
-		// redir into child REQUEST_BODY -> second;
 	int in[2];
 	int out[2];
 
-	if (pipe(out) == -1) return  1;
+	if (pipe(out) == -1) {
+		return 1;
+	}
 
-	if (_method == "POST") {
-		if (pipe(in) == -1)
-		{
-			close(out[0]);
-			close(out[1]);
-			return 1;
-		}
-		pipe(in);
+	if (pipe(in) == -1)
+	{
+		close(out[0]);
+		close(out[1]);
+		return 1;
 	}
 
 	int pid = fork();
@@ -154,6 +175,8 @@ int CgiHandler::execute() {
 	if (pid == -1) {
 		close(out[0]);
 		close(out[1]);
+		close(in[0]);
+		close(in[1]);
 		return 1;
 	}
 	if (pid == 0) {
@@ -161,30 +184,25 @@ int CgiHandler::execute() {
 		dup2(out[1], STDOUT_FILENO);
 		close(out[1]);
 
-		if (_method == "POST") {
-			close(in[1]);
-			dup2(in[0], STDIN_FILENO);
-			close(in[0]);
-		}
+		close(in[1]);
+		dup2(in[0], STDIN_FILENO);
+		close(in[0]);
 		execve(argv[0], argv, envp);
 		std::exit(1);
 	}
 	else {
 			close(out[1]);
-
-			if (_method == "POST") {
-				close(in[0]);
-				std::map<std::string, std::string>::iterator body_it = _envMap.find("REQUEST_BODY");
-				if (body_it != _envMap.end() && !body_it->second.empty()) {
-					ssize_t written = write(in[1], body_it->second.c_str(), body_it->second.size());
-					if (written == -1) {
-						close(out[0]);
-						close(out[1]);
-						return 1;
-					}
+			close(in[0]);
+			std::map<std::string, std::string>::iterator body_it = _envMap.find("REQUEST_BODY");
+			if (body_it != _envMap.end() && !body_it->second.empty()) {
+				ssize_t written = write(in[1], body_it->second.c_str(), body_it->second.size());
+				if (written == -1) {
+					close(in[1]);
+					close(out[0]);
+					return 1;
 				}
-				close(in[1]);
 			}
+			close(in[1]);
 			_output.clear();
 			char buffer[4096];
 			ssize_t bread;
@@ -192,10 +210,10 @@ int CgiHandler::execute() {
 			while ((bread = read(out[0], buffer, sizeof(buffer) - 1)) > 0) {
 				buffer[bread] = '\0';
 				_output.append(buffer, bread);
+				std::memset(buffer, 0, sizeof(buffer));
 			}
 
 			close(out[0]);
-			close(out[1]);
 			int status;
 			waitpid(pid, &status, 0);
 			
@@ -207,7 +225,7 @@ int CgiHandler::execute() {
 }
 
 void CgiHandler::setEnvVar(std::string key, std::string val) {
-	_envMap.insert(std::pair<std::string, std::string>(key, val));
+	_envMap[key] = val;
 }
 
 std::string CgiHandler::unchunkReq(std::string body) {
@@ -234,9 +252,7 @@ std::string CgiHandler::decodeQm(const std::string& qm) {
 	std::string out;
 
 	for(size_t i = 0; i < qm.size(); i++) {
-		if (qm[i] == '%'
-			&& (std::isdigit(qm[i + 1]) || (qm[i + 1] >= 'A' && qm[i + 1] <= 'F'))
-			&& (std::isdigit(qm[i + 2]) || (qm[i + 2] >= 'A' && qm[i + 2] <= 'F')))
+		if (i + 2 < qm.size() && qm[i] == '%' && std::isxdigit(qm[i + 1]) && std::isxdigit(qm[i + 2]))
 		{
 			int c = std::strtol(qm.substr(i + 1, 2).c_str(), NULL, 16);
 			out += c;

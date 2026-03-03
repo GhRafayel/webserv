@@ -107,8 +107,6 @@
 // 	ptrs.push_back(NULL);
 // 	char** envp = &ptrs[0];
 
-// 	// TODO: implement WORKING!!!! pipes
-// 		// redir into child REQUEST_BODY -> second;
 // 	int in[2];
 // 	int out[2];
 
@@ -138,7 +136,6 @@
 // 	else {
 // 		close(out[1]);
 		
-// 		// TODO: write to in[1];
 // 		if (_method == "POST") {
 // 			close(in[0]);
 // 			std::map<std::string, std::string>::iterator it = _envMap.find("REQUEST_BODY");
@@ -148,7 +145,6 @@
 // 			close(in[1]);
 // 		}
 
-// 		// TODO: read from out[0]
 // 		int status = 0;
 // 		std::cout << "CGI-Status: " << WEXITSTATUS(status) << std::endl;
 // 		while (true) {
@@ -175,7 +171,6 @@
 
 // std::string CgiHandler::unchunkReq(std::string body) {
 // 	std::string out;
-// 	// TODO: find bug inside of here!!!
 // 	while (body.size() > 4 && body != "\r\n") {
 // 		int size = std::strtol(body.c_str(), NULL, 16);
 // 		body = body.substr(body.find("\r\n") + 2);

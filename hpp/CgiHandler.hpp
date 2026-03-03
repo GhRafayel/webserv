@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <cstdio>
 #include <cctype>
+#include <cstring>
 
 class CgiHandler :  virtual public Response
 {
@@ -23,6 +24,7 @@ class CgiHandler :  virtual public Response
 		std::map<std::string, std::string>	_envMap;
 		std::vector<std::string>			_envVec;
 		std::string 						_output;
+
 		void create_response();
 
 		CgiHandler(const CgiHandler&);
