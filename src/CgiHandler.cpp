@@ -56,7 +56,6 @@ void CgiHandler::createEnvironment() {
 	}
 	setEnvVar("QUERY_STRING", decodeQm(client_ref.question_mark));
 	setEnvVar("REDIRECT_STATUS", "200");
-	// setEnvVar("SCRIPT_FILENAME", abs_Path("www" + client_ref.request.find("url_path")->second));
 	setEnvVar("SCRIPT_FILENAME", abs_Path(client_ref.best_mach));
 }
 
@@ -214,11 +213,27 @@ void CgiHandler::setEnvVar(std::string key, std::string val) {
 std::string CgiHandler::unchunkReq(std::string body) {
 	std::string out;
 	// TODO: find bug inside of here!!!
-	while (body.size() > 4 && body != "\r\n") {
-		int size = std::strtol(body.c_str(), NULL, 16);
-		body = body.substr(body.find("\r\n") + 2);
-		out += body.substr(0, size);
-		body = body.substr(body.find("\r\n") + 2);
+	// while (body.size() > 4 && body != "\r\n") {
+	// 	int size = std::strtol(body.c_str(), NULL, 16);
+	// 	body = body.substr(body.find("\r\n") + 2);
+	// 	out += body.substr(0, size);
+	// 	body = body.substr(body.find("\r\n") + 2);
+	// }
+
+	while (body.size() > 0) {
+		char* end;
+		long size = std::strtol(body.c_str(), &end, 16);
+		if (size == 0 || *end != '\r' || size < 0) {
+			break;
+		}
+		
+		size_t header = (end - body.c_str()) + 2;
+		if (body.size() < header + size + 2) {
+			break;
+		}
+
+		out.append(body, header, size);
+		body.erase(0, header + size + 2);
 	}
 	return out;
 }
