@@ -24,30 +24,29 @@ void	Get::create_response() {
 		create_header(" 405 Not Allowed", false);
 	else if (path.empty())
 	{
-		path = abs_Path( server_ref._error_404);
+		path = abs_Path(server_ref._error_404);
 		ext = ".html";
 		create_header(" 404 Not Found", true);
 	}
-	else if (!readable(path))
+	else if (!readable(path) || (is_directory(path) && !server_ref._locations[client_ref.best_location_index]._autoIndex))
+	{
+		ext = ".html";
 		create_header(" 403 Forbidden", false);
+		client_ref.outbuf += "<html> <h1> Forbiden</h1> </html>";
+	}
 	else if (is_directory(path))
 	{
-		if (!server_ref._locations[client_ref.best_location_index]._autoIndex)
-			create_header(" 403 Forbidden", false);
-		else 
-		{
-			if (exists(path + "index.html"))
+			ext = ".html";
+			if (exists(path + "/index.html"))
 			{
-				path += "index.html";
+				path += "/index.html";
 				create_header(" 200 ok", true);
 			}
 			else
 			{
-				ext = ".html";
 				create_header(" 200 ok", false);
 				client_ref.outbuf += static_page();
 			}
-		}
 	}
 	else
 		create_header(" 200 ok", true);

@@ -29,15 +29,15 @@ void	Post::create_response()
 	
 	if (!is_method_allowed())
 		create_header(" 405 Not Allowed", false);
-	else if (!exists(path))
-		create_header(" 404 Not Found", false);
 	else if (check_size())
 		create_header(" 423 Payload Too Large", false);
 	else
 	{
+		size_t n =  client_ref.best_mach.rfind("/");
+		std::string new_path = abs_Path(client_ref.best_mach.substr(0, n)) + client_ref.best_mach.substr(n).c_str();
 		body = it->second;
-		std::ofstream file(abs_Path(client_ref.best_mach).c_str());
-		if (!writable(path))
+		std::ofstream file(new_path);
+		if (!writable(new_path))
 			create_header(" 500 Internal Server Error", true);
 		file << body;
 		file.close();

@@ -79,6 +79,7 @@ std::string	Response::static_page()
 
 void	Response::create_header(const std::string & msg, bool val)
 {
+	
 	std::string end = "\r\n";
 
 	if(val)
