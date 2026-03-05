@@ -9,6 +9,8 @@
 
 class Response : public StringUtils
 {
+	private:
+		void check_cgi_status_code();
 	protected:
 		Server &			server_ref;
 		Client &			client_ref;

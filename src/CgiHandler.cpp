@@ -1,12 +1,14 @@
 
 #include "../hpp/CgiHandler.hpp"
+#include "../hpp/Response.hpp"
+
 CgiHandler::~CgiHandler() {}
 
-CgiHandler::CgiHandler( Server & s_obj,  Client & c_obj) : Response(s_obj, c_obj)
+CgiHandler::CgiHandler( Server & s_obj,  Client & c_obj) : server_ref(s_obj), client_ref(c_obj)
 {
-	create_response();
+	cgi_run();
 }
-
+/*
 void CgiHandler::createEnvironment() {
 	std::string& req = client_ref.cgibuf;
 	std::vector<std::string> vec;
@@ -59,6 +61,65 @@ void CgiHandler::createEnvironment() {
 	// setEnvVar("SCRIPT_FILENAME", abs_Path("www" + client_ref.request.find("url_path")->second));
 	setEnvVar("SCRIPT_FILENAME", abs_Path(client_ref.best_mach));
 }
+*/
+
+void CgiHandler::createEnvironment() {
+	std::string& req = client_ref.cgibuf;
+	std::vector<std::string> vec;
+
+	while (true) {
+		size_t j = req.find("\r\n");
+		if (j == std::string::npos || req.find("\r\n") == req.find("\r\n\r\n")) {
+			break;
+		}
+		std::string buf = req.substr(0, j);
+		vec.push_back(buf);
+		req = req.substr(j + 2);
+	}
+
+	std::string reqBody;
+	if (req.size() >= 4) {
+		reqBody = req.substr(4);
+	}
+
+	std::vector<std::string>::iterator it;
+	for (it = vec.begin() + 1; it != vec.end(); ++it) {
+		if (!(*it).compare(0, (*it).find(':'), "Content-Length")) {
+			std::cout << "found content length" << std::endl;
+			setEnvVar("CONTENT_LENGTH", (*it).substr((*it).find_first_of(' ') + 1));
+		}
+		else if (!(*it).compare(0, (*it).find(':'), "Content-Type")) {
+			std::cout << "found content type" << std::endl;
+			setEnvVar("CONTENT_TYPE", (*it).substr((*it).find_first_of(' ') + 1));
+		}
+		else {
+			std::string key = "HTTP_" + (*it).substr(0, (*it).find(':'));
+			for (size_t i = 0; i < key.size(); i++) {
+				if (std::islower(key[i])) {
+					key[i] -= 32;
+				}
+				else if (key[i] == '-') {
+					key[i] = '_';
+				}
+			}
+			setEnvVar(key, (*it).substr((*it).find_first_of(' ') + 1));
+		}
+	}
+	setEnvVar("REQUEST_METHOD", vec[0].substr(0, vec[0].find_first_of(' ')));
+	if (reqBody.size()) {
+		std::map<std::string, std::string>::iterator tmp = _envMap.find("HTTP_TRANSFER_ENCODING");
+		if (tmp != _envMap.end() && tmp->second == "chunked") {
+			setEnvVar("REQUEST_BODY", unchunkReq(reqBody));
+		}
+		else {
+			setEnvVar("REQUEST_BODY", reqBody);
+		}
+	}
+	setEnvVar("QUERY_STRING", decodeQm(client_ref.question_mark));
+	setEnvVar("REDIRECT_STATUS", "200");
+	//setEnvVar("SCRIPT_FILENAME", abs_Path("www" + client_ref.request.find("url_path")->second));
+	setEnvVar("SCRIPT_FILENAME", abs_Path(client_ref.best_mach));
+}
 
 bool	CgiHandler::cgi_exist()
 {
@@ -72,38 +133,35 @@ bool	CgiHandler::cgi_exist()
 	}
 	if (!val)
 	{
-		path = server_ref._error_404;
-		ext = ".html";
-		create_header(" 404 Not Found", true);
+		client_ref.statuc_code = 404;
 		return val;
 	}
 	return val;
 }
 
-void	CgiHandler::create_response() {
+bool	CgiHandler::is_method_allowed()
+{
+	bool s_method = server_ref.get_method(client_ref.method);
+	bool l_method = false;
+
+	if (client_ref.best_location_index != -1)
+		l_method = server_ref._locations[client_ref.best_location_index].get_method(client_ref.method);
+	
+	if (l_method || s_method)
+		return true;
+	return false;
+}
+
+void	CgiHandler::cgi_run() {
 	
 	if (!cgi_exist()) return ;
 	createEnvironment();
 	if (!is_method_allowed() || _method == "DELETE") {
-		create_header(" 405 Not Allowed", false);
+		client_ref.statuc_code = 405;
 		return;
 	}
-	if (!execute()) {
-		strim << client_ref.request.find("protocol")->second << " 200 ok" << "\r\n";
-		strim << "Content_Length: " << _output.size() - _output.find("\r\n") - 4 << "\r\n";
-		strim << "Server: my Server " << "\r\n";
-		strim << "Data: " << get_http_date() << "\r\n";
-		strim << "Connection: close" << "\r\n";
-		std::cout << strim.str() << std::endl;
-		strim << _output;
-	}
-	else {
-		body = get_file_content("./www/errors/500.html");
-		ext = ".html";
-		create_header(" 500 Internal Server Error", false);
-		strim << body;
-	}
-	client_ref.outbuf = strim.str();
+	if (!execute()) return ;
+	client_ref.statuc_code = 500;
 }
 
 void CgiHandler::convertEnv() {

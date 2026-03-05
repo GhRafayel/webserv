@@ -5,14 +5,16 @@ Response::~Response() {}
 Response::Response(Server & S_ref, Client & C_ref) : StringUtils(),
     server_ref(S_ref),
 	client_ref(C_ref)
-{}
+{
+
+}
 
 Response::Response(const Response & obj) : StringUtils(),
 	server_ref(obj.server_ref),
 	client_ref(obj.client_ref)
 {
 	this->strim.clear();
-	this->strim << obj.strim;
+	this->strim << obj.strim.str();
 }
 
 Response & Response::operator=(const Response & obj)
@@ -22,7 +24,7 @@ Response & Response::operator=(const Response & obj)
 		this->server_ref = obj.server_ref;
 		this->client_ref = obj.client_ref;
 		this->strim.clear();
-		this->strim <<  obj.strim;
+		this->strim << obj.strim.str();
 	}
 	return *this;
 }
@@ -77,14 +79,26 @@ std::string	Response::static_page()
 	return str;
 }
 
+void Response::check_cgi_status_code()
+{
+	if (client_ref.is_cgi && (client_ref.statuc_code == 500 || client_ref.statuc_code == 404) )
+	{
+		ext = ".html";
+		if (client_ref.statuc_code == 500)
+			path = server_ref._error_500;
+		else if (client_ref.statuc_code == 404)
+			path = server_ref._error_404;
+	}
+}
+
 void	Response::create_header(const std::string & msg, bool val)
 {
-	
 	std::string end = "\r\n";
 
+	check_cgi_status_code();
 	if(val)
 		body = get_file_content(path);
-	strim << client_ref.request.find("protocol")->second << msg << end;
+	strim << client_ref.request.find("protocol")->second << (client_ref.statuc_code == 500 ? " 500 Internal Server Error" : msg) << end;
 	strim << get_my_taype(ext) << end;
 	strim << "Content_Length: " << body.size() << end;
 	strim << "Server: my Server " << end;
