@@ -31,7 +31,7 @@ class CgiHandler : public StringUtils
 
 		CgiHandler(const CgiHandler&);
 		CgiHandler& operator=(const CgiHandler&);
-		
+		std::string	cgi_type();
 		std::string getEnvVar(std::string);
 		std::string unchunkReq(std::string);
 		std::string decodeQm(const std::string&);

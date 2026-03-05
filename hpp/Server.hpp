@@ -28,6 +28,7 @@ class Server
 		int							_body_max_size;
 		std::string					_error_404;
 		std::string					_error_500;
+		std::vector<std::string>	_cgi_paths;
 		int							_port;
 		struct  sockaddr_in			_addr;
 

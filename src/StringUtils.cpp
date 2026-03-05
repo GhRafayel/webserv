@@ -304,3 +304,18 @@ bool StringUtils::is_cgi(std::string & ext)
 		return true;
 	return true;
 }
+
+std::string	StringUtils::str_to_lower(std::string & src)
+{
+	for (size_t i = 0; i < src.length(); i++)
+	{
+		src[i] = std::tolower(src[i]);
+	}
+	return src;
+}
+
+std::string	StringUtils::str_to_lower(const std::string & src)
+{
+	std::string temp_src = src;
+	return str_to_lower(temp_src);
+}

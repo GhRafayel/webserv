@@ -4,11 +4,10 @@
 
 CgiHandler::~CgiHandler() {}
 
-CgiHandler::CgiHandler( Server & s_obj,  Client & c_obj) : server_ref(s_obj), client_ref(c_obj)
-{
-	cgi_run();
-}
+CgiHandler::CgiHandler( Server & s_obj,  Client & c_obj) : server_ref(s_obj), client_ref(c_obj) {}
+
 /*
+
 void CgiHandler::createEnvironment() {
 	std::string& req = client_ref.cgibuf;
 	std::vector<std::string> vec;
@@ -61,8 +60,36 @@ void CgiHandler::createEnvironment() {
 	// setEnvVar("SCRIPT_FILENAME", abs_Path("www" + client_ref.request.find("url_path")->second));
 	setEnvVar("SCRIPT_FILENAME", abs_Path(client_ref.best_mach));
 }
+
+
 */
 
+
+std::string	CgiHandler::cgi_type() {
+
+	size_t dot = client_ref.best_mach.rfind(".");
+	if (dot == std::string::npos) return "";
+
+	std::string ext = str_to_lower(client_ref.best_mach.substr(dot + 1));
+
+	if (ext == "php")
+		ext = "php-cgi";
+	else if (ext == "py")
+		ext = "python3";
+	else
+		return "";
+	
+	for (size_t i = 0; i < server_ref._cgi_paths.size(); i++)
+	{
+		std::string result = abs_Path(server_ref._cgi_paths[i] + ext);
+		
+		if (exists(result)) 
+			return result;
+	}
+	return "";
+}
+
+/**/
 void CgiHandler::createEnvironment() {
 	std::string& req = client_ref.cgibuf;
 	std::vector<std::string> vec;
@@ -105,7 +132,8 @@ void CgiHandler::createEnvironment() {
 			setEnvVar(key, (*it).substr((*it).find_first_of(' ') + 1));
 		}
 	}
-	setEnvVar("REQUEST_METHOD", vec[0].substr(0, vec[0].find_first_of(' ')));
+	if (!vec.empty())
+		setEnvVar("REQUEST_METHOD", vec[0].substr(0, vec[0].find_first_of(' ')));
 	if (reqBody.size()) {
 		std::map<std::string, std::string>::iterator tmp = _envMap.find("HTTP_TRANSFER_ENCODING");
 		if (tmp != _envMap.end() && tmp->second == "chunked") {
@@ -119,11 +147,20 @@ void CgiHandler::createEnvironment() {
 	setEnvVar("REDIRECT_STATUS", "200");
 	//setEnvVar("SCRIPT_FILENAME", abs_Path("www" + client_ref.request.find("url_path")->second));
 	setEnvVar("SCRIPT_FILENAME", abs_Path(client_ref.best_mach));
+
+	for (std::map<std::string, std::string>::iterator it = _envMap.begin(); it != _envMap.end(); it++)
+	{
+		std::cout << it->first << it->second << std::endl;
+	}
+	
+
 }
 
 bool	CgiHandler::cgi_exist()
 {
 	size_t post = client_ref.best_mach.rfind(".");
+	if (post == std::string::npos) return false;
+
 	bool val = false;
 
 	for (size_t i = 0; client_ref.best_location_index != -1 && i < server_ref._locations[client_ref.best_location_index]._cgi.size(); i++)
@@ -176,8 +213,11 @@ int CgiHandler::execute() {
 	
 	if (it == _envMap.end()) return 1;
 
+
 	char* argv[3];
-	argv[0] = const_cast<char*>("/usr/bin/php-cgi");
+	//argv[0] = const_cast<char*>("/usr/bin/php-cgi");
+	argv[0] = const_cast<char*>(cgi_type().c_str());
+
 	argv[1] = const_cast<char*>((*it).second.c_str());
 	argv[2] = NULL;
 
@@ -205,7 +245,7 @@ int CgiHandler::execute() {
 			close(out[1]);
 			return 1;
 		}
-		pipe(in);
+		//pipe(in);
 	}
 
 	int pid = fork();
@@ -220,7 +260,8 @@ int CgiHandler::execute() {
 		dup2(out[1], STDOUT_FILENO);
 		close(out[1]);
 
-		if (_method == "POST") {
+		// if (_method == "POST") {
+		if (client_ref.method == "POST") {
 			close(in[1]);
 			dup2(in[0], STDIN_FILENO);
 			close(in[0]);
@@ -231,7 +272,8 @@ int CgiHandler::execute() {
 	else {
 			close(out[1]);
 
-			if (_method == "POST") {
+			// if (_method == "POST") {
+			if (client_ref.method == "POST") {
 				close(in[0]);
 				std::map<std::string, std::string>::iterator body_it = _envMap.find("REQUEST_BODY");
 				if (body_it != _envMap.end() && !body_it->second.empty()) {
