@@ -21,6 +21,7 @@ class Client
 		std::string							buffer;
 		std::string							outbuf;
 		std::string							cgibuf;
+		std::string							cgi_type;
 		std::string							best_mach;
 		std::string							method;
 		std::map<std::string, std::string>	request;

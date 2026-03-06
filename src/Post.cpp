@@ -28,19 +28,19 @@ void	Post::create_response()
 	std::map<std::string, std::string>::iterator it = client_ref.request.find("body");
 	
 	if (!is_method_allowed())
-		create_header(" 405 Not Allowed", false);
+		client_ref.statuc_code = 405;
 	else if (check_size())
-		create_header(" 423 Payload Too Large", false);
+		client_ref.statuc_code = 423;
 	else
 	{
 		size_t n =  client_ref.best_mach.rfind("/");
 		std::string new_path = abs_Path(client_ref.best_mach.substr(0, n)) + client_ref.best_mach.substr(n).c_str();
 		body = it->second;
 		std::ofstream file(new_path);
-		if (!writable(new_path))
-			create_header(" 500 Internal Server Error", true);
+		if (!writable(new_path)) 
+			client_ref.statuc_code = 500;
 		file << body;
 		file.close();
-		create_header(" 200 ok", false);
+		client_ref.statuc_code = 200;
 	}
 }

@@ -30,8 +30,11 @@ class CgiHandler : public StringUtils
 		
 
 		CgiHandler(const CgiHandler&);
+		std::string dirname_from_path(const std::string &path);
+		std::string	basename_from_path(const std::string &path);
+
 		CgiHandler& operator=(const CgiHandler&);
-		std::string	cgi_type();
+		std::string	find_interpreter();
 		std::string getEnvVar(std::string);
 		std::string unchunkReq(std::string);
 		std::string decodeQm(const std::string&);

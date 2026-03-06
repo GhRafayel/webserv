@@ -26,6 +26,7 @@ Client::Client(const Client & obj)
 	this->request = obj.request;
 	this->is_dir = obj.is_dir;
 	this->is_cgi = obj.is_cgi;
+	this->cgi_type = obj.cgi_type;
 	this->question_mark = obj.question_mark;
 }
 
@@ -59,6 +60,8 @@ Client & Client::operator = (const Client & obj)
 		this->request = obj.request;
 		this->is_dir = obj.is_dir;
 		this->is_cgi = obj.is_cgi;
+		this->cgi_type = obj.cgi_type;
+
 	}
 	return *this;
 }
