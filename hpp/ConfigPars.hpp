@@ -9,23 +9,24 @@
 class ConfigPars : public StringUtils
 {
 	private:
-		bool						_is_open_http;
-		bool						_is_open_server;
-		size_t						_ind;
-		std::vector<Location>		_locations;
-		std::vector<std::string>	_token_nl;
-		std::vector<bool>			_is_open_location;
-		std::vector<int>			_ports;
-		std::vector<std::string>	_key_value;
-		std::string					_file_content;
-		std::string					_index;
-		std::string					_root;
-		std::string					_server_name;
-		std::string					_body_max_size;
-		std::string 				_error_404;
-		std::string 				_error_500;
-		std::string					_error_massage;
-		std::map<std::string, bool> _methods;
+		bool								_is_open_http;
+		bool								_is_open_server;
+		size_t								_ind;
+		std::vector<Location>				_locations;
+		std::vector<std::string>			_cgi_paths;
+		std::vector<std::string>			_token_nl;
+		std::vector<bool>					_is_open_location;
+		std::vector<int>					_ports;
+		std::vector<std::string>			_key_value;
+		std::string							_file_content;
+		std::string							_index;
+		std::string							_root;
+		std::string							_server_name;
+		std::string							_body_max_size;
+		std::string 						_error_404;
+		std::string 						_error_500;
+		std::string							_error_massage;
+		std::map<std::string, bool> 		_methods;
 		std::map<std::string, void (ConfigPars::*) (void)>	func_map;
 
 		std::map<std::string, void (ConfigPars::*) (void)> init_fun_map();
@@ -52,6 +53,7 @@ class ConfigPars : public StringUtils
 		void	method();
 		bool	check_config_blocks(const std::string &);
 		void	close_blocks();
+		void	cgi_path();
 
 	public:
 		std::vector<Server>	servers;

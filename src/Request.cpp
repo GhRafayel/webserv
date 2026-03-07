@@ -34,13 +34,27 @@ void	Request::find_cgi()
 		post = it->second.find("?");
 		if (post != std::string::npos)
 		{
-			client_ref.question_mark = it->second.substr(post + 1);
+			client_ref.query = it->second.substr(post + 1);
 			it->second = it->second.substr(0, post);
+			post = client_ref.best_mach.find("?");
+			if (post != std::string::npos)
+			{
+				client_ref.best_mach = client_ref.best_mach.substr(0, post);
+			}
 		}
 		post = it->second.rfind(".");
 		if (post != std::string::npos) {
 		
-			if (it->second.substr(post) == ".php" || it->second.substr(post) == ".py") client_ref.is_cgi = true;
+			if (it->second.substr(post) == ".php" )
+			{
+				client_ref.cgi_type = "php";
+				client_ref.is_cgi = true;
+			}
+			else if (it->second.substr(post) == ".py") 
+			{
+				client_ref.cgi_type = "py";
+				client_ref.is_cgi = true;
+			}
 		}
 	}
 }
@@ -82,6 +96,7 @@ bool	Request::pars_request()
 		}
 	}
 	client_ref.request.insert(std::make_pair("protocol", header[2]));
+	client_ref.is_dir = is_directory(abs_Path(client_ref.best_mach));
 	return true;
 }
 

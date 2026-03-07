@@ -2,7 +2,9 @@
 
 ConfigPars::~ConfigPars()
 {
+	_cgi_paths.clear();
 	_locations.clear();
+	_cgi_paths.clear();
 	_token_nl.clear();
 	_is_open_location.clear();
 	_key_value.clear();
@@ -44,9 +46,21 @@ std::map<std::string, void (ConfigPars::*) (void)> ConfigPars::init_fun_map()
 	temp.insert(std::make_pair("index", &ConfigPars::index));
 	temp.insert(std::make_pair("allow_methods", &ConfigPars::method));
 	temp.insert(std::make_pair("allow_method", &ConfigPars::method));
+	temp.insert(std::make_pair("cgi_path", &ConfigPars::cgi_path));
+
 	return temp;
 }
 
+void	ConfigPars::cgi_path()
+{
+	if (_key_value[1].size())
+	{
+		for (size_t i = 1; i < _key_value.size(); i++)
+		{
+			_cgi_paths.push_back(_key_value[i]);
+		}
+	}
+}
 void	ConfigPars::read_config_file(std::string & file_name)
 {
 	
@@ -151,6 +165,7 @@ void	ConfigPars::create_server_class()
 		Server temp;
 		for (size_t i = 0; i < _locations.size(); i++)
 			temp._locations.push_back(_locations[i]);
+		temp._cgi_paths = _cgi_paths;
 		temp._root = _root;
 		temp._server_name = _server_name;
 		temp._body_max_size = str_to_int(_body_max_size);
@@ -162,6 +177,7 @@ void	ConfigPars::create_server_class()
 		temp._methods = _methods;
 		this->servers.push_back(temp);
 	}
+
 }
 
 void	ConfigPars::clear_all()
@@ -178,6 +194,7 @@ void	ConfigPars::clear_all()
 	_error_500.clear();
 	_error_massage.clear();
 	_methods.clear();
+	_cgi_paths.clear();
 }
 
 void	ConfigPars::close_blocks()

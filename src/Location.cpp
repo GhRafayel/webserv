@@ -68,9 +68,9 @@ void 	Location::init()
 
 void	Location::cgi_extension(std::string & str)
 {
-		if (str.empty() || (str != ".php" && str != ".py"))
-			throw std::runtime_error(_error_massage + str);
-		this->_cgi.push_back(str);
+	if (str.empty() || (str != ".php" && str != ".py"))
+		throw std::runtime_error(_error_massage + str);
+	this->_cgi.push_back(str);
 }
 
 bool	Location::is_line_valid(std::string & line)

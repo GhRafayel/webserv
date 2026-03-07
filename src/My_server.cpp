@@ -159,7 +159,6 @@ int	My_server::to_read(Client & obj)
 	{
 		buffer[n] = '\0';
 		obj.buffer.append(buffer);
-		std::cout << obj.buffer << std::endl;
 		obj.end_request = is_end_of_request(obj.buffer);
 	}
 	return n;
@@ -203,10 +202,13 @@ void	My_server::fun_405(Client & obj)
 
 Response * My_server::get_class(Server & s_obj, Client & c_obj)
 {
-	if (c_obj.is_cgi) {
-		return (new CgiHandler(s_obj, c_obj));
-	}
-	else if (c_obj.method == "GET") {
+	// the cgi should create env than coll get or post or delete 
+	// if (c_obj.is_cgi) {
+	// 	CgiHandler * CGI = new CgiHandler(s_obj, c_obj);
+	// 	CGI->cgi_run();
+	// 	delete CGI;
+	// }
+	if (c_obj.method == "GET") {
 		return (new Get(s_obj, c_obj));
 	}
 	else if (c_obj.method == "POST") {

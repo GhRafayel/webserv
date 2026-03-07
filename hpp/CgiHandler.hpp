@@ -2,6 +2,7 @@
 #ifndef CGIHANDLER_HPP
 #define CGIHANDLER_HPP
 
+
 #include <string>
 #include <map>
 #include <vector>
@@ -10,6 +11,7 @@
 #include <cstdlib>
 #include <sys/wait.h>
 #include "Response.hpp"
+#include "StringUtils.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
 #include <fcntl.h>
@@ -17,32 +19,39 @@
 #include <cctype>
 #include <cstring>
 
-class CgiHandler :  virtual public Response
+class CgiHandler : public StringUtils
 {
 	private:
 		std::string							_method;
 		std::map<std::string, std::string>	_envMap;
 		std::vector<std::string>			_envVec;
 		std::string 						_output;
-
-		void create_response();
+		Server								&server_ref;
+		Client								&client_ref;				
+		
 
 		CgiHandler(const CgiHandler&);
-		CgiHandler& operator=(const CgiHandler&);
-		
-		bool	cgi_exist();
+		std::string dirname_from_path(const std::string &path);
+		std::string	basename_from_path(const std::string &path);
 
-		void createEnvironment();
-		int execute();
-		void setEnvVar(std::string, std::string);
+		CgiHandler& operator=(const CgiHandler&);
+		std::string	find_interpreter();
 		std::string getEnvVar(std::string);
-		void convertEnv();
 		std::string unchunkReq(std::string);
 		std::string decodeQm(const std::string&);
+		void		convertEnv();
+		void		createEnvironment();
+		void		setEnvVar(std::string, std::string);
+		bool		is_method_allowed();
+		bool		cgi_exist();
+		int			execute();
+		void		check_status_code();
 
 	public:		
 		CgiHandler( Server & s_obj,  Client & obj);
 		~CgiHandler();
+		void		cgi_run();
+
 
 };
 

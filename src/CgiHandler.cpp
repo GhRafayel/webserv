@@ -1,266 +1,355 @@
 #include "../hpp/CgiHandler.hpp"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <cstdlib>
+#include <cstring>
+#include <cerrno>
+#include <sstream>
 
-// TODO: cleanup CgiHandler!
-// TODO: figure out, if we should whats up with .php and .py?!
-// TODO: PATH_INFO?!?
+CgiHandler::CgiHandler(Server & s_obj, Client & obj)
+: _method(obj.method),
+  _envMap(),
+  _envVec(),
+  _output(),
+  server_ref(s_obj),
+  client_ref(obj)
+{}
 
 CgiHandler::~CgiHandler() {}
 
-CgiHandler::CgiHandler( Server & s_obj,  Client & c_obj) : Response(s_obj, c_obj)
-{
-	_method = client_ref.method;
-	create_response();
+void CgiHandler::setEnvVar(std::string k, std::string v) {
+    _envMap[k] = v;
 }
 
-void CgiHandler::createEnvironment() {
-	std::string scriptPath = client_ref.best_mach;
-	size_t qpos = scriptPath.find('?');
-	if (qpos != std::string::npos) {
-		scriptPath = scriptPath.substr(0, qpos);
-	}
-	std::string& req = client_ref.cgibuf;
-	std::vector<std::string> vec;
-
-	while (true) {
-		size_t j = req.find("\r\n");
-		if (j == std::string::npos || j == 0) {
-			break;
-		}
-		std::string buf = req.substr(0, j);
-		vec.push_back(buf);
-		req = req.substr(j + 2);
-	}
-
-	std::string reqBody = req.substr(2);
-
-	std::vector<std::string>::iterator it;
-	for (it = vec.begin() + 1; it != vec.end(); ++it) {
-		if (!(*it).compare(0, (*it).find(':'), "Content-Length")) {
-			setEnvVar("CONTENT_LENGTH", (*it).substr((*it).find_first_of(' ') + 1));
-		}
-		else if (!(*it).compare(0, (*it).find(':'), "Content-Type")) {
-			setEnvVar("CONTENT_TYPE", (*it).substr((*it).find_first_of(' ') + 1));
-		}
-		else {
-			std::string key = "HTTP_" + (*it).substr(0, (*it).find(':'));
-			for (size_t i = 0; i < key.size(); i++) {
-				if (std::islower(key[i])) {
-					key[i] -= 32;
-				}
-				else if (key[i] == '-') {
-					key[i] = '_';
-				}
-			}
-			setEnvVar(key, (*it).substr((*it).find_first_of(' ') + 1));
-		}
-	}
-	if (!vec.empty()) {
-		setEnvVar("REQUEST_METHOD", vec[0].substr(0, vec[0].find_first_of(' ')));
-	}
-	if (reqBody.size()) {
-		if (_envMap.find("HTTP_TRANSFER_ENCODING") != _envMap.end()
-			&& _envMap.find("HTTP_TRANSFER_ENCODING")->second == "chunked")
-		{
-			setEnvVar("REQUEST_BODY", unchunkReq(reqBody));
-		}
-		else {
-			setEnvVar("REQUEST_BODY", reqBody);
-		}
-	}
-	setEnvVar("QUERY_STRING", decodeQm(client_ref.question_mark));
-	setEnvVar("REDIRECT_STATUS", "200");
-	setEnvVar("SCRIPT_FILENAME", abs_Path(scriptPath));
+std::string CgiHandler::dirname_from_path(const std::string &path) {
+    std::string::size_type pos = path.find_last_of("/\\");
+    if (pos == std::string::npos) return std::string(".");
+    if (pos == 0) return std::string("/");
+    return path.substr(0, pos);
 }
 
-bool	CgiHandler::cgi_exist()
-{
-	std::string pathOnly = client_ref.best_mach;
-	size_t qpos = pathOnly.find('?');
-	if (qpos != std::string::npos) {
-		pathOnly = pathOnly.substr(0, qpos);
-	}
-	size_t post = pathOnly.rfind(".");
-	if (post == std::string::npos)
-		return false;
-	bool val = false;
-
-	for (size_t i = 0; client_ref.best_location_index != -1 && i < server_ref._locations[client_ref.best_location_index]._cgi.size(); i++)
-	{
-		if (pathOnly.substr(post) == server_ref._locations[client_ref.best_location_index]._cgi[i])
-			val = true;
-	}
-	if (!val)
-	{
-		path = server_ref._error_404;
-		ext = ".html";
-		create_header(" 404 Not Found", true);
-		return val;
-	}
-	return val;
+std::string CgiHandler::basename_from_path(const std::string &path) {
+    std::string::size_type pos = path.find_last_of("/\\");
+    if (pos == std::string::npos) return path;
+    return path.substr(pos + 1);
 }
 
-void	CgiHandler::create_response() {
+std::string CgiHandler::getEnvVar(std::string k) {
+    std::map<std::string, std::string>::iterator it = _envMap.find(k);
+    if (it == _envMap.end()) return std::string();
+    return it->second;
+}
+
+std::string	CgiHandler::find_interpreter() {
+
+	size_t dot = client_ref.best_mach.rfind(".");
+	if (dot == std::string::npos) return "";
+
+	std::string ext = str_to_lower(client_ref.best_mach.substr(dot + 1));
+
+	if (ext == "php")
+		ext = "php-cgi";
+	else if (ext == "py")
+		ext = "python3";
+	else
+		return "";
 	
-	if (!cgi_exist()) return ;
-	createEnvironment();
-	if (!is_method_allowed()) {
-		create_header(" 405 Not Allowed", false);
-		return;
+	for (size_t i = 0; i < server_ref._cgi_paths.size(); i++)
+	{
+		std::string result = abs_Path(server_ref._cgi_paths[i] + ext);
+		
+		if (exists(result)) 
+			return result;
 	}
-	if (!execute()) {
-		strim << client_ref.request.find("protocol")->second << " 200 ok" << "\r\n";
-		if (_output.find("\r\n\r\n") != std::string::npos) {
-			strim << "Content-Length: " << _output.size() - _output.find("\r\n\r\n") - 4 << "\r\n";
-		}
-		else {
-			strim << "Content-Length: " << _output.size() << "\r\n";
-		}
-		strim << "Server: my Server " << "\r\n";
-		strim << "Date: " << get_http_date() << "\r\n";
-		strim << "Connection: close" << "\r\n";
-		strim << _output;
-	}
-	else {
-		body = get_file_content("./www/errors/500.html");
-		ext = ".html";
-		create_header(" 500 Internal Server Error", false);
-		strim << body;
-	}
-	client_ref.outbuf = strim.str();
+	return "";
+}
+
+void CgiHandler::check_status_code() {
+
+    if (_output.compare(0, 7, "Status:") == 0)
+    {
+        client_ref.statuc_code = std::atoi(_output.substr(7).c_str());
+        return ;
+    }
+    client_ref.statuc_code = 200;
+    client_ref.cgibuf = _output;
+}
+
+bool	CgiHandler::is_method_allowed()
+{
+	bool s_method = server_ref.get_method(client_ref.method);
+	bool l_method = false;
+
+	if (client_ref.best_location_index != -1)
+		l_method = server_ref._locations[client_ref.best_location_index].get_method(client_ref.method);
+	
+	if (l_method || s_method)
+		return true;
+	return false;
+}
+
+// Percent-decode utility: decodes %XX and '+' to ' ' like typical query-string.
+std::string CgiHandler::decodeQm(const std::string &s) {
+    std::string out;
+    out.reserve(s.size());
+    for (size_t i = 0; i < s.size(); ++i) {
+        if (s[i] == '%') {
+            if (i + 2 < s.size()) {
+                char h1 = s[i+1];
+                char h2 = s[i+2];
+                int v = 0;
+                if (std::isxdigit(h1) && std::isxdigit(h2)) {
+                    if (h1 >= '0' && h1 <= '9') v = (h1 - '0') << 4;
+                    else v = ((std::toupper(h1) - 'A') + 10) << 4;
+                    if (h2 >= '0' && h2 <= '9') v |= (h2 - '0');
+                    else v |= (std::toupper(h2) - 'A') + 10;
+                    out.push_back(static_cast<char>(v));
+                    i += 2;
+                    continue;
+                }
+            }
+            // If malformed, keep '%'
+            out.push_back('%');
+        } else if (s[i] == '+') {
+            out.push_back(' ');
+        } else {
+            out.push_back(s[i]);
+        }
+    }
+    return out;
+}
+
+// Unchunk Transfer-Encoding: chunked body
+std::string CgiHandler::unchunkReq(std::string body) {
+    std::string out;
+    size_t pos = 0;
+    while (true) {
+        // Read chunk size line (hex)
+        size_t line_end = body.find("\r\n", pos);
+        if (line_end == std::string::npos) break;
+        std::string size_str = body.substr(pos, line_end - pos);
+        std::istringstream iss(size_str);
+        std::ios::fmtflags f = iss.flags();
+        iss.setf(std::ios::hex, std::ios::basefield);
+        size_t chunk_size = 0;
+        iss >> chunk_size;
+        iss.flags(f);
+        pos = line_end + 2;
+        if (chunk_size == 0) {
+            // skip trailer (if any), ends at "\r\n"
+            size_t end = body.find("\r\n", pos);
+            (void)end;
+            break;
+        }
+        if (pos + chunk_size > body.size()) break; // malformed
+        out.append(body, pos, chunk_size);
+        pos += chunk_size;
+        // skip CRLF after chunk
+        if (pos + 2 <= body.size() && body.compare(pos, 2, "\r\n") == 0)
+            pos += 2;
+        else
+            break;
+    }
+    return out;
+}
+
+bool CgiHandler::cgi_exist() {
+	
+    std::string script = abs_Path(client_ref.best_mach);
+    if (client_ref.cgi_type.empty()) return false;
+    if (!exists(script)) return false;
+    if (find_interpreter().empty()) return false;
+    return true;
 }
 
 void CgiHandler::convertEnv() {
-	std::map<std::string, std::string>::iterator it;
-	for (it = _envMap.begin(); it != _envMap.end(); ++it) {
-		_envVec.push_back(it->first + '=' + it->second);
-	}
+    _envVec.clear();
+    for (std::map<std::string, std::string>::iterator it = _envMap.begin(); it != _envMap.end(); ++it) {
+        std::string kv = it->first + "=" + it->second;
+        _envVec.push_back(kv);
+    }
+}
+
+void CgiHandler::createEnvironment() {
+    _envMap.clear();
+
+    // Basic CGI spec variables
+    const std::string script_path = client_ref.best_mach.empty() ? client_ref.request["url_path"] : client_ref.best_mach;
+
+    // Common variables
+    setEnvVar("REQUEST_METHOD", client_ref.method);
+    setEnvVar("QUERY_STRING", client_ref.query);
+    setEnvVar("GATEWAY_INTERFACE", "CGI/1.1");
+    setEnvVar("SERVER_PROTOCOL", client_ref.request.count("protocol") ? client_ref.request["protocol"] : "HTTP/1.0");
+    setEnvVar("SERVER_SOFTWARE", "webserv/1.0");
+    setEnvVar("SERVER_NAME", server_ref._server_name.empty() ? "localhost" : server_ref._server_name);
+    setEnvVar("SERVER_PORT", int_to_string(server_ref._port));
+    setEnvVar("DOCUMENT_ROOT", dirname_from_path(abs_Path(client_ref.best_mach)));
+    setEnvVar("SCRIPT_NAME", "/" + basename_from_path(script_path));
+    setEnvVar("SCRIPT_FILENAME", abs_Path(script_path)); // Needed for php-cgi
+    setEnvVar("PATH_INFO", ""); // Optional; can be refined
+    setEnvVar("REMOTE_ADDR", client_ref.request .count("remote_addr") ? client_ref.request["remote_addr"] : "127.0.0.1");
+
+    // Content headers for POST
+    if (client_ref.method == "POST") {
+        std::string clen = client_ref.request.count("content-length") ? client_ref.request["content-length"] : "";
+        std::string ctype = client_ref.request.count("content-type") ? client_ref.request["content-type"] : "";
+        if (!clen.empty()) setEnvVar("CONTENT_LENGTH", clen);
+        if (!ctype.empty()) setEnvVar("CONTENT_TYPE", ctype);
+    }
+
+    // PHP specific
+    if (client_ref.cgi_type == "php")  setEnvVar("REDIRECT_STATUS", "200");
+    
+    // If you need more vars, add here, e.g., HTTP_* headers mirrored
+    for (std::map<std::string, std::string>::const_iterator it = client_ref.request.begin(); it != client_ref.request.end(); ++it) {
+        const std::string &k = it->first;
+        const std::string &v = it->second;
+        if (k.empty()) continue;
+        // Skip ones we already set or non-header keys
+        if (k == "url_path" || k == "protocol" || k == "method" || k == "Host" || k == "remote_addr") continue;
+        setEnvVar(std::string("HTTP_") + str_to_upper(k), v);
+    }
+
+    convertEnv();
 }
 
 int CgiHandler::execute() {
-	std::map<std::string, std::string>::iterator it = _envMap.find("SCRIPT_FILENAME");
-	
-	if (it == _envMap.end()) return 1;
+   
+	_output.clear();
+    std::string interp = find_interpreter();
+    if (interp.empty()) {
+        client_ref.statuc_code = 500;
+        return -1;
+    }
+    std::string script = abs_Path(client_ref.best_mach);
+    // Prepare argv
+    std::vector<char*> argv;
+    argv.push_back(const_cast<char*>(interp.c_str()));
+    argv.push_back(const_cast<char*>(script.c_str()));
+    argv.push_back(NULL);
 
-	char* argv[3];
-	argv[0] = const_cast<char*>("/usr/bin/php-cgi");
-	argv[1] = const_cast<char*>((*it).second.c_str());
-	argv[2] = NULL;
+    // Prepare envp
+    std::vector<char*> envp;
+    for (size_t i = 0; i < _envVec.size(); ++i) {
+        envp.push_back(const_cast<char*>(_envVec[i].c_str()));
+    }
+    envp.push_back(NULL);
 
-	convertEnv();
+    // Create pipes
+    int in_pipe[2];  // parent writes -> child reads (stdin)
+    int out_pipe[2]; // child writes -> parent reads (stdout)
+    if (pipe(in_pipe) == -1) {
+        client_ref.statuc_code = 500;
+        return -1;
+    }
+    if (pipe(out_pipe) == -1) {
+        close(in_pipe[0]); close(in_pipe[1]);
+        client_ref.statuc_code = 500;
+        return -1;
+    }
+    pid_t pid = fork();
+    if (pid < 0) {
+        close(in_pipe[0]); close(in_pipe[1]);
+        close(out_pipe[0]); close(out_pipe[1]);
+        client_ref.statuc_code = 500;
+        return -1;
+    }
 
-	std::vector<char*> ptrs;
-	ptrs.reserve(_envVec.size() + 1);
-	for (size_t i = 0; i < _envVec.size(); i++) {
-		ptrs.push_back(const_cast<char*>(_envVec[i].c_str()));
-	}
-	ptrs.push_back(NULL);
-	char** envp = &ptrs[0];
+    if (pid == 0) {
+        // Child
+        // Set up stdin/stdout
+        dup2(in_pipe[0], STDIN_FILENO);
+        dup2(out_pipe[1], STDOUT_FILENO);
 
-	int in[2];
-	int out[2];
+        // Close unused fds
+        close(in_pipe[1]);
+        close(out_pipe[0]);
+        close(in_pipe[0]);
+        close(out_pipe[1]);
 
-	if (pipe(out) == -1) {
-		return 1;
-	}
+        // Change directory to script directory for relative paths
+        std::string dir = dirname_from_path(script);
+        if (chdir(dir.c_str()) == -1) {
+            // If chdir fails, still attempt exec
+        }
 
-	if (pipe(in) == -1)
-	{
-		close(out[0]);
-		close(out[1]);
-		return 1;
-	}
+        // Execve
+        execve(interp.c_str(), &argv[0], &envp[0]);
+        // If execve fails
+        std::string err = "Status: 500 Internal Server Error\r\nContent-Type: text/plain\r\n\r\nCGI exec failed: ";
+        err += strerror(errno);
+        write(STDOUT_FILENO, err.c_str(), err.size());
+        _exit(127);
+    }
 
-	int pid = fork();
+    // Parent
+    close(in_pipe[0]);  // parent will write to in_pipe[1]
+    close(out_pipe[1]); // parent will read from out_pipe[0]
 
-	if (pid == -1) {
-		close(out[0]);
-		close(out[1]);
-		close(in[0]);
-		close(in[1]);
-		return 1;
-	}
-	if (pid == 0) {
-		close(out[0]);
-		dup2(out[1], STDOUT_FILENO);
-		close(out[1]);
+    // Prepare request body for CGI stdin (POST only)
+    std::string body;
+    if (client_ref.request.count("body")) {
+        body = client_ref.request["body"];
+    } else if (!client_ref.buffer.empty()) {
+        // Some implementations store whole raw request in buffer; extract body if needed externally.
+        // Here we fallback to buffer for simplicity if present.
+        body = client_ref.buffer;
+    }
 
-		close(in[1]);
-		dup2(in[0], STDIN_FILENO);
-		close(in[0]);
-		execve(argv[0], argv, envp);
-		std::exit(1);
-	}
-	else {
-			close(out[1]);
-			close(in[0]);
-			std::map<std::string, std::string>::iterator body_it = _envMap.find("REQUEST_BODY");
-			if (body_it != _envMap.end() && !body_it->second.empty()) {
-				ssize_t written = write(in[1], body_it->second.c_str(), body_it->second.size());
-				if (written == -1) {
-					close(in[1]);
-					close(out[0]);
-					return 1;
-				}
-			}
-			close(in[1]);
-			_output.clear();
-			char buffer[4096];
-			ssize_t bread;
+    // Unchunk if needed
+    if (client_ref.request.count("transfer-encoding")) {
+        if (str_to_lower(client_ref.request["transfer-encoding"]).find("chunked") != std::string::npos) {
+            body = unchunkReq(body);
+        }
+    }
 
-			while ((bread = read(out[0], buffer, sizeof(buffer) - 1)) > 0) {
-				buffer[bread] = '\0';
-				_output.append(buffer, bread);
-				std::memset(buffer, 0, sizeof(buffer));
-			}
+    if (_method == "POST" && !body.empty()) {
+        // Write body to child's stdin
+        size_t written = 0;
+        while (written < body.size()) {
+            ssize_t w = write(in_pipe[1], body.c_str() + written, body.size() - written);
+            if (w < 0) {
+                if (errno == EINTR) continue;
+                break;
+            }
+            written += static_cast<size_t>(w);
+        }
+    }
+    // Close stdin after writing to signal EOF
+    close(in_pipe[1]);
 
-			close(out[0]);
-			int status;
-			waitpid(pid, &status, 0);
-			
-			if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-				return 0;
-			}
-		}
-	return 1;
+    // Read CGI output until EOF
+    char buf[4096];
+    while (true) {
+        ssize_t r = read(out_pipe[0], buf, sizeof(buf));
+        if (r < 0) {
+            if (errno == EINTR) continue;
+            break;
+        }
+        if (r == 0) break;
+        _output.append(buf, buf + r);
+    }
+    close(out_pipe[0]);
+    int status = 0;
+    waitpid(pid, &status, 0);
+    check_status_code();
+    return 0;
 }
 
-void CgiHandler::setEnvVar(std::string key, std::string val) {
-	_envMap[key] = val;
-}
 
-std::string CgiHandler::unchunkReq(std::string body) {
-	std::string out;
-	while (body.size() > 0) {
-		char* end;
-		long size = std::strtol(body.c_str(), &end, 16);
-		if (size == 0 || *end != '\r' || size < 0) {
-			break;
-		}
-		
-		size_t header = (end - body.c_str()) + 2;
-		if (body.size() < header + size + 2) {
-			break;
-		}
-
-		out.append(body, header, size);
-		body.erase(0, header + size + 2);
-	}
-	return out;
-}
-
-std::string CgiHandler::decodeQm(const std::string& qm) {
-	std::string out;
-
-	for(size_t i = 0; i < qm.size(); i++) {
-		if (i + 2 < qm.size() && qm[i] == '%' && std::isxdigit(qm[i + 1]) && std::isxdigit(qm[i + 2]))
-		{
-			int c = std::strtol(qm.substr(i + 1, 2).c_str(), NULL, 16);
-			out += c;
-			i += 2;
-		}
-		else {
-			out += qm[i];
-		}
-	}
-	return out;
+void CgiHandler::cgi_run() {
+    if (!is_method_allowed()) {
+        client_ref.statuc_code = 405;
+        client_ref.cgibuf.clear();
+        return;
+    }
+    // Check script and interpreter existence
+    if (!cgi_exist()) {
+        client_ref.statuc_code = 404;
+        client_ref.cgibuf.clear();
+        return;
+    }
+    createEnvironment();
+    execute();
 }
