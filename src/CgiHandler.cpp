@@ -2,6 +2,7 @@
 #include "../hpp/CgiHandler.hpp"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <cstdlib>
 #include <cstring>
 #include <cerrno>
 #include <sstream>
@@ -33,6 +34,7 @@ std::string CgiHandler::basename_from_path(const std::string &path) {
     if (pos == std::string::npos) return path;
     return path.substr(pos + 1);
 }
+
 std::string CgiHandler::getEnvVar(std::string k) {
     std::map<std::string, std::string>::iterator it = _envMap.find(k);
     if (it == _envMap.end()) return std::string();
@@ -61,6 +63,17 @@ std::string	CgiHandler::find_interpreter() {
 			return result;
 	}
 	return "";
+}
+
+void CgiHandler::check_status_code() {
+
+    if (_output.compare(0, 7, "Status:") == 0)
+    {
+        client_ref.statuc_code = std::atoi(_output.substr(7).c_str());
+        return ;
+    }
+    client_ref.statuc_code = 200;
+    client_ref.cgibuf = _output;
 }
 
 bool	CgiHandler::is_method_allowed()
@@ -174,9 +187,9 @@ void CgiHandler::createEnvironment() {
     setEnvVar("SERVER_PORT", int_to_string(server_ref._port));
     setEnvVar("DOCUMENT_ROOT", dirname_from_path(abs_Path(client_ref.best_mach)));
     setEnvVar("SCRIPT_NAME", "/" + basename_from_path(script_path));
-    setEnvVar("SCRIPT_FILENAME", script_path); // Needed for php-cgi
+    setEnvVar("SCRIPT_FILENAME", abs_Path(script_path)); // Needed for php-cgi
     setEnvVar("PATH_INFO", ""); // Optional; can be refined
-    setEnvVar("REMOTE_ADDR", client_ref.request.count("remote_addr") ? client_ref.request["remote_addr"] : "127.0.0.1");
+    setEnvVar("REMOTE_ADDR", client_ref.request .count("remote_addr") ? client_ref.request["remote_addr"] : "127.0.0.1");
 
     // Content headers for POST
     if (client_ref.method == "POST") {
@@ -321,9 +334,7 @@ int CgiHandler::execute() {
     close(out_pipe[0]);
     int status = 0;
     waitpid(pid, &status, 0);
-
-    client_ref.cgibuf = _output;
-    client_ref.statuc_code = 200;
+    check_status_code();
     return 0;
 }
 

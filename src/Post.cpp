@@ -25,8 +25,8 @@ void	Post::create_response()
 		CgiHandler * CGI = new CgiHandler(server_ref, client_ref);
 		CGI->cgi_run();
 		delete CGI;
-		return ;
 	}
+	if (client_ref.statuc_code >= 200 && client_ref.statuc_code <= 600) return;
 	path = abs_Path(client_ref.best_mach);
 	size_t		post = path.rfind(".");
 	if (post != std::string::npos)
@@ -43,7 +43,7 @@ void	Post::create_response()
 		size_t n =  client_ref.best_mach.rfind("/");
 		std::string new_path = abs_Path(client_ref.best_mach.substr(0, n)) + client_ref.best_mach.substr(n).c_str();
 		body = it->second;
-		std::ofstream file(new_path);
+		std::ofstream file(new_path.c_str());
 		if (!writable(new_path)) 
 			client_ref.statuc_code = 500;
 		file << body;
