@@ -9,6 +9,12 @@ Get::Get(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 
 void	Get::create_response() {
 	
+	if (client_ref.is_cgi)
+	{
+		CgiHandler * CGI = new CgiHandler(server_ref, client_ref);
+		CGI->cgi_run();
+		delete CGI;
+	}
 	if (client_ref.statuc_code >= 200 && client_ref.statuc_code <= 600) return;
 	path = abs_Path(client_ref.best_mach);
 	size_t		post = client_ref.best_mach.rfind(".");

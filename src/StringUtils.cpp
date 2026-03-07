@@ -77,11 +77,11 @@ std::string	StringUtils::get_my_taype(const std::string & file_name)
 	size_t pos = file_name.rfind('.');
 
 	if (pos == std::string::npos)
-		return "Content-Type: application/octet-stream";
+		return "Content-Type: application/octet-stream; charset=UTF-8";
 	std::map<std::string, std::string>::iterator it = _my_tayps.find(file_name.substr(pos + 1));
 	if (it == _my_tayps.end())
-		return "Content-Type: application/octet-stream";
-	return "Content-Type: " + it->second;
+		return "Content-Type: application/octet-stream; charset=UTF-8";
+	return "Content-Type: " + it->second + "; charset=UTF-8";
 }
 
 std::string	StringUtils::get_file_content(const std::string & file_path, size_t start, size_t len)
@@ -318,4 +318,19 @@ std::string	StringUtils::str_to_lower(const std::string & src)
 {
 	std::string temp_src = src;
 	return str_to_lower(temp_src);
+}
+
+std::string	StringUtils::str_to_upper(std::string & src)
+{
+	for (size_t i = 0; i < src.length(); i++)
+	{
+		src[i] = std::toupper(src[i]);
+	}
+	return src;
+}
+
+std::string	StringUtils::str_to_upper(const std::string & src)
+{
+	std::string temp_src = src;
+	return str_to_upper(temp_src);
 }

@@ -75,6 +75,7 @@ bool	CgiHandler::is_method_allowed()
 		return true;
 	return false;
 }
+
 // Percent-decode utility: decodes %XX and '+' to ' ' like typical query-string.
 std::string CgiHandler::decodeQm(const std::string &s) {
     std::string out;
@@ -161,66 +162,41 @@ void CgiHandler::createEnvironment() {
     _envMap.clear();
 
     // Basic CGI spec variables
-    const std::string script_path = client_ref.best_mach.empty() ? client_ref.request["path"] : client_ref.best_mach;
-    std::string query = client_ref.question_mark;
-    if (query.empty()) {
-        // Derive from request path if present: "/path?query"
-        std::map<std::string, std::string>::iterator pit = client_ref.request.find("path");
-        if (pit != client_ref.request.end()) {
-            const std::string &p = pit->second;
-            std::string::size_type qm = p.find('?');
-            if (qm != std::string::npos) query = p.substr(qm + 1);
-        }
-    }
+    const std::string script_path = client_ref.best_mach.empty() ? client_ref.request["url_path"] : client_ref.best_mach;
 
     // Common variables
-    setEnvVar("REQUEST_METHOD", _method);
-    setEnvVar("QUERY_STRING", query);
+    setEnvVar("REQUEST_METHOD", client_ref.method);
+    setEnvVar("QUERY_STRING", client_ref.query);
     setEnvVar("GATEWAY_INTERFACE", "CGI/1.1");
-    setEnvVar("SERVER_PROTOCOL", client_ref.request.count("protocol") ? client_ref.request["protocol"] : "HTTP/1.1");
+    setEnvVar("SERVER_PROTOCOL", client_ref.request.count("protocol") ? client_ref.request["protocol"] : "HTTP/1.0");
     setEnvVar("SERVER_SOFTWARE", "webserv/1.0");
-    setEnvVar("SERVER_NAME", server_ref._server_name.empty() ? (client_ref.request.count("host") ? client_ref.request["host"] : "localhost") : server_ref._server_name);
-    {
-        std::ostringstream oss;
-        oss << server_ref._port;
-        setEnvVar("SERVER_PORT", oss.str());
-    }
-    setEnvVar("DOCUMENT_ROOT", server_ref._root);
+    setEnvVar("SERVER_NAME", server_ref._server_name.empty() ? "localhost" : server_ref._server_name);
+    setEnvVar("SERVER_PORT", int_to_string(server_ref._port));
+    setEnvVar("DOCUMENT_ROOT", dirname_from_path(abs_Path(client_ref.best_mach)));
     setEnvVar("SCRIPT_NAME", "/" + basename_from_path(script_path));
     setEnvVar("SCRIPT_FILENAME", script_path); // Needed for php-cgi
     setEnvVar("PATH_INFO", ""); // Optional; can be refined
     setEnvVar("REMOTE_ADDR", client_ref.request.count("remote_addr") ? client_ref.request["remote_addr"] : "127.0.0.1");
 
     // Content headers for POST
-    std::string clen = client_ref.request.count("content-length") ? client_ref.request["content-length"] : "";
-    std::string ctype = client_ref.request.count("content-type") ? client_ref.request["content-type"] : "";
-    if (_method == "POST") {
+    if (client_ref.method == "POST") {
+        std::string clen = client_ref.request.count("content-length") ? client_ref.request["content-length"] : "";
+        std::string ctype = client_ref.request.count("content-type") ? client_ref.request["content-type"] : "";
         if (!clen.empty()) setEnvVar("CONTENT_LENGTH", clen);
         if (!ctype.empty()) setEnvVar("CONTENT_TYPE", ctype);
     }
 
     // PHP specific
-    if (client_ref.cgi_type == "php") {
-        // Many setups require REDIRECT_STATUS for php-cgi to emit headers properly
-        setEnvVar("REDIRECT_STATUS", "200");
-    }
-
+    if (client_ref.cgi_type == "php")  setEnvVar("REDIRECT_STATUS", "200");
+    
     // If you need more vars, add here, e.g., HTTP_* headers mirrored
     for (std::map<std::string, std::string>::const_iterator it = client_ref.request.begin(); it != client_ref.request.end(); ++it) {
-        // Map header names to HTTP_* (uppercase, '-'->'_')
         const std::string &k = it->first;
         const std::string &v = it->second;
         if (k.empty()) continue;
         // Skip ones we already set or non-header keys
-        if (k == "path" || k == "protocol" || k == "method" || k == "host" || k == "remote_addr") continue;
-        std::string canon = k;
-        for (size_t i = 0; i < canon.size(); ++i) {
-            char c = canon[i];
-            if (c == '-') canon[i] = '_';
-            else canon[i] = static_cast<char>(std::toupper(c));
-        }
-        // Prefix with HTTP_ for general headers
-        setEnvVar(std::string("HTTP_") + canon, v);
+        if (k == "url_path" || k == "protocol" || k == "method" || k == "Host" || k == "remote_addr") continue;
+        setEnvVar(std::string("HTTP_") + str_to_upper(k), v);
     }
 
     convertEnv();
@@ -343,7 +319,6 @@ int CgiHandler::execute() {
         _output.append(buf, buf + r);
     }
     close(out_pipe[0]);
-
     int status = 0;
     waitpid(pid, &status, 0);
 
@@ -351,6 +326,7 @@ int CgiHandler::execute() {
     client_ref.statuc_code = 200;
     return 0;
 }
+
 
 void CgiHandler::cgi_run() {
     if (!is_method_allowed()) {

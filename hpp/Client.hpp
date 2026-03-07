@@ -17,7 +17,7 @@ class Client
 		bool								is_dir;
 		bool								is_cgi;
 		bool								end_request;
-		std::string							question_mark;
+		std::string							query;
 		std::string							buffer;
 		std::string							outbuf;
 		std::string							cgibuf;

@@ -20,6 +20,13 @@ bool Post::check_size()
 
 void	Post::create_response()
 {	
+	if (client_ref.is_cgi)
+	{
+		CgiHandler * CGI = new CgiHandler(server_ref, client_ref);
+		CGI->cgi_run();
+		delete CGI;
+		return ;
+	}
 	path = abs_Path(client_ref.best_mach);
 	size_t		post = path.rfind(".");
 	if (post != std::string::npos)

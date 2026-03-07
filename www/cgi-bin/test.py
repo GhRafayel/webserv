@@ -4,7 +4,7 @@ import os
 import sys
 
 # HTTP headers
-print("Content-Type: text/html; charset=UTF-8")
+# print("Content-Type: text/html; charset=UTF-8")
 print()  # Important empty line
 
 # HTML content

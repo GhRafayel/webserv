@@ -203,12 +203,11 @@ void	My_server::fun_405(Client & obj)
 Response * My_server::get_class(Server & s_obj, Client & c_obj)
 {
 	// the cgi should create env than coll get or post or delete 
-	if (c_obj.is_cgi) {
-		CgiHandler * CGI = new CgiHandler(s_obj, c_obj);
-		CGI->cgi_run();
-		delete CGI;
-	}
-
+	// if (c_obj.is_cgi) {
+	// 	CgiHandler * CGI = new CgiHandler(s_obj, c_obj);
+	// 	CGI->cgi_run();
+	// 	delete CGI;
+	// }
 	if (c_obj.method == "GET") {
 		return (new Get(s_obj, c_obj));
 	}

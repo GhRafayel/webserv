@@ -1,6 +1,7 @@
 #ifndef Response_HPP
 #define Response_HPP
 
+#include "../hpp/CgiHandler.hpp"
 #include "StringUtils.hpp"
 #include "Client.hpp"
 #include "Server.hpp"

@@ -44,8 +44,9 @@ class StringUtils
 		std::string 				get_http_date();
 		std::string					str_to_lower(std::string &);
 		std::string					str_to_lower(const std::string &);
+		std::string					str_to_upper(const std::string &);
+		std::string					str_to_upper(std::string &);
 		size_t						parse_content_length(const std::string &);
-		
 };
 
 #endif

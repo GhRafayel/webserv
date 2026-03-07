@@ -34,8 +34,13 @@ void	Request::find_cgi()
 		post = it->second.find("?");
 		if (post != std::string::npos)
 		{
-			client_ref.question_mark = it->second.substr(post + 1);
+			client_ref.query = it->second.substr(post + 1);
 			it->second = it->second.substr(0, post);
+			post = client_ref.best_mach.find("?");
+			if (post != std::string::npos)
+			{
+				client_ref.best_mach = client_ref.best_mach.substr(0, post);
+			}
 		}
 		post = it->second.rfind(".");
 		if (post != std::string::npos) {
