@@ -2,47 +2,61 @@
 
 import os
 import sys
+from urllib.parse import parse_qs
 
-# HTTP headers
-# print("Content-Type: text/html; charset=UTF-8")
-print()  # Important empty line
+print("Content-Type: text/html; charset=UTF-8")
+print()  # must be empty line
 
-# HTML content
 print("""
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Python CGI Test</title>
+    <title>Python CGI Debug (no cgi module)</title>
     <style>
         body { font-family: Arial; padding: 20px; background: #f0f0f0; }
         h1 { color: #333; }
         pre { background: #fff; padding: 10px; border: 1px solid #ddd; }
-        .success { color: green; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>✅ Python CGI Աշխատում Է!</h1>
+    <h1>✅ Python CGI Debug (no cgi module)</h1>
 """)
 
-# Show Python version
+# Python version
 print(f"<p><strong>Python version:</strong> {sys.version}</p>")
 
-# Show environment variables
+# Environment Variables
 print("<h2>Environment Variables:</h2>")
 print("<pre>")
-for key in ["REQUEST_METHOD", "QUERY_STRING", "SCRIPT_FILENAME", "CONTENT_TYPE"]:
-    if key in os.environ:
-        print(f"{key} = {os.environ[key]}")
+for key in sorted(os.environ.keys()):
+    print(f"{key} = {os.environ[key]}")
 print("</pre>")
 
-# Show GET/POST data
-import cgi
-form = cgi.FieldStorage()
-if form:
-    print("<h2>Form Data:</h2>")
-    print("<pre>")
-    for key in form.keys():
-        print(f"{key} = {form[key].value}")
-    print("</pre>")
+# GET Data
+query_string = os.environ.get("QUERY_STRING", "")
+get_data = parse_qs(query_string)
+print("<h2>GET Data:</h2>")
+print("<pre>")
+if get_data:
+    for key, values in get_data.items():
+        print(f"{key} = {values[0]}")
+else:
+    print("No GET data")
+print("</pre>")
+
+# POST Data
+content_length = int(os.environ.get("CONTENT_LENGTH", 0))
+post_data = {}
+if content_length > 0:
+    post_bytes = sys.stdin.read(content_length)
+    post_data = parse_qs(post_bytes)
+print("<h2>POST Data:</h2>")
+print("<pre>")
+if post_data:
+    for key, values in post_data.items():
+        print(f"{key} = {values[0]}")
+else:
+    print("No POST data")
+print("</pre>")
 
 print("</body></html>")
