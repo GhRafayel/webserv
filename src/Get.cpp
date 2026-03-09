@@ -40,25 +40,25 @@ void	Get::create_response() {
 	else client_ref.statuc_code = 200;
 }
 
-// void Get::fun_206()
-// {
-// 	if (!readable(path))
-// 		create_header(" 403 Forbidden", false);
-// 	std::vector<std::string> temp = Range_pars(client_ref.buffer);
-// 	if (temp.empty()) 
-// 		create_header(" 400 Bed Request", false);
-// 	else
-// 	{
-// 		int	start = str_to_int(temp[0]);
-// 		int	end = (temp[1].empty() ? -1 : str_to_int(temp[1]));
-// 		if (end == -1)
-// 			body = get_file_content(path);
-// 		else
-// 			body = get_file_content(path, start, end - start + 1);
-// 		std::stringstream s;
-// 		s << " 200 Partial Content\r\n Content-Range: bytes " << start << "-" << end << "/" << body.size();
-// 		create_header(s.str(), true);
-// 	}
-// }
-
+/*
+void Get::fun_206()
+{
+	std::vector<std::string> temp = Range_pars(client_ref.buffer);
+	if (!readable(path)) client_ref.statuc_code = 403;
+	
+	if (temp.empty()) client_ref.statuc_code = 400;
+	else
+	{
+		int	start = str_to_int(temp[0]);
+		int	end = (temp[1].empty() ? -1 : str_to_int(temp[1]));
+		if (end == -1)
+			body = get_file_content(path);
+		else
+			body = get_file_content(path, start, end - start + 1);
+		std::stringstream s;
+		s << " 200 Partial Content\r\n Content-Range: bytes " << start << "-" << end << "/" << body.size();
+		client_ref.statuc_code = 200;
+	}
+}
+*/
 

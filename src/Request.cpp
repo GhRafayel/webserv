@@ -55,13 +55,13 @@ void	Request::find_cgi()
 				client_ref.cgi_type = "py";
 				client_ref.is_cgi = true;
 			}
+			if (client_ref.is_cgi) client_ref.cgibuf = client_ref.buffer;
 		}
 	}
 }
 
 bool	Request::pars_request()
 {
-	client_ref.cgibuf = client_ref.buffer;
 	client_ref.buffer = chang_char(client_ref.buffer, '\t', ' ');
 	if (client_ref.buffer.find("Range:") == 0)
 		return (client_ref.statuc_code = 206, client_ref.method = "GET", false);
