@@ -282,7 +282,6 @@ int CgiHandler::execute() {
 		while (written < body.size()) {
 			ssize_t w = write(in_pipe[1], body.c_str() + written, body.size() - written);
 			if (w < 0) {
-				if (errno == EINTR) continue;
 				break;
 			}
 			written += static_cast<size_t>(w);
@@ -294,15 +293,12 @@ int CgiHandler::execute() {
 	char buf[4096];
 	while (true) {
 		ssize_t r = read(out_pipe[0], buf, sizeof(buf));
-		if (r < 0) {
-			if (errno == EINTR) continue;
-			break;
-		}
-		if (r == 0) break;
+		if (r <= 0) break;
 		_output.append(buf, buf + r);
 	}
 	close(out_pipe[0]);
 	int status = 0;
+
 	waitpid(pid, &status, 0);
 	check_status_code();
 	return 0;
