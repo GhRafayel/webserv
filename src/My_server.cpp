@@ -166,6 +166,7 @@ int	My_server::to_read(Client & obj)
 
 void	My_server::poll_in(int index)
 {
+
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
 	Server	&s_ref = _servers.find(c_ref.server_conf_key)->second;
 	
@@ -228,29 +229,28 @@ void	My_server::poll_out(int index)
 	delete response;
 }
 
-void My_server::time_out()
+bool	My_server::time_out(int index)
 {
-	for (size_t index = 0; index < _pollfds.size(); index++)
+	
+	std::time_t corent_time = time(NULL);
+	std::map<int, Client>::iterator it = _client.find(_pollfds[index].fd);
+
+	if (it == _client.end()) return true;
+
+	if (corent_time - it->second.timeOut > 10)
 	{
-		if(!is_server_socket(_pollfds[index].fd))
-		{
-			std::time_t corent_time = time(NULL);
-			Client	&c_ref = _client.find(_pollfds[index].fd)->second;
+		std::ostringstream strim;
 
-			if (corent_time - c_ref.timeOut > 10 && !c_ref.end_request)
-			{
-				std::ostringstream strim;
-
-				strim	<< "HTTP/1.1 408 Request Timeout \r\n"
-						<< "Content-Length: 0 \r\n"
-						<< "Connection: close \r\n"
-						<< "\r\n" ;
-				c_ref.end_request = true;
-				c_ref.outbuf = strim.str();
-				_pollfds[index].events |= POLLOUT;
-			}
-		}
+		strim	<< "HTTP/1.0 408 Request Timeout \r\n"
+				<< "Content-Length: 0 \r\n"
+				<< "Connection: close \r\n"
+				<< "\r\n" ;
+		it->second.end_request = true;
+		it->second.outbuf = strim.str();
+		_pollfds[index].revents = 4; // |= POLLOUT;
+		return false;
 	}
+	return true;
 }
 
 void    My_server::accept_loop()
@@ -261,12 +261,12 @@ void    My_server::accept_loop()
 	{
 		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
 
-		if (n == 0) time_out();
+		// if (n == 0) time_out();
 			
 		size_t i = 0;
 		while (n > 0 && g_running && i < _pollfds.size())
 		{
-			if (_pollfds[i].revents & POLLIN)
+			if (time_out(i) && _pollfds[i].revents & POLLIN)
 			{
 				if (is_server_socket(_pollfds[i].fd))
 				{

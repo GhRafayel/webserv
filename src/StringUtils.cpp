@@ -274,16 +274,16 @@ bool	StringUtils::exists(const std::string& path)
 	return false;
 }
 
-std::string	StringUtils::get_http_date()
+std::string StringUtils::get_http_date()
 {
 	char		buffer[100];
-	std::time_t	now;
+	std::time_t now;
 	std::tm		*gmt;
 
 	now = std::time(NULL);
 	gmt = std::gmtime(&now);
-
-	std::strftime(buffer, sizeof(buffer), "Date: %a, %d %b %Y %H:%M:%S GMT", gmt);
+	
+	std::strftime(buffer, sizeof(buffer), "Data: %a, %d %b %Y %H:%M:%S GMT", gmt);
 	return std::string(buffer);
 }
 

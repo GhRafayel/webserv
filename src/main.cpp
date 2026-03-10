@@ -7,11 +7,8 @@ static void signal_handler(int) {
 	g_running = false;
 }
 
-//int main(int argc, char **argv)
-int main()
+int main(int argc, char **argv)
 {
-	int argc = 2;
-	char argv[2][50] = {"./webserv", "conf/server.conf"};
 	My_server * server = NULL;
 
 	std::signal(SIGINT, signal_handler);
@@ -22,7 +19,7 @@ int main()
 		{
 			if (argc == 1)
 			{
-				server = new My_server();
+				server = new My_server("conf/default.conf");
 				server->start_server();
 			}
 			else

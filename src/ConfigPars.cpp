@@ -32,21 +32,21 @@ std::map<std::string, void (ConfigPars::*) (void)> ConfigPars::init_fun_map()
 {
 	std::map<std::string, void (ConfigPars::*) (void)> temp;
 
-	temp.insert(std::make_pair("http_block", &ConfigPars::http_block));
-	temp.insert(std::make_pair("server_block", &ConfigPars::server_block));
-	temp.insert(std::make_pair("location_block", &ConfigPars::location_block));
-	temp.insert(std::make_pair("is_valid_line", &ConfigPars::is_valid_line));
-	temp.insert(std::make_pair("listen", &ConfigPars::listen));
-	temp.insert(std::make_pair("client_max_body_size", &ConfigPars::client_max_body_size));
-	temp.insert(std::make_pair("server_name", &ConfigPars::server_name));
-	temp.insert(std::make_pair("error_page_404", &ConfigPars::error_page_404));
-	temp.insert(std::make_pair("error_page_500", &ConfigPars::error_page_500));
-	temp.insert(std::make_pair("close_blocks", &ConfigPars::close_blocks));
-	temp.insert(std::make_pair("root", &ConfigPars::root));
-	temp.insert(std::make_pair("index", &ConfigPars::index));
-	temp.insert(std::make_pair("allow_methods", &ConfigPars::method));
-	temp.insert(std::make_pair("allow_method", &ConfigPars::method));
-	temp.insert(std::make_pair("cgi_path", &ConfigPars::cgi_path));
+	temp.insert(std::make_pair("http_block",			&ConfigPars::http_block));
+	temp.insert(std::make_pair("server_block",			&ConfigPars::server_block));
+	temp.insert(std::make_pair("location_block",		&ConfigPars::location_block));
+	temp.insert(std::make_pair("is_valid_line", 		&ConfigPars::is_valid_line));
+	temp.insert(std::make_pair("listen", 				&ConfigPars::listen));
+	temp.insert(std::make_pair("client_max_body_size",	&ConfigPars::client_max_body_size));
+	temp.insert(std::make_pair("server_name", 			&ConfigPars::server_name));
+	temp.insert(std::make_pair("error_page_404", 		&ConfigPars::error_page_404));
+	temp.insert(std::make_pair("error_page_500",		&ConfigPars::error_page_500));
+	temp.insert(std::make_pair("close_blocks",			&ConfigPars::close_blocks));
+	temp.insert(std::make_pair("root",					&ConfigPars::root));
+	temp.insert(std::make_pair("index",					&ConfigPars::index));
+	temp.insert(std::make_pair("allow_methods",			&ConfigPars::method));
+	temp.insert(std::make_pair("allow_method",			&ConfigPars::method));
+	temp.insert(std::make_pair("cgi_path",				&ConfigPars::cgi_path));
 
 	return temp;
 }
