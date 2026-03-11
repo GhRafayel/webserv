@@ -37,7 +37,7 @@ void Response::send_response()
 	std::map<int, void (Response::*) (void)>::iterator it = func_map.find(client_ref.statuc_code);
 	if (it == func_map.end()) 
 		(this->*func_map[400])();
-	else
+	else 
 		(this->*func_map[it->first])();
 	// to_send();
 	ssize_t n = 1;
@@ -49,11 +49,6 @@ void Response::send_response()
 			client_ref.outbuf.erase(0, n);
 			//continue;
 		}
-		// else if (n < 0)
-		// {
-		// 	//_pollfds[index].events |= POLLOUT;
-		// 	return;
-		// }
 	//}
 }
 
@@ -80,17 +75,20 @@ void	Response::fun_200200(){
 };
 
 void	Response::fun_200() {
-	
-	// if (client_ref.is_cgi) 
-	// {
-	// 	client_ref.outbuf = strim.str();
-	// 	return;
-	// 	// body = client_ref.outbuf;
-	// 	// close(client_ref.fd);
-	// 	// ext = ".html";
-	// }
-	// else
-	body = get_file_content(abs_Path(client_ref.best_mach));
+
+	if (client_ref.is_cgi)
+	{
+		std::cout << client_ref.outbuf << std::endl;
+		body = client_ref.cgibuf;
+		// size_t post = client_ref.cgibuf.find("/r/n/r/n");
+		// if (post != std::string::npos)
+		// {
+		// 	body = client_ref.cgibuf.substr(post);
+		// }
+		ext = ".html";
+	}
+	else
+		body = get_file_content(abs_Path(client_ref.best_mach));
 	strim << "HTTP/1.0 200 ok" << end_line;
 	create_header();
 	strim << body << end_line;

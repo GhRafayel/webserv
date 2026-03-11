@@ -27,13 +27,15 @@ void	Get::create_response() {
 			if (client_ref.read_size > 0)
 			{
 				buffer[client_ref.read_size] = '\0';
-				client_ref.outbuf.append(buffer, buffer + client_ref.read_size);
+				client_ref.cgibuf.append(buffer, buffer + client_ref.read_size);
 				std::cout << "cgi is reading " << std::endl;
 			}
 			if (client_ref.read_size <= 0)
 			{
 				std::cout << "cgi finish to read " << std::endl;
 				client_ref.cgi_runer = false;
+				waitpid(client_ref.pid, NULL, WNOHANG);
+				close(client_ref.cgi_fd);
 				client_ref.statuc_code = check_status_code(client_ref.outbuf);
 			}
 		}
