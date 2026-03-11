@@ -74,10 +74,14 @@ void	Response::fun_200() {
 	if (client_ref.is_cgi)
 	{
 		body = client_ref.cgibuf;
-		size_t post = client_ref.cgibuf.find("/r/n/r/n");
+		size_t post = client_ref.cgibuf.find("\r\n\r\n");
 		if (post != std::string::npos)
-		{
 			body = client_ref.cgibuf.substr(post + 4);
+		else
+		{
+			post = client_ref.cgibuf.find("\r\n");
+			if (post != std::string::npos)
+				body = client_ref.cgibuf.substr(post + 2);
 		}
 		ext = ".html";
 	}
