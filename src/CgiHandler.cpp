@@ -64,16 +64,6 @@ std::string	CgiHandler::find_interpreter() {
 	return "";
 }
 
-void CgiHandler::check_status_code() {
-
-	if (_output.compare(0, 7, "Status:") == 0)
-	{
-		client_ref.statuc_code = std::atoi(_output.substr(7).c_str());
-		return ;
-	}
-	client_ref.statuc_code = 200;
-	client_ref.cgibuf = _output;
-}
 
 bool	CgiHandler::is_method_allowed()
 {
@@ -88,7 +78,6 @@ bool	CgiHandler::is_method_allowed()
 	return false;
 }
 
-// Percent-decode utility: decodes %XX and '+' to ' ' like typical query-string.
 std::string CgiHandler::decodeQm(const std::string &s) {
 	std::string out;
 	out.reserve(s.size());
@@ -108,7 +97,7 @@ std::string CgiHandler::decodeQm(const std::string &s) {
 					continue;
 				}
 			}
-			// If malformed, keep '%'
+
 			out.push_back('%');
 		} else if (s[i] == '+') {
 			out.push_back(' ');
@@ -235,15 +224,15 @@ int CgiHandler::execute() {
 		client_ref.statuc_code = 500;
 		return -1;
 	}
-	pid_t pid = fork();
-	if (pid < 0) {
+	client_ref.pid = fork();
+	if (client_ref.pid < 0) {
 		close(in_pipe[0]); close(in_pipe[1]);
 		close(out_pipe[0]); close(out_pipe[1]);
 		client_ref.statuc_code = 500;
 		return -1;
 	}
 
-	if (pid == 0) {
+	if (client_ref.pid == 0) {
 
 		dup2(in_pipe[0], STDIN_FILENO);
 		dup2(out_pipe[1], STDOUT_FILENO);
@@ -255,10 +244,8 @@ int CgiHandler::execute() {
 		if (chdir(dir.c_str()) == -1) {
 		}
 		execve(interp.c_str(), &argv[0], &envp[0]);
-		std::string err = "Status: 500 Internal Server Error\r\nContent-Type: text/plain\r\n\r\nCGI exec failed: ";
-		err += strerror(errno);
-		write(STDOUT_FILENO, err.c_str(), err.size());
-		_exit(127);
+		
+		std::exit(1);
 	}
 
 	close(in_pipe[0]);
@@ -290,17 +277,19 @@ int CgiHandler::execute() {
 
 	close(in_pipe[1]);
 
-	char buf[4096];
-	while (true) {
-		ssize_t r = read(out_pipe[0], buf, sizeof(buf));
-		if (r <= 0) break;
-		_output.append(buf, buf + r);
-	}
-	close(out_pipe[0]);
+	client_ref.fd = out_pipe[0];
+	// char buf[4096];
+	// while (true) {
+	// 	ssize_t r = read(out_pipe[0], buf, sizeof(buf));
+	// 	if (r <= 0) break;
+	// 	_output.append(buf, buf + r);
+	// }
+	//close(out_pipe[0]);
 	int status = 0;
 
-	waitpid(pid, &status, 0);
-	check_status_code();
+	// waitpid(client_ref.pid, &status, 0);
+	waitpid(client_ref.pid, &status, WNOHANG);
+	//check_status_code();
 	return 0;
 }
 

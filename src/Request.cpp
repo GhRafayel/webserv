@@ -76,10 +76,7 @@ bool	Request::pars_request()
 		return (client_ref.statuc_code = 400, false);
 	client_ref.method = header[0];
 	
-	client_ref.request.insert(std::make_pair("method", header[0]));
 	client_ref.request.insert(std::make_pair("url_path", header[1]));
-	client_ref.request.insert(std::make_pair("protocol", header[2]));
-
 	get_best_mach(header[1]);
 	for (size_t i = 1; i < req.size(); i++)
 	{
@@ -95,7 +92,6 @@ bool	Request::pars_request()
 			client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 		}
 	}
-	client_ref.request.insert(std::make_pair("protocol", header[2]));
 	client_ref.is_dir = is_directory(abs_Path(client_ref.best_mach));
 	return true;
 }

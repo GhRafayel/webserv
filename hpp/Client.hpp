@@ -9,6 +9,8 @@
 class Client
 {		
 	public:
+		size_t								read_size;
+		pid_t								pid;
 		std::time_t							timeOut;
 		int									best_location_index;
 		int 								server_conf_key;
@@ -16,6 +18,7 @@ class Client
 		int									statuc_code;
 		bool								is_dir;
 		bool								is_cgi;
+		bool								cgi_runer;
 		bool								end_request;
 		std::string							query;
 		std::string							buffer;

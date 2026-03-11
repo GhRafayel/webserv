@@ -29,6 +29,7 @@ class My_server : public StringUtils
 		int							_time;
 		std::string					_conf_file_path;
 
+		void	to_send(Client &);
 		void	fun_405(Client &);
 		void	to_connect(int);
 		bool	is_server_socket(int);

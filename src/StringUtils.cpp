@@ -334,3 +334,12 @@ std::string	StringUtils::str_to_upper(const std::string & src)
 	std::string temp_src = src;
 	return str_to_upper(temp_src);
 }
+
+int StringUtils::check_status_code(std::string & str) {
+
+	if (str.compare(0, 7, "Status:") == 0)
+	{
+		return (std::atoi(str.substr(7).c_str()));
+	}
+	return 200;
+}

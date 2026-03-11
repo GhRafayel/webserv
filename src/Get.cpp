@@ -11,9 +11,34 @@ void	Get::create_response() {
 	
 	if (client_ref.is_cgi)
 	{
-		CgiHandler * CGI = new CgiHandler(server_ref, client_ref);
-		CGI->cgi_run();
-		delete CGI;
+		if (!client_ref.cgi_runer)
+		{
+			std::cout << "cgi start" << std::endl;
+			CgiHandler * CGI = new CgiHandler(server_ref, client_ref);
+			CGI->cgi_run();
+			client_ref.cgi_runer = true;
+			delete CGI;
+			return ;
+		}
+		else
+		{
+			char	buffer[1025];
+			client_ref.read_size = read(client_ref.fd, buffer, 1024);
+
+			if (client_ref.read_size > 0)
+			{
+				buffer[client_ref.read_size] = '\0';
+				client_ref.outbuf.append(buffer, buffer + client_ref.read_size);
+				std::cout << "cgi is reading " << std::endl;
+				return ;
+			}
+			if (client_ref.read_size <= 0)
+			{
+				std::cout << "cgi finish to read " << std::endl;
+				client_ref.cgi_runer = false;
+				client_ref.statuc_code = check_status_code(client_ref.outbuf);
+			}
+		}
 	}
 	if (client_ref.statuc_code >= 200 && client_ref.statuc_code <= 600) return;
 	path = abs_Path(client_ref.best_mach);

@@ -21,6 +21,7 @@ class StringUtils
 		~StringUtils();
 		StringUtils();
 		void						init();
+		int							check_status_code(std::string & str);
 		void						validate_file(const std::string &);
 		bool						is_digitS(const std::string &);
 		bool						is_end_of_request(const std::string &);

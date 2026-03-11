@@ -39,6 +39,7 @@ void Response::send_response()
 		(this->*func_map[400])();
 	else
 		(this->*func_map[it->first])();
+	// to_send();
 	ssize_t n = 1;
 	// while (n)
 	// {
@@ -70,9 +71,8 @@ void	Response::init() {
 }
 
 void	Response::fun_200200(){
-
 	body = static_page();
-	strim << client_ref.request.find("protocol")->second << " 200 ok" << end_line;
+	strim << "HTTP/1.0 200 ok" << end_line;
 	ext = ".html";
 	create_header();
 	strim << body << end_line;
@@ -88,7 +88,7 @@ void	Response::fun_200() {
 	}
 	else
 		body = get_file_content(abs_Path(client_ref.best_mach));
-	strim << client_ref.request.find("protocol")->second << " 200 ok" << end_line;
+	strim << "HTTP/1.0 200 ok" << end_line;
 	create_header();
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
@@ -98,21 +98,21 @@ void	Response::fun_206(){
 	
 };
 
-void	Response::fun_301(){
-	strim << client_ref.request.find("protocol")->second << " 301 Moved Permanently" << end_line;
-	strim << "Location: / " << end_line;
+void	Response::fun_301() {
+	strim << "HTTP/1.0 " << int_to_string(client_ref.statuc_code) << " Moved Permanently" << end_line;
+	strim << "Location: "  << client_ref.best_mach << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_400(){
-	strim << client_ref.request.find("protocol")->second << " 400 Bed Request" << end_line;
+	strim << "HTTP/1.0 400 Bed Request" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_403(){
-	strim << client_ref.request.find("protocol")->second << " 403 Forbidden" << end_line;
+	strim << "HTTP/1.0 403 Forbidden" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
@@ -121,20 +121,20 @@ void	Response::fun_404(){
 	ext = ".html";
 	client_ref.best_mach = abs_Path(server_ref._error_404);
 	body = get_file_content(client_ref.best_mach);
-	strim << client_ref.request.find("protocol")->second << " 404 Not Found" << end_line;
+	strim << "HTTP/1.0 404 Not Found" << end_line;
 	create_header();
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_405(){
-	strim << client_ref.request.find("protocol")->second << " 405 Not Allowed" << end_line;
+	strim << "HTTP/1.0 405 Not Allowed" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_423(){
-	strim << client_ref.request.find("protocol")->second << " 423 Payload Too Large" << end_line;
+	strim << "HTTP/1.0 423 Payload Too Large" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
@@ -142,7 +142,7 @@ void	Response::fun_423(){
 void	Response::fun_500(){
 	ext = ".html";
 	body = get_file_content(abs_Path(server_ref._error_500));
-	strim << client_ref.request.find("protocol")->second << " 500 Internal Server Error" << end_line;
+	strim << "HTTP/1.0 500 Internal Server Error" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };

@@ -45,12 +45,13 @@ class CgiHandler : public StringUtils
 		bool		is_method_allowed();
 		bool		cgi_exist();
 		int			execute();
-		void		check_status_code();
+		
 
 	public:		
 		CgiHandler( Server & s_obj,  Client & obj);
 		~CgiHandler();
 		void		cgi_run();
+		void		check_status_code();
 
 
 };

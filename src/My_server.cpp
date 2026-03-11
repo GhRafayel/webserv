@@ -129,6 +129,7 @@ void     My_server::to_connect(int index)
 		_pollfds.push_back(create_pollfd(fd));
 		_client.insert(std::make_pair(fd, Client(fd)));
 		_client.find(fd)->second.server_conf_key = _pollfds[index].fd;
+		_client.find(fd)->second.timeOut = time(NULL); // now line 
 		std::cout << "Client connected successfully " << fd <<  std::endl;
 	}
 	else
@@ -164,13 +165,21 @@ int	My_server::to_read(Client & obj)
 	return n;
 }
 
+void	My_server::to_send(Client & obj)
+{
+	ssize_t n = 1;
+	while (n > 0)
+	{
+		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), 0);
+		if (n > 0)
+			obj.outbuf.erase(0, n);
+	}
+}
+
 void	My_server::poll_in(int index)
 {
-
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
 	Server	&s_ref = _servers.find(c_ref.server_conf_key)->second;
-	
-	c_ref.timeOut = time(NULL);
 
 	if (to_read(c_ref) == 0)
 	{
@@ -185,20 +194,20 @@ void	My_server::poll_in(int index)
 
 void	My_server::fun_405(Client & obj)
 {
+	if (obj.statuc_code == 408 || obj.statuc_code == 504)
+	{
+		to_send(obj);
+		obj.end_request = true;
+		return;
+	}
 	std::ostringstream strim;
 
-	strim << "HTTP/1.1 405 Not Allowed\r\n Content-Type: application/octet-stream\r\n"
+	strim << "HTTP/1.0 405 Not Allowed\r\n Content-Type: application/octet-stream\r\n"
 		  << "Content-Length: 0 \r\nServer: my Server \r\n"
 		  << "Date: " << get_http_date() << "\r\nConnection: close \r\n\r\n";
 	obj.outbuf = strim.str();
-	ssize_t n = 1;
-	
-	while (n > 0)
-	{
-		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), 0);
-		if (n > 0)
-			obj.outbuf.erase(0, n);
-	}
+	to_send(obj);
+	obj.end_request = true;
 }
 
 Response * My_server::get_class(Server & s_obj, Client & c_obj)
@@ -222,6 +231,11 @@ void	My_server::poll_out(int index)
 	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
 
 	Response * response = get_class(s_ref, c_ref);
+	if (c_ref.cgi_runer)
+	{
+		delete response;
+		return ;
+	}
 	if (response)
 		response->send_response();
 	if (c_ref.end_request && c_ref.outbuf.empty())
@@ -231,26 +245,40 @@ void	My_server::poll_out(int index)
 
 bool	My_server::time_out(int index)
 {
-	
-	std::time_t corent_time = time(NULL);
+	std::time_t corrent_time = time(NULL);
 	std::map<int, Client>::iterator it = _client.find(_pollfds[index].fd);
 
-	if (it == _client.end()) return true;
+	if (it == _client.end()) return false;
 
-	if (corent_time - it->second.timeOut > 10)
+	if (it->second.is_cgi && corrent_time - it->second.timeOut > 5)
 	{
-		std::ostringstream strim;
-
-		strim	<< "HTTP/1.0 408 Request Timeout \r\n"
-				<< "Content-Length: 0 \r\n"
-				<< "Connection: close \r\n"
-				<< "\r\n" ;
-		it->second.end_request = true;
-		it->second.outbuf = strim.str();
-		_pollfds[index].revents = 4; // |= POLLOUT;
-		return false;
+		it->second.outbuf = "HTTP/1.0 504 Gateway Timeout\r\n"
+							"Content-Length: 0\r\n"
+							"Connection: close\r\n"
+							"\r\n";
+		it->second.statuc_code = 504;
+		_pollfds[index].events |= POLLOUT;
+		kill(it->second.pid, SIGKILL);
+		waitpid(it->second.pid, NULL, WNOHANG);
+		return true;
 	}
-	return true;
+	else if (corrent_time - it->second.timeOut > 2)
+	{
+		it->second.outbuf = "HTTP/1.0 408 Request Timeout\r\n"
+							"Content-Length: 0\r\n"
+							"Connection: close\r\n"
+							"\r\n" ;
+		it->second.statuc_code = 408;
+		
+		return true;
+	}
+	// if (it->second.statuc_code == 408 || it->second.statuc_code == 504)
+	// {
+	// 	_pollfds[index].events |= POLLOUT;
+	// 	return true;
+	// }
+	it->second.timeOut = time(NULL);
+	return false;
 }
 
 void    My_server::accept_loop()
@@ -259,22 +287,18 @@ void    My_server::accept_loop()
 
 	while (g_running && this->_pollfds.size())
 	{
-		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
-
-		// if (n == 0) time_out();
-			
+		int n = poll(_pollfds.data(), _pollfds.size(), 1000);			
 		size_t i = 0;
 		while (n > 0 && g_running && i < _pollfds.size())
 		{
-			if (time_out(i) && _pollfds[i].revents & POLLIN)
+			//time_out(i);
+			if (_pollfds[i].revents & POLLIN)
 			{
 				if (is_server_socket(_pollfds[i].fd))
-				{
 					to_connect(i);
-					break;
-				}	
 				else
 					poll_in(i);
+				break;
 			}
 			else if (_pollfds[i].revents & POLLOUT)
 				poll_out(i);
