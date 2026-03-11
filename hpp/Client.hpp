@@ -15,6 +15,7 @@ class Client
 		int									best_location_index;
 		int 								server_conf_key;
 		int									fd;
+		int									cgi_fd;
 		int									statuc_code;
 		bool								is_dir;
 		bool								is_cgi;

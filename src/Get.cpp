@@ -18,19 +18,17 @@ void	Get::create_response() {
 			CGI->cgi_run();
 			client_ref.cgi_runer = true;
 			delete CGI;
-			return ;
 		}
 		else
 		{
 			char	buffer[1025];
-			client_ref.read_size = read(client_ref.fd, buffer, 1024);
+			client_ref.read_size = read(client_ref.cgi_fd, buffer, 1024);
 
 			if (client_ref.read_size > 0)
 			{
 				buffer[client_ref.read_size] = '\0';
 				client_ref.outbuf.append(buffer, buffer + client_ref.read_size);
 				std::cout << "cgi is reading " << std::endl;
-				return ;
 			}
 			if (client_ref.read_size <= 0)
 			{
@@ -39,6 +37,7 @@ void	Get::create_response() {
 				client_ref.statuc_code = check_status_code(client_ref.outbuf);
 			}
 		}
+		return;
 	}
 	if (client_ref.statuc_code >= 200 && client_ref.statuc_code <= 600) return;
 	path = abs_Path(client_ref.best_mach);

@@ -6,6 +6,7 @@ Client::Client() : read_size(0),
 	best_location_index(-1),
 	server_conf_key(-1),
 	fd(-1),
+	cgi_fd(-1),
 	statuc_code(-1),
 	is_dir(false),
 	is_cgi(false),
@@ -21,6 +22,7 @@ Client::Client(const Client & obj)
 	this->best_location_index = obj.best_location_index;
 	this->server_conf_key = 	obj.server_conf_key;
 	this->fd = 					obj.fd;
+	this->cgi_fd = 				obj.cgi_fd;
 	this->statuc_code = 		obj.statuc_code;
 	this->is_dir = 				obj.is_dir;
 	this->is_cgi = 				obj.is_cgi;
@@ -40,6 +42,7 @@ Client::Client(int FD) : read_size(0),
 	best_location_index(-1),
 	server_conf_key(-1),
 	fd(FD),
+	cgi_fd(-1),
 	statuc_code(0),
 	is_dir(false),
 	is_cgi(false),
@@ -61,6 +64,7 @@ Client & Client::operator = (const Client & obj)
 		this->best_location_index = obj.best_location_index;
 		this->server_conf_key = 	obj.server_conf_key;
 		this->fd = 					obj.fd;
+		this->cgi_fd = 				obj.cgi_fd;
 		this->statuc_code = 		obj.statuc_code;
 		this->is_dir = 				obj.is_dir;
 		this->is_cgi = 				obj.is_cgi;

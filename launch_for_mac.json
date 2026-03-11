@@ -1,0 +1,52 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Webserv",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/webserv",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for lldb",
+                    "text": "settings set target.inline-breakpoint-strategy always",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Follow parent process",
+                    "text": "settings set target.process.follow-fork-mode parent",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Detach child processes",
+                    "text": "settings set target.process.detach-on-fork on",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build Webserv (Debug)",
+            "miDebuggerPath": "/usr/bin/lldb-mi"
+        },
+        {
+            "name": "Debug Webserv (Attach)",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/webserv",
+            "processId": "${command:pickProcess}",
+            "MIMode": "lldb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for lldb",
+                    "text": "settings set target.inline-breakpoint-strategy always",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/lldb-mi"
+        }
+    ]
+}

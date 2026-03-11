@@ -81,13 +81,16 @@ void	Response::fun_200200(){
 
 void	Response::fun_200() {
 	
-	if (client_ref.is_cgi)
-	{
-		body = client_ref.cgibuf;
-		ext = ".html";
-	}
-	else
-		body = get_file_content(abs_Path(client_ref.best_mach));
+	// if (client_ref.is_cgi) 
+	// {
+	// 	client_ref.outbuf = strim.str();
+	// 	return;
+	// 	// body = client_ref.outbuf;
+	// 	// close(client_ref.fd);
+	// 	// ext = ".html";
+	// }
+	// else
+	body = get_file_content(abs_Path(client_ref.best_mach));
 	strim << "HTTP/1.0 200 ok" << end_line;
 	create_header();
 	strim << body << end_line;

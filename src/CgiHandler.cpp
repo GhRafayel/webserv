@@ -277,7 +277,7 @@ int CgiHandler::execute() {
 
 	close(in_pipe[1]);
 
-	client_ref.fd = out_pipe[0];
+	client_ref.cgi_fd = out_pipe[0];
 	// char buf[4096];
 	// while (true) {
 	// 	ssize_t r = read(out_pipe[0], buf, sizeof(buf));
