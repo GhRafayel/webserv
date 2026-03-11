@@ -26,38 +26,55 @@ Request &	Request::operator = (const Request & obj)
 
 void	Request::find_cgi()
 {
-	std::map<std::string, std::string>::iterator	it = client_ref.request.find("url_path");
-	size_t											post;
-
-	if (it != client_ref.request.end())
+	size_t post = client_ref.best_mach.find("?");
+	if (post != std::string::npos)
 	{
-		post = it->second.find("?");
-		if (post != std::string::npos)
+		client_ref.query = client_ref.best_mach.substr(post + 1);
+		client_ref.best_mach = client_ref.best_mach.substr(0, post);
+	}
+	post = client_ref.best_mach.find(".");
+	if (post != std::string::npos && client_ref.best_location_index != -1)
+	{
+		std::string ext = client_ref.best_mach.substr(post + 1);
+		std::map<std::string, std::string> & temp = server_ref._locations[client_ref.best_location_index]._cgi;
+		if (temp.find(ext) != temp.end())
 		{
-			client_ref.query = it->second.substr(post + 1);
-			it->second = it->second.substr(0, post);
-			post = client_ref.best_mach.find("?");
-			if (post != std::string::npos)
-			{
-				client_ref.best_mach = client_ref.best_mach.substr(0, post);
-			}
-		}
-		post = it->second.rfind(".");
-		if (post != std::string::npos) {
-		
-			if (it->second.substr(post) == ".php" )
-			{
-				client_ref.cgi_type = "php";
-				client_ref.is_cgi = true;
-			}
-			else if (it->second.substr(post) == ".py") 
-			{
-				client_ref.cgi_type = "py";
-				client_ref.is_cgi = true;
-			}
-			if (client_ref.is_cgi) client_ref.cgibuf = client_ref.buffer;
+			client_ref.cgi_type = str_to_lower(temp.find(ext)->second);
+			client_ref.cgibuf = client_ref.buffer;
+			client_ref.is_cgi = true;
 		}
 	}
+
+		// if (post != std::string::npos)
+		// {
+
+			//client_ref.query = it->second.substr(post + 1);
+			//it->second = it->second.substr(0, post);
+			//post = client_ref.best_mach.find("?");
+			// if (post != std::string::npos)
+			// {
+			// 	client_ref.best_mach = client_ref.best_mach.substr(0, post);
+			// }
+		//}
+		//post = it->second.rfind(".");
+		// if (post != std::string::npos) {
+		
+		// 	std::string temp = it->second.substr(post);
+		// 	server_ref._locations[client_ref.best_location_index]._cgi.find(temp);
+
+		// 	if (it->second.substr(post) == ".php")
+		// 	{
+		// 		client_ref.cgi_type = "php-cgi";
+		// 		client_ref.is_cgi = true;
+		// 	}
+		// 	else if (it->second.substr(post) == ".py")
+		// 	{
+		// 		client_ref.cgi_type = "python3";
+		// 		client_ref.is_cgi = true;
+		// 	}
+		// 	if (client_ref.is_cgi) client_ref.cgibuf = client_ref.buffer;
+		// }
+	
 }
 
 bool	Request::pars_request()

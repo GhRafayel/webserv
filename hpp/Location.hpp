@@ -23,18 +23,17 @@ class Location : public StringUtils
 		bool	is_line_valid(std::string &);
 		void	loc_max_body_size(std::string &);
 
-
-		std::vector<std::string>	_config;
-		std::map<std::string, bool> _methods;
+		std::vector<std::string>			_config;
+		std::map<std::string, bool> 		_methods;
 	public:
-		bool						_autoIndex;
-		std::string					_root;
-		std::string					_index;
-		std::string					_location;
-		std::string					_error_massage;
-		std::vector<std::string>	_return;
-		std::vector<std::string>	_cgi;
-		int							_max_body_size;
+		bool								_autoIndex;
+		std::string							_root;
+		std::string							_index;
+		std::string							_location;
+		std::string							_error_massage;
+		std::vector<std::string>			_return;
+		std::map<std::string, std::string>	_cgi;
+		int									_max_body_size;
 
 		~Location();
 		Location();

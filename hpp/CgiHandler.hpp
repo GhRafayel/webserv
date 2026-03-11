@@ -22,37 +22,33 @@
 class CgiHandler : public StringUtils
 {
 	private:
-		std::string							_method;
 		std::map<std::string, std::string>	_envMap;
 		std::vector<std::string>			_envVec;
-		std::string 						_output;
 		Server								&server_ref;
 		Client								&client_ref;				
-		
 
 		CgiHandler(const CgiHandler&);
 		std::string dirname_from_path(const std::string &path);
 		std::string	basename_from_path(const std::string &path);
 
-		CgiHandler& operator=(const CgiHandler&);
-		std::string	find_interpreter();
-		std::string getEnvVar(std::string);
-		std::string unchunkReq(std::string);
-		std::string decodeQm(const std::string&);
-		void		convertEnv();
-		void		createEnvironment();
-		void		setEnvVar(std::string, std::string);
-		bool		is_method_allowed();
-		bool		cgi_exist();
-		int			execute();
-		void		check_status_code();
+		CgiHandler& 		operator=(const CgiHandler&);
+		std::string			find_interpreter();
+		std::string 		getEnvVar(std::string &);
+		std::string 		unchunkReq(std::string &);
+		std::string 		decodeQm(const std::string&);
+		void				convertEnv();
+		void				createEnvironment();
+		void				setEnvVar(const std::string &, const std::string &);
+		bool				is_method_allowed();
+		bool				cgi_exist();
+		int					execute();
+		void				check_status_code();
+
 
 	public:		
 		CgiHandler( Server & s_obj,  Client & obj);
 		~CgiHandler();
-		void		cgi_run();
-
-
+		int		cgi_run();
 };
 
 #endif

@@ -4,8 +4,8 @@ import os
 import sys
 from urllib.parse import parse_qs
 
-print("Content-Type: text/html; charset=UTF-8")
-print()  # must be empty line
+print("Content-Type: text/html; charset=UTF-8\r\n")
+#print()  # must be empty line
 
 print("""
 <!DOCTYPE html>
