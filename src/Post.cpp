@@ -22,9 +22,18 @@ void	Post::create_response()
 {	
 	if (client_ref.is_cgi)
 	{
-		CgiHandler * CGI = new CgiHandler(server_ref, client_ref);
-		CGI->cgi_run();
-		delete CGI;
+		if (client_ref.statuc_code >= 200 && client_ref.statuc_code <= 600) return;
+		if (client_ref.cgi_run)
+		{
+			to_read_cgi();
+		}
+		else
+		{
+			CgiHandler * CGI = new CgiHandler(server_ref, client_ref);
+			CGI->cgi_run();
+			delete CGI;
+		}
+		if (client_ref.statuc_code < 200 || client_ref.statuc_code > 600) return;
 	}
 	if (client_ref.statuc_code >= 200 && client_ref.statuc_code <= 600) return;
 	path = abs_Path(client_ref.best_mach);

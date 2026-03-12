@@ -11,6 +11,7 @@
 #include <vector>
 #include <map>
 #include "../hpp/Client.hpp"
+#include "signal.h"
 
 class StringUtils 
 {
