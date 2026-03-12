@@ -293,35 +293,37 @@ int	CgiHandler::execute() {
 			written += static_cast<size_t>(w);
 		}
 	}
+	
 	close(client_ref.in_pipe[1]);
 	int status = 0;
-	char	buf[4096];
-	while (true)
-	{
-		if (waitpid(client_ref.cgi_pid, &status, WNOHANG) > 0){
-			break ;
-		}
-		if (time(NULL) - client_ref.timeOut >= 50)
-		{
-			kill(client_ref.cgi_pid, SIGKILL);
-			waitpid(client_ref.cgi_pid, &status, 0);
-			break;
-		}
-		ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
-		if (r > 0)
-			client_ref.cgibuf.append(buf, buf + r);
-		else if (r == 0)
-			break;
-		usleep(1000);
-	}
-	while (true)
-	{
-		ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
-		if (r <= 0) break;
-		client_ref.cgibuf.append(buf, buf + r);
-	}
-	close(client_ref.out_pipe[0]);
-	check_status_code(status);
+	waitpid(client_ref.cgi_pid, &status, WNOHANG);
+	// char	buf[4096];
+	// while (true)
+	// {
+	// 	if (waitpid(client_ref.cgi_pid, &status, WNOHANG) > 0){
+	// 		break ;
+	// 	}
+	// 	if (time(NULL) - client_ref.timeOut >= 50)
+	// 	{
+	// 		kill(client_ref.cgi_pid, SIGKILL);
+	// 		waitpid(client_ref.cgi_pid, &status, 0);
+	// 		break;
+	// 	}
+	// 	ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
+	// 	if (r > 0)
+	// 		client_ref.cgibuf.append(buf, buf + r);
+	// 	else if (r == 0)
+	// 		break;
+	// 	usleep(1000);
+	// }
+	// while (true)
+	// {
+	// 	ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
+	// 	if (r <= 0) break;
+	// 	client_ref.cgibuf.append(buf, buf + r);
+	// }
+	// close(client_ref.out_pipe[0]);
+	// check_status_code(status);
 	return 0;
 }
 
@@ -339,6 +341,7 @@ int	CgiHandler::cgi_run()
 	script = abs_Path(client_ref.best_mach);
 
 	execute();
+	client_ref.cgi_run = true;
 	std::cout << "CGI is done\nStatus code: " << client_ref.statuc_code << "\nDone after: " 
 		<< time(NULL) -  client_ref.timeOut << "s" << std::endl;
 	return 0;

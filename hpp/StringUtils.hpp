@@ -10,6 +10,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include "../hpp/Client.hpp"
 
 class StringUtils 
 {
@@ -47,6 +48,8 @@ class StringUtils
 		std::string					str_to_upper(const std::string &);
 		std::string					str_to_upper(std::string &);
 		size_t						parse_content_length(const std::string &);
+		void						check_status_code(int , Client & );
+
 };
 
 #endif

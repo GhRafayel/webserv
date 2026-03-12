@@ -48,7 +48,9 @@ class My_server : public StringUtils
 		void    	start_server();
 		void		poll_in(int);
 		void		poll_out(int);
-		bool		time_out(int);
+		void		time_out(int); // changed
+		void		cgi_time_out(int); // added
+		//void		check_status_code(int, Client &);
 };
 
 #endif

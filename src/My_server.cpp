@@ -149,6 +149,7 @@ void	My_server::remove_conection(int index)
 	close(_pollfds[index].fd);
 	_client.erase(_pollfds[index].fd);
 	_pollfds.erase(_pollfds.begin() + index);
+	std::cout << "remove_conection " << index << std::endl;
 }
 
 int	My_server::to_read(Client & obj)
@@ -232,41 +233,60 @@ void	My_server::poll_out(int index)
 	Response * response = get_class(s_ref, c_ref);
 	if (response)
 		response->send_response();
-	if (c_ref.end_request && c_ref.outbuf.empty())
+	if (!c_ref.cgi_run && c_ref.end_request && c_ref.outbuf.empty())
 		remove_conection(index);
 	delete response;
 }
 
+void	My_server::cgi_time_out(int index)
+{
+	//char									buf[4096];
+	int 									status = 0;
+	std::map<int, Client>::iterator it =	_client.find(_pollfds[index].fd);
+
+	if (waitpid(it->second.cgi_pid, &status, WNOHANG) > 0)
+		return ;
+	if (time(NULL) - it->second.timeOut >= 5)
+	{
+		kill(it->second.cgi_pid, SIGKILL);
+		waitpid(it->second.cgi_pid, &status, 0);
+		check_status_code(status, it->second);
+	}
+	// ssize_t r = read(it->second.out_pipe[0], buf, sizeof(buf));
+	// if (r > 0)
+	// 	it->second.cgibuf.append(buf, buf + r);
+	// else if (r == 0)
+	// {
+	// 	check_status_code(status, it->second);
+	// }
+}
 // TODO: remember for dom
-bool	My_server::time_out(int index)
+void	My_server::time_out(int index)
 {
 	std::time_t corrent_time = time(NULL);
 	std::map<int, Client>::iterator it = _client.find(_pollfds[index].fd);
 
-	if (it == _client.end()) return false;
+	if (it == _client.end()) return ;
 
-	if (corrent_time - it->second.timeOut > 15)
+	if (it->second.is_cgi)
+		cgi_time_out(index);
+	else if (corrent_time - it->second.timeOut > 15)
 	{
 		it->second.outbuf = "HTTP/1.0 408 Request Timeout\r\n"
 							"Content-Length: 0\r\n"
 							"Connection: close\r\n"
 							"\r\n" ;
 		it->second.statuc_code = 408;
-		return true;
 	}
-	it->second.timeOut = time(NULL);
-	return false;
+	//it->second.timeOut = time(NULL);
 }
-
-
 
 void    My_server::accept_loop()
 {
 	std::cout << "\nServer start ...\n";
-	size_t a = 0;
 	while (g_running && this->_pollfds.size())
 	{
-		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
+		int n = poll(_pollfds.data(), _pollfds.size(), 2000);
 			
 		size_t i = 0;
 		while (n > 0 && g_running && i < _pollfds.size())
@@ -275,35 +295,13 @@ void    My_server::accept_loop()
 			if (_pollfds[i].revents & POLLIN)
 			{
 				if (is_server_socket(_pollfds[i].fd))
-				{
 					to_connect(i);
-					break;
-				}	
 				else
-				{
-					if (a == 0)
-					{
-						a = i;
-						break;
-						//poll_in(i);
-					}
-					else
-					{
-						if (a != i)
-						{
-							poll_in(i);
-							break;
-						}
-							
-					}
-				}
-					
+					poll_in(i);
+				break;		
 			}
 			else if (_pollfds[i].revents & POLLOUT)
-			{
 				poll_out(i);
-				break;
-			}
 			i++;
 		}
 	}

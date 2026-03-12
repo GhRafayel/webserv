@@ -34,6 +34,7 @@ Response & Response::operator=(const Response & obj)
 
 void Response::send_response()
 {
+	if (client_ref.cgi_run) return ;
 	std::map<int, void (Response::*) (void)>::iterator it = func_map.find(client_ref.statuc_code);
 	if (it == func_map.end()) 
 		(this->*func_map[400])();
@@ -205,4 +206,19 @@ bool	Response::is_method_allowed()
 	if (l_method || s_method)
 		return true;
 	return false;
+}
+
+void	Response::to_read_cgi()	{
+	int status = 0;
+	char	buf[4096];
+	ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
+	if (r > 0)
+		client_ref.cgibuf.append(buf, buf + r);
+	else if (r == 0)
+	{
+		close(client_ref.out_pipe[0]);
+		waitpid(client_ref.cgi_pid, &status, 0);
+		check_status_code(status, client_ref);
+		client_ref.cgi_run = false;
+	}
 }

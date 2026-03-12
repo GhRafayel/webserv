@@ -24,6 +24,7 @@ class Response : public StringUtils
 		std::string			static_page();
 		bool				is_method_allowed();
 		void				create_header();
+		void				to_read_cgi(); // added
 		virtual void		create_response() = 0;
 		Response &			operator=(const Response &);
 	

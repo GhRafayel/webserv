@@ -334,3 +334,37 @@ std::string	StringUtils::str_to_upper(const std::string & src)
 	std::string temp_src = src;
 	return str_to_upper(temp_src);
 }
+
+void	StringUtils::check_status_code(int  status, Client & obj)
+{
+	if (WIFEXITED(status))
+	{
+		if (WEXITSTATUS(status) != 0) {
+			obj.statuc_code = 500;
+			obj.cgi_run = false;
+			close(obj.out_pipe[0]);
+			return;
+		} 
+	}
+	else if (WIFSIGNALED(status))
+	{
+		if (WTERMSIG(status) == SIGKILL) {
+			obj.statuc_code = 504;
+		}
+		else {
+			obj.statuc_code = 500;
+		}
+		close(obj.out_pipe[0]);
+		obj.cgi_run = false;
+		return;
+	}
+
+	if (obj.cgibuf.compare(0, 7, "Status:") == 0)
+	{
+		obj.statuc_code = std::atoi(obj.cgibuf.substr(7).c_str());
+		return ;
+	}
+	obj.statuc_code = 200;
+	obj.cgi_run = false;
+	close(obj.out_pipe[0]);
+}
