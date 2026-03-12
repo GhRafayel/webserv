@@ -258,10 +258,12 @@ bool	My_server::time_out(int index)
 	return false;
 }
 
+
+
 void    My_server::accept_loop()
 {
 	std::cout << "\nServer start ...\n";
-
+	size_t a = 0;
 	while (g_running && this->_pollfds.size())
 	{
 		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
@@ -278,10 +280,30 @@ void    My_server::accept_loop()
 					break;
 				}	
 				else
-					poll_in(i);
+				{
+					if (a == 0)
+					{
+						a = i;
+						break;
+						//poll_in(i);
+					}
+					else
+					{
+						if (a != i)
+						{
+							poll_in(i);
+							break;
+						}
+							
+					}
+				}
+					
 			}
 			else if (_pollfds[i].revents & POLLOUT)
+			{
 				poll_out(i);
+				break;
+			}
 			i++;
 		}
 	}

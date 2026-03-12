@@ -9,6 +9,10 @@
 class Client
 {		
 	public:
+		bool								cgi_run;
+		pid_t								cgi_pid;
+		int									out_pipe[2];
+		int									in_pipe[2];
 		std::time_t							timeOut;
 		int									best_location_index;
 		int 								server_conf_key;

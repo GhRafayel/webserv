@@ -236,11 +236,13 @@ std::vector<char*> CgiHandler::init_envp() {
 	out.push_back(NULL);
 	return out;
 }
-void CgiHandler::child_process(int* in, int* out, std::vector<char*>& argv, std::vector<char*>& envp) {
-		dup2(in[0], STDIN_FILENO);
-		dup2(out[1], STDOUT_FILENO);
 
-		close(in[0]), close(out[0]), close(in[1]), close(out[1]);
+void CgiHandler::child_process(std::vector<char*>& argv, std::vector<char*>& envp) {
+		dup2(client_ref.in_pipe[0], STDIN_FILENO);
+		dup2(client_ref.out_pipe[1], STDOUT_FILENO);
+
+		close(client_ref.in_pipe[0]), close(client_ref.out_pipe[0]);
+		close(client_ref.in_pipe[1]), close(client_ref.out_pipe[1]);
 
 		execve(argv[0], &argv[0], &envp[0]);
 		std::_Exit(1);
@@ -249,27 +251,30 @@ void CgiHandler::child_process(int* in, int* out, std::vector<char*>& argv, std:
 int	CgiHandler::execute() {
 	std::vector<char*> argv = init_argv();
 	std::vector<char*> envp = init_envp();
-	int in_pipe[2], out_pipe[2];
+	//int in_pipe[2], out_pipe[2];
 
-	if (pipe(in_pipe) == -1)
+	if (pipe(client_ref.in_pipe) == -1)
 		return (client_ref.statuc_code = 500, -1);
-	if (pipe(out_pipe) == -1)
+	if (pipe(client_ref.out_pipe) == -1)
 	{
-		close(in_pipe[0]), close(in_pipe[1]);
+		close(client_ref.in_pipe[0]), close(client_ref.in_pipe[1]);
 		return (client_ref.statuc_code = 500, -1);
 	}
 
-	pid_t	pid = fork();
-	if (pid < 0)
+	client_ref.cgi_pid = fork();
+	if (client_ref.cgi_pid < 0)
 	{
-		close(in_pipe[0]), close(in_pipe[1]), close(out_pipe[0]), close(out_pipe[1]);
+		close(client_ref.in_pipe[0]), close(client_ref.in_pipe[1]), close(client_ref.out_pipe[0]), close(client_ref.out_pipe[1]);
 		return (client_ref.statuc_code = 500, -1);
 	}
-	if (pid == 0)
-		child_process(in_pipe, out_pipe, argv, envp);
+	if (client_ref.cgi_pid == 0)
+		child_process(argv, envp);
 
-	close(in_pipe[0]), close(out_pipe[1]);
-	fcntl(out_pipe[0], F_SETFL, O_NONBLOCK);
+	close(client_ref.in_pipe[0]), close(client_ref.out_pipe[1]);
+
+	fcntl(client_ref.out_pipe[0], F_SETFL, O_NONBLOCK);
+	fcntl(client_ref.out_pipe[1], F_SETFL, O_NONBLOCK); // added
+	
 	std::string body;
 	if (client_ref.request.count("body"))
 		body = client_ref.request["body"];
@@ -283,41 +288,39 @@ int	CgiHandler::execute() {
 		size_t	written = 0;
 		while (written < body.size())
 		{
-			ssize_t	w = write(in_pipe[1], body.c_str() + written, body.size() - written);
+			ssize_t	w = write(client_ref.in_pipe[1], body.c_str() + written, body.size() - written);
 			if (w < 0) break;
 			written += static_cast<size_t>(w);
 		}
 	}
-	close(in_pipe[1]);
+	close(client_ref.in_pipe[1]);
 	int status = 0;
-	std::time_t timeout = time(NULL);
 	char	buf[4096];
 	while (true)
 	{
-		if (waitpid(pid, &status, WNOHANG) > 0){
+		if (waitpid(client_ref.cgi_pid, &status, WNOHANG) > 0){
 			break ;
 		}
-		if (time(NULL) - timeout >= 5)
+		if (time(NULL) - client_ref.timeOut >= 50)
 		{
-			kill(pid, SIGKILL);
-			waitpid(pid, &status, 0);
+			kill(client_ref.cgi_pid, SIGKILL);
+			waitpid(client_ref.cgi_pid, &status, 0);
 			break;
 		}
-		ssize_t r = read(out_pipe[0], buf, sizeof(buf));
+		ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
 		if (r > 0)
 			client_ref.cgibuf.append(buf, buf + r);
 		else if (r == 0)
 			break;
 		usleep(1000);
 	}
-
 	while (true)
 	{
-		ssize_t r = read(out_pipe[0], buf, sizeof(buf));
+		ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
 		if (r <= 0) break;
 		client_ref.cgibuf.append(buf, buf + r);
 	}
-	close(out_pipe[0]);
+	close(client_ref.out_pipe[0]);
 	check_status_code(status);
 	return 0;
 }
