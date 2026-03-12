@@ -17,8 +17,26 @@ void	CgiHandler::setEnvVar(const std::string & key, const std::string & val)
 {
 	_envMap.insert(std::make_pair(key, val));
 }
-void	CgiHandler::check_status_code()
+void	CgiHandler::check_status_code(int status)
 {
+	if (WIFEXITED(status))
+	{
+		if (WEXITSTATUS(status) != 0) {
+			client_ref.statuc_code = 500;
+			return;
+		} 
+	}
+	else if (WIFSIGNALED(status))
+	{
+		if (WTERMSIG(status) == SIGKILL) {
+			client_ref.statuc_code = 504;
+		}
+		else {
+			client_ref.statuc_code = 500;
+		}
+		return;
+	}
+
 	if (client_ref.cgibuf.compare(0, 7, "Status:") == 0)
 	{
 		client_ref.statuc_code = std::atoi(client_ref.cgibuf.substr(7).c_str());
@@ -203,23 +221,36 @@ void	CgiHandler::createEnvironment() {
 	convertEnv();
 }
 
-int	CgiHandler::execute() {
-	client_ref.cgibuf.clear();
-	std::string interp = find_interpreter();
-	if (interp.empty())
-		return (client_ref.statuc_code = 500, -1);
-	std::string script = abs_Path(client_ref.best_mach);
-	std::vector<char*> argv;
-	argv.push_back(const_cast<char*>(interp.c_str()));
-	argv.push_back(const_cast<char*>(script.c_str()));
-	argv.push_back(NULL);
-	std::vector<char*>envp;
-	for (size_t i = 0; i < _envMap.size(); i++)
-		envp.push_back(const_cast<char*>(_envVec[i].c_str()));
-	envp.push_back(NULL);
+std::vector<char*> CgiHandler::init_argv() {
+	std::vector<char*> out;
+	out.push_back(const_cast<char*>(interp.c_str()));
+	out.push_back(const_cast<char*>(script.c_str()));
+	out.push_back(NULL);
+	return out;
+}
 
-	int in_pipe[2];
-	int out_pipe[2];
+std::vector<char*> CgiHandler::init_envp() {
+	std::vector<char*> out;
+	for (size_t i = 0; i < _envMap.size(); i++)
+		out.push_back(const_cast<char*>(_envVec[i].c_str()));
+	out.push_back(NULL);
+	return out;
+}
+void CgiHandler::child_process(int* in, int* out, std::vector<char*>& argv, std::vector<char*>& envp) {
+		dup2(in[0], STDIN_FILENO);
+		dup2(out[1], STDOUT_FILENO);
+
+		close(in[0]), close(out[0]), close(in[1]), close(out[1]);
+
+		execve(argv[0], &argv[0], &envp[0]);
+		std::_Exit(1);
+}
+
+int	CgiHandler::execute() {
+	std::vector<char*> argv = init_argv();
+	std::vector<char*> envp = init_envp();
+	int in_pipe[2], out_pipe[2];
+
 	if (pipe(in_pipe) == -1)
 		return (client_ref.statuc_code = 500, -1);
 	if (pipe(out_pipe) == -1)
@@ -227,24 +258,16 @@ int	CgiHandler::execute() {
 		close(in_pipe[0]), close(in_pipe[1]);
 		return (client_ref.statuc_code = 500, -1);
 	}
+
 	pid_t	pid = fork();
 	if (pid < 0)
 	{
-		close(in_pipe[0]), close(in_pipe[1]);
-		close(out_pipe[0]), close(out_pipe[1]);
+		close(in_pipe[0]), close(in_pipe[1]), close(out_pipe[0]), close(out_pipe[1]);
 		return (client_ref.statuc_code = 500, -1);
 	}
 	if (pid == 0)
-	{
-		dup2(in_pipe[0], STDIN_FILENO);
-		dup2(out_pipe[1], STDOUT_FILENO);
+		child_process(in_pipe, out_pipe, argv, envp);
 
-		close(in_pipe[1]), close(out_pipe[0]);
-		close(in_pipe[0]), close(out_pipe[1]);
-
-		execve(argv[0], &argv[0], &envp[0]);
-		std::_Exit(1);
-	}
 	close(in_pipe[0]), close(out_pipe[1]);
 	fcntl(out_pipe[0], F_SETFL, O_NONBLOCK);
 	std::string body;
@@ -295,25 +318,7 @@ int	CgiHandler::execute() {
 		client_ref.cgibuf.append(buf, buf + r);
 	}
 	close(out_pipe[0]);
-
-	if (WIFEXITED(status))
-	{
-		if (WEXITSTATUS(status) != 0) {
-			client_ref.statuc_code = 500;
-			return 0;
-		} 
-	}
-	else if (WIFSIGNALED(status))
-	{
-		if (WTERMSIG(status) == SIGKILL) {
-			client_ref.statuc_code = 504;
-			return 0;
-		}
-		else {
-			client_ref.statuc_code = 500;
-		}
-	}
-	check_status_code();
+	check_status_code(status);
 	return 0;
 }
 
@@ -324,6 +329,12 @@ int	CgiHandler::cgi_run()
 	if (!cgi_exist())
 		return (client_ref.statuc_code = 404, 1);
 	createEnvironment();
+
+	interp = find_interpreter();
+	if (interp.empty())
+		return (client_ref.statuc_code = 500, 0);
+	script = abs_Path(client_ref.best_mach);
+
 	execute();
 	std::cout << "CGI is done\nStatus code: " << client_ref.statuc_code << "\nDone after: " 
 		<< time(NULL) -  client_ref.timeOut << "s" << std::endl;
