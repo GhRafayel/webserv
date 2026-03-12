@@ -237,6 +237,7 @@ void	My_server::poll_out(int index)
 	delete response;
 }
 
+// TODO: remember for dom
 bool	My_server::time_out(int index)
 {
 	std::time_t corrent_time = time(NULL);

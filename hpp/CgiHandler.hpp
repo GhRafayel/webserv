@@ -25,7 +25,7 @@ class CgiHandler : public StringUtils
 		std::map<std::string, std::string>	_envMap;
 		std::vector<std::string>			_envVec;
 		Server								&server_ref;
-		Client								&client_ref;				
+		Client								&client_ref;		
 
 		CgiHandler(const CgiHandler&);
 		std::string dirname_from_path(const std::string &path);
@@ -43,6 +43,7 @@ class CgiHandler : public StringUtils
 		bool				cgi_exist();
 		int					execute();
 		void				check_status_code();
+		bool				timout();
 
 
 	public:		

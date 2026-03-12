@@ -57,6 +57,7 @@ void	Response::init() {
 		func_map.insert(std::make_pair(405, &Response::fun_405));
 		func_map.insert(std::make_pair(423, &Response::fun_423));
 		func_map.insert(std::make_pair(500, &Response::fun_500));
+		func_map.insert(std::make_pair(504, &Response::fun_504));
 		func_map.insert(std::make_pair(200200, &Response::fun_200200));
 }
 
@@ -145,6 +146,12 @@ void	Response::fun_500(){
 	create_header();
 	client_ref.outbuf = strim.str();
 };
+
+void	Response::fun_504(){
+	strim << "HTTP/1.0 504 Gateway Timeout" << end_line;
+	create_header();
+	client_ref.outbuf = strim.str();
+}
 
 std::string	Response::static_page()
 {

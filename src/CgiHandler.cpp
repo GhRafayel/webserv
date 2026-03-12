@@ -242,7 +242,7 @@ int	CgiHandler::execute() {
 		close(in_pipe[0]), close(out_pipe[1]);
 
 		execve(argv[0], &argv[0], &envp[0]);
-		std::_Exit(127);
+		std::_Exit(1);
 	}
 	close(in_pipe[0]), close(out_pipe[1]);
 	std::string body;
@@ -264,7 +264,26 @@ int	CgiHandler::execute() {
 		}
 	}
 	close(in_pipe[1]);
+	int status = 0;
+	std::time_t timeout = time(NULL);
 	char	buf[4096];
+	while (true)
+	{
+		if (waitpid(pid, &status, WNOHANG) > 0){
+			break ;
+		}
+		if (time(NULL) - timeout >= 60)
+		{
+			kill(pid, SIGKILL);
+			waitpid(pid, &status, 0);
+			break;
+		}
+		ssize_t r = read(out_pipe[0], buf, sizeof(buf));
+		if (r <= 0) break;
+		client_ref.cgibuf.append(buf, buf + r);
+		usleep(1000);
+	}
+
 	while (true)
 	{
 		ssize_t r = read(out_pipe[0], buf, sizeof(buf));
@@ -272,8 +291,26 @@ int	CgiHandler::execute() {
 		client_ref.cgibuf.append(buf, buf + r);
 	}
 	close(out_pipe[0]);
-	int status = 0;
-	waitpid(pid, &status, 0);
+
+	// waitpid(pid, &status, 0);
+
+	if (WIFEXITED(status))
+	{
+		if (WEXITSTATUS(status) != 0) {
+			client_ref.statuc_code = 500;
+			return 0;
+		} 
+	}
+	else if (WIFSIGNALED(status))
+	{
+		if (WSTOPSIG(status) == SIGKILL) {
+			client_ref.statuc_code = 504;
+			return 0;
+		}
+		else {
+			client_ref.statuc_code = 500;
+		}
+	}
 	check_status_code();
 	return 0;
 }
@@ -286,22 +323,8 @@ int	CgiHandler::cgi_run()
 		return (client_ref.statuc_code = 404, 1);
 	createEnvironment();
 	execute();
+	std::cout << "CGI is done\nStatus code: " << client_ref.statuc_code << "\nDone after: " 
+		<< time(NULL) -  client_ref.timeOut << "s" << std::endl;
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

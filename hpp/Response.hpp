@@ -37,6 +37,7 @@ class Response : public StringUtils
 		void				fun_405();
 		void				fun_423();
 		void				fun_500();
+		void				fun_504();
 		
 		Response(Server &, Client &);
 		Response(const Response &);

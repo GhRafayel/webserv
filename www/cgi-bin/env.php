@@ -6,7 +6,6 @@ echo "Gateway Interface: 	" . $_SERVER['GATEWAY_INTERFACE'] . "\n";
 echo "Request Method:	 	" . $_SERVER['REQUEST_METHOD'] . "\n";
 echo "Server Protocol:   	" . $_SERVER['SERVER_PROTOCOL'] . "\n";
 echo "Script Filename:   	" . $_SERVER['SCRIPT_FILENAME'] . "\n";
-
 echo "GATEWAY_INTERFACE:	" . $_SERVER['GATEWAY_INTERFACE'] . "\n";
 echo "REQUEST_METHOD:		" . $_SERVER['REQUEST_METHOD'] . "\n";
 echo "QUERY_STRING:			" . $_SERVER['QUERY_STRING'] . "\n";
