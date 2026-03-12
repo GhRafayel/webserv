@@ -246,6 +246,7 @@ int	CgiHandler::execute() {
 		std::_Exit(1);
 	}
 	close(in_pipe[0]), close(out_pipe[1]);
+	fcntl(out_pipe[0], F_SETFL, O_NONBLOCK);
 	std::string body;
 	if (client_ref.request.count("body"))
 		body = client_ref.request["body"];
@@ -273,15 +274,17 @@ int	CgiHandler::execute() {
 		if (waitpid(pid, &status, WNOHANG) > 0){
 			break ;
 		}
-		if (time(NULL) - timeout >= 60)
+		if (time(NULL) - timeout >= 5)
 		{
 			kill(pid, SIGKILL);
 			waitpid(pid, &status, 0);
 			break;
 		}
 		ssize_t r = read(out_pipe[0], buf, sizeof(buf));
-		if (r <= 0) break;
-		client_ref.cgibuf.append(buf, buf + r);
+		if (r > 0)
+			client_ref.cgibuf.append(buf, buf + r);
+		else if (r == 0)
+			break;
 		usleep(1000);
 	}
 
@@ -302,7 +305,7 @@ int	CgiHandler::execute() {
 	}
 	else if (WIFSIGNALED(status))
 	{
-		if (WSTOPSIG(status) == SIGKILL) {
+		if (WTERMSIG(status) == SIGKILL) {
 			client_ref.statuc_code = 504;
 			return 0;
 		}
