@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <cstdlib>
 #include <sstream>
+#include <signal.h>
 
 CgiHandler::CgiHandler(Server & s_obj, Client & c_obj) : 
 	_envMap(), _envVec(),
@@ -291,8 +292,6 @@ int	CgiHandler::execute() {
 		client_ref.cgibuf.append(buf, buf + r);
 	}
 	close(out_pipe[0]);
-
-	// waitpid(pid, &status, 0);
 
 	if (WIFEXITED(status))
 	{

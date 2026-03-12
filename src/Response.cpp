@@ -144,6 +144,7 @@ void	Response::fun_500(){
 	body = get_file_content(abs_Path(server_ref._error_500));
 	strim << "HTTP/1.0 500 Internal Server Error" << end_line;
 	create_header();
+	strim << body << end_line;
 	client_ref.outbuf = strim.str();
 };
 
