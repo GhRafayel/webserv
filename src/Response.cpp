@@ -49,17 +49,18 @@ void Response::send_response()
 }
 
 void	Response::init() {
-		func_map.insert(std::make_pair(200, &Response::fun_200));
-		func_map.insert(std::make_pair(206, &Response::fun_206));
-		func_map.insert(std::make_pair(301, &Response::fun_301));
-		func_map.insert(std::make_pair(400, &Response::fun_400));
-		func_map.insert(std::make_pair(404, &Response::fun_404));
-		func_map.insert(std::make_pair(403, &Response::fun_403));
-		func_map.insert(std::make_pair(405, &Response::fun_405));
-		func_map.insert(std::make_pair(423, &Response::fun_423));
-		func_map.insert(std::make_pair(500, &Response::fun_500));
-		func_map.insert(std::make_pair(504, &Response::fun_504));
-		func_map.insert(std::make_pair(200200, &Response::fun_200200));
+		func_map.insert(std::make_pair(200, 	&Response::fun_200));
+		func_map.insert(std::make_pair(206, 	&Response::fun_206));
+		func_map.insert(std::make_pair(301, 	&Response::fun_301));
+		func_map.insert(std::make_pair(400, 	&Response::fun_400));
+		func_map.insert(std::make_pair(404, 	&Response::fun_404));
+		func_map.insert(std::make_pair(403, 	&Response::fun_403));
+		func_map.insert(std::make_pair(405, 	&Response::fun_405));
+		func_map.insert(std::make_pair(408, 	&Response::fun_408));
+		func_map.insert(std::make_pair(423, 	&Response::fun_423));
+		func_map.insert(std::make_pair(500, 	&Response::fun_500));
+		func_map.insert(std::make_pair(504, 	&Response::fun_504));
+		func_map.insert(std::make_pair(200200,	&Response::fun_200200));
 }
 
 void	Response::fun_200200(){
@@ -130,6 +131,12 @@ void	Response::fun_404(){
 
 void	Response::fun_405(){
 	strim << "HTTP/1.0 405 Not Allowed" << end_line;
+	create_header();
+	client_ref.outbuf = strim.str();
+};
+
+void	Response::fun_408(){
+	strim <<  "HTTP/1.0 408 Request Timeout\r\n";
 	create_header();
 	client_ref.outbuf = strim.str();
 };

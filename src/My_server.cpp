@@ -186,16 +186,6 @@ void	My_server::poll_in(int index)
 
 void	My_server::fun_405(Client & obj)
 {
-	if (obj.statuc_code == 408 || obj.statuc_code == 504)
-	{
-		ssize_t n = 1;
-		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), 0);
-		if (n > 0)
-		{
-			obj.outbuf.erase(0, n);
-		}
-		return ;
-	}
 	std::ostringstream strim;
 
 	strim << "HTTP/1.1 405 Not Allowed\r\n Content-Type: application/octet-stream\r\n"
@@ -264,13 +254,10 @@ void	My_server::time_out(int index)
 
 	if (it->second.is_cgi)
 		cgi_time_out(index);
-	else if (corrent_time - it->second.timeOut > 15)
+	else if (corrent_time - it->second.timeOut > 10)
 	{
-		it->second.outbuf = "HTTP/1.0 408 Request Timeout\r\n"
-							"Content-Length: 0\r\n"
-							"Connection: close\r\n"
-							"\r\n" ;
 		it->second.statuc_code = 408;
+		_pollfds[index].events |= POLLOUT;
 	}
 }
 
