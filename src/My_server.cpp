@@ -244,7 +244,7 @@ void	My_server::cgi_time_out(int index)
 		check_status_code(status, it->second);
 	}
 }
-// TODO: remember for dom
+
 void	My_server::time_out(int index)
 {
 	std::time_t corrent_time = time(NULL);

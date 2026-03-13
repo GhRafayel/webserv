@@ -362,6 +362,7 @@ void	StringUtils::check_status_code(int  status, Client & obj)
 	if (obj.cgibuf.compare(0, 7, "Status:") == 0)
 	{
 		obj.statuc_code = std::atoi(obj.cgibuf.substr(7).c_str());
+		close(obj.out_pipe[0]);
 		return ;
 	}
 	obj.statuc_code = 200;
