@@ -1,6 +1,8 @@
 #ifndef MY_SERVER_HPP
 #define MY_SERVER_HPP
 
+#define TIMEOUT 15
+
 #include "StringUtils.hpp"
 #include "ConfigPars.hpp"
 #include "Request.hpp"
@@ -35,7 +37,7 @@ class My_server : public StringUtils
 		void	initConfig();
 		void	create_server(const std::map<int, Server>::iterator &);
 		void	accept_loop();
-		void	remove_conection(int);
+		void	remove_connection(int);
 		int		to_read(Client &);
 		pollfd	create_pollfd(int);
 	public:
@@ -48,9 +50,8 @@ class My_server : public StringUtils
 		void    	start_server();
 		void		poll_in(int);
 		void		poll_out(int);
-		void		time_out(int); // changed
-		void		cgi_time_out(int); // added
-		//void		check_status_code(int, Client &);
+		void		time_out(int);
+		void		cgi_time_out(int);
 };
 
 #endif

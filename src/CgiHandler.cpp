@@ -22,27 +22,27 @@ void	CgiHandler::check_status_code(int status)
 	if (WIFEXITED(status))
 	{
 		if (WEXITSTATUS(status) != 0) {
-			client_ref.statuc_code = 500;
+			client_ref.status_code = 500;
 			return;
 		} 
 	}
 	else if (WIFSIGNALED(status))
 	{
 		if (WTERMSIG(status) == SIGKILL) {
-			client_ref.statuc_code = 504;
+			client_ref.status_code = 504;
 		}
 		else {
-			client_ref.statuc_code = 500;
+			client_ref.status_code = 500;
 		}
 		return;
 	}
 
 	if (client_ref.cgibuf.compare(0, 7, "Status:") == 0)
 	{
-		client_ref.statuc_code = std::atoi(client_ref.cgibuf.substr(7).c_str());
+		client_ref.status_code = std::atoi(client_ref.cgibuf.substr(7).c_str());
 		return ;
 	}
-	client_ref.statuc_code = 200;
+	client_ref.status_code = 200;
 }
 
 std::string CgiHandler::dirname_from_path(const std::string & path)
@@ -168,7 +168,7 @@ std::string	CgiHandler::unchunkReq(std::string & body)
 }
 
 bool	CgiHandler::cgi_exist() {
-	std::string script = abs_Path(client_ref.best_mach);
+	std::string script = abs_Path(client_ref.best_match);
 	if (!exists(script) || client_ref.cgi_type.empty() || find_interpreter().empty()) 
 		return false;
 	return true;
@@ -189,9 +189,9 @@ void	CgiHandler::createEnvironment() {
 	setEnvVar("SERVER_SOFTWARE", "webserv/1.0");
 	setEnvVar("SERVER_NAME", server_ref._server_name);
 	setEnvVar("SERVER_PORT", int_to_string(server_ref._port));
-	setEnvVar("DOCUMENT_ROOT", dirname_from_path(abs_Path(client_ref.best_mach)));
-	setEnvVar("SCRIPT_NAME", "/" + basename_from_path(client_ref.best_mach));
-	setEnvVar("SCRIPT_FILENAME", abs_Path(client_ref.best_mach));
+	setEnvVar("DOCUMENT_ROOT", dirname_from_path(abs_Path(client_ref.best_match)));
+	setEnvVar("SCRIPT_NAME", "/" + basename_from_path(client_ref.best_match));
+	setEnvVar("SCRIPT_FILENAME", abs_Path(client_ref.best_match));
 	setEnvVar("PATH_INFO", "");
 	setEnvVar("REMOTE_ADDR", client_ref.request.count("remote_addr") ? client_ref.request["remote_addr"] : "127.0.0.1");
 	
@@ -251,11 +251,11 @@ int	CgiHandler::execute() {
 	std::vector<char*> envp = init_envp();
 
 	if (pipe(client_ref.in_pipe) == -1)
-		return (client_ref.statuc_code = 500, -1);
+		return (client_ref.status_code = 500, -1);
 	if (pipe(client_ref.out_pipe) == -1)
 	{
 		close(client_ref.in_pipe[0]), close(client_ref.in_pipe[1]);
-		return (client_ref.statuc_code = 500, -1);
+		return (client_ref.status_code = 500, -1);
 	}
 
 	client_ref.cgi_pid = fork();
@@ -263,7 +263,7 @@ int	CgiHandler::execute() {
 	{
 		close(client_ref.in_pipe[0]), close(client_ref.in_pipe[1]);
 		close(client_ref.out_pipe[0]), close(client_ref.out_pipe[1]);
-		return (client_ref.statuc_code = 500, -1);
+		return (client_ref.status_code = 500, -1);
 	}
 	if (client_ref.cgi_pid == 0)
 		child_process(argv, envp);
@@ -300,20 +300,18 @@ int	CgiHandler::execute() {
 int	CgiHandler::cgi_run()
 {
 	if (!is_method_allowed())
-		return (client_ref.statuc_code = 405, 1);
+		return (client_ref.status_code = 405, 1);
 	if (!cgi_exist())
-		return (client_ref.statuc_code = 404, 1);
+		return (client_ref.status_code = 404, 1);
 	createEnvironment();
 
 	interp = find_interpreter();
 	if (interp.empty())
-		return (client_ref.statuc_code = 500, 0);
-	script = abs_Path(client_ref.best_mach);
+		return (client_ref.status_code = 500, 0);
+	script = abs_Path(client_ref.best_match);
 
 	execute();
 	client_ref.cgi_run = true;
-	std::cout << "CGI is done\nStatus code: " << client_ref.statuc_code << "\nDone after: " 
-		<< time(NULL) -  client_ref.timeOut << "s" << std::endl;
 	return 0;
 }
 

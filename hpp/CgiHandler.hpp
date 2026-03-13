@@ -46,9 +46,7 @@ class CgiHandler : public StringUtils
 		bool				cgi_exist();
 		int					execute();
 		void				check_status_code(int);
-		// bool				timout();
 
-		// execute helpers	
 		std::vector<char*>	init_argv();
 		std::vector<char*>	init_envp();
 		void				child_process(std::vector<char*>&, std::vector<char*>&);

@@ -17,7 +17,7 @@ class Client
 		int									best_location_index;
 		int 								server_conf_key;
 		int									fd;
-		int									statuc_code;
+		int									status_code;
 		bool								is_dir;
 		bool								is_cgi;
 		bool								end_request;
@@ -26,7 +26,7 @@ class Client
 		std::string							outbuf;
 		std::string							cgibuf;
 		std::string							cgi_type;
-		std::string							best_mach;
+		std::string							best_match;
 		std::string							method;
 		std::map<std::string, std::string>	request;
 		

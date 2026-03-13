@@ -25,7 +25,7 @@ class ConfigPars : public StringUtils
 		std::string							_body_max_size;
 		std::string 						_error_404;
 		std::string 						_error_500;
-		std::string							_error_massage;
+		std::string							_error_message;
 		std::map<std::string, bool> 		_methods;
 		std::map<std::string, void (ConfigPars::*) (void)>	func_map;
 

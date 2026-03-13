@@ -35,7 +35,7 @@ Response & Response::operator=(const Response & obj)
 void Response::send_response()
 {
 	if (client_ref.cgi_run) return ;
-	std::map<int, void (Response::*) (void)>::iterator it = func_map.find(client_ref.statuc_code);
+	std::map<int, void (Response::*) (void)>::iterator it = func_map.find(client_ref.status_code);
 	if (it == func_map.end()) 
 		(this->*func_map[400])();
 	else
@@ -89,7 +89,7 @@ void	Response::fun_200() {
 		ext = ".html";
 	}
 	else
-		body = get_file_content(abs_Path(client_ref.best_mach));
+		body = get_file_content(abs_Path(client_ref.best_match));
 	strim << "HTTP/1.0 200 ok" << end_line;
 	create_header();
 	strim << body << end_line;
@@ -101,14 +101,14 @@ void	Response::fun_206(){
 };
 
 void	Response::fun_301() {
-	strim << "HTTP/1.0 " << int_to_string(client_ref.statuc_code) << " Moved Permanently" << end_line;
-	strim << "Location: "  << client_ref.best_mach << end_line;
+	strim << "HTTP/1.0 " << int_to_string(client_ref.status_code) << " Moved Permanently" << end_line;
+	strim << "Location: "  << client_ref.best_match << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_400(){
-	strim <<  "HTTP/1.0 400 Bed Request" << end_line;
+	strim <<  "HTTP/1.0 400 Bad Request" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
@@ -121,8 +121,8 @@ void	Response::fun_403(){
 
 void	Response::fun_404(){
 	ext = ".html";
-	client_ref.best_mach = abs_Path(server_ref._error_404);
-	body = get_file_content(client_ref.best_mach);
+	client_ref.best_match = abs_Path(server_ref._error_404);
+	body = get_file_content(client_ref.best_match);
 	strim << "HTTP/1.0 404 Not Found" << end_line;
 	create_header();
 	strim << body << end_line;
@@ -195,11 +195,11 @@ std::string	Response::static_page()
 
 void	Response::create_header()
 {
-	strim << get_my_taype(ext) << end_line;
-	strim << "Content_Length: " << body.size() << end_line;
+	strim << get_my_type(ext) << end_line;
+	strim << "Content-Length: " << body.size() << end_line;
 	strim << "Server: " << server_ref._server_name << " " << end_line;
-	strim << "Data: " << get_http_date() << end_line;
-	strim << "Conection:: close" << end_line << end_line;
+	strim << "Date: " << get_http_date() << end_line;
+	strim << "Connection: close" << end_line << end_line;
 }
 
 bool	Response::is_method_allowed()

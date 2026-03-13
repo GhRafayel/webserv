@@ -6,7 +6,7 @@ Client::Client() : cgi_run(false), cgi_pid(0),
 	best_location_index(-1),
 	server_conf_key(-1),
 	fd(-1),
-	statuc_code(-1),
+	status_code(-1),
 	is_dir(false),
 	is_cgi(false),
 	end_request(false)
@@ -26,7 +26,6 @@ Client::Client(const Client & obj)
 	this->out_pipe[1]  =		obj.out_pipe[1];
 	this->in_pipe[0]  =		obj.in_pipe[0];
 	this->in_pipe[1]  =		obj.in_pipe[1];
-	//////////////////////////////////////////
 	this->best_location_index = obj.best_location_index;
 	this->fd = 					obj.fd;
 	this->end_request = 		obj.end_request;
@@ -34,7 +33,7 @@ Client::Client(const Client & obj)
 	this->outbuf = 				obj.outbuf;
 	this->cgibuf = 				obj.cgibuf;
 	this->server_conf_key = 	obj.server_conf_key;
-	this->statuc_code = 		obj.statuc_code;
+	this->status_code = 		obj.status_code;
 	this->timeOut = 			obj.timeOut;
 	this->request = 			obj.request;
 	this->is_dir = 				obj.is_dir;
@@ -47,7 +46,7 @@ Client::Client(int FD) : cgi_run(false), cgi_pid(0),
 	best_location_index(-1),
 	server_conf_key(-1),
 	fd(FD),
-	statuc_code(0),
+	status_code(0),
 	is_dir(false),
 	is_cgi(false),
 	end_request(false), 
@@ -71,11 +70,10 @@ Client & Client::operator = (const Client & obj)
 		this->out_pipe[1]  =		obj.out_pipe[1];
 		this->in_pipe[0]  =			obj.in_pipe[0];
 		this->in_pipe[1]  =			obj.in_pipe[1];
-		//////////////////////////////////////////
 		this->best_location_index = obj.best_location_index;
 		this->server_conf_key = 	obj.server_conf_key;
 		this->fd = 					obj.fd;
-		this->statuc_code = 		obj.statuc_code;
+		this->status_code = 		obj.status_code;
 		this->end_request = 		obj.end_request;
 		this->buffer = 				obj.buffer;
 		this->cgibuf = 				obj.cgibuf;

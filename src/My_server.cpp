@@ -17,7 +17,7 @@ My_server::My_server() : StringUtils(),
 	_conf_file_path(abs_Path("conf/default.conf"))
 {
 	if(_conf_file_path.empty())
-		throw std::runtime_error("Configuration file dose not exist or worng path!");
+		throw std::runtime_error("Configuration file does not exist or wrong path!");
 }
 
 My_server::My_server(const std::string & conf_file_path) :
@@ -30,7 +30,7 @@ My_server::My_server(const std::string & conf_file_path) :
 	
 {
 	if(_conf_file_path.empty())
-		throw std::runtime_error("Configuration file dose not exist or worng path!");
+		throw std::runtime_error("Configuration file does not exist or wrong path!");
 }
 
 My_server::My_server(const My_server & obj) :StringUtils(),
@@ -146,12 +146,12 @@ bool	My_server::is_server_socket(int fd)
 	return false;
 }
 
-void	My_server::remove_conection(int index)
+void	My_server::remove_connection(int index)
 {
 	close(_pollfds[index].fd);
 	_client.erase(_pollfds[index].fd);
 	_pollfds.erase(_pollfds.begin() + index);
-	std::cout << "remove_conection " << index << std::endl;
+	std::cout << "remove_connection " << index << std::endl;
 }
 
 int	My_server::to_read(Client & obj)
@@ -175,7 +175,7 @@ void	My_server::poll_in(int index)
 	
 	if (to_read(c_ref) == 0)
 	{
-		remove_conection(index);
+		remove_connection(index);
 		return;
 	}
 	if (!c_ref.end_request)	return;
@@ -226,7 +226,7 @@ void	My_server::poll_out(int index)
 	if (response)
 		response->send_response();
 	if (!c_ref.cgi_run && c_ref.end_request && c_ref.outbuf.empty())
-		remove_conection(index);
+		remove_connection(index);
 	delete response;
 }
 
@@ -237,7 +237,7 @@ void	My_server::cgi_time_out(int index)
 
 	if (waitpid(it->second.cgi_pid, &status, WNOHANG) > 0)
 		return ;
-	if (time(NULL) - it->second.timeOut >= 15)
+	if (time(NULL) - it->second.timeOut >= TIMEOUT)
 	{
 		kill(it->second.cgi_pid, SIGKILL);
 		waitpid(it->second.cgi_pid, &status, 0);
@@ -247,16 +247,16 @@ void	My_server::cgi_time_out(int index)
 
 void	My_server::time_out(int index)
 {
-	std::time_t corrent_time = time(NULL);
+	std::time_t current_time = time(NULL);
 	std::map<int, Client>::iterator it = _client.find(_pollfds[index].fd);
 
 	if (it == _client.end()) return ;
 
 	if (it->second.is_cgi)
 		cgi_time_out(index);
-	else if (corrent_time - it->second.timeOut > 10)
+	else if (current_time - it->second.timeOut > 10)
 	{
-		it->second.statuc_code = 408;
+		it->second.status_code = 408;
 		_pollfds[index].events |= POLLOUT;
 	}
 }
@@ -266,7 +266,7 @@ void    My_server::accept_loop()
 	std::cout << "\nServer start ...\n";
 	while (g_running && this->_pollfds.size())
 	{
-		int n = poll(_pollfds.data(), _pollfds.size(), 2000);
+		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
 			
 		size_t i = 0;
 		while (n > 0 && g_running && i < _pollfds.size())

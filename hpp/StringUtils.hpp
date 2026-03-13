@@ -18,7 +18,7 @@ class StringUtils
 	private:
 		StringUtils(const StringUtils &);
 		StringUtils & operator = (const StringUtils &);
-		std::map<std::string, std::string>	_my_tayps;
+		std::map<std::string, std::string>	_my_types;
 	public:
 		~StringUtils();
 		StringUtils();
@@ -30,19 +30,19 @@ class StringUtils
 		std::string                 trim(std::string &, const std::string &);
 		std::string					trim (const std::string &, const std::string &);
 		std::string					abs_Path(const std::string &);
-		std::string					chang_char(std::string &, const char, const char);
+		std::string					change_char(std::string &, const char, const char);
 		std::vector<std::string>	split(std::string &, const std::string &, bool);
 		std::string					get_file_content(const std::string & );
 		std::string					get_file_content(const std::string & , size_t , size_t);
 		std::string 				int_to_string(int);
-		std::string					get_my_taype(const std::string &);
+		std::string					get_my_type(const std::string &);
 		bool						is_directory(const std::string &);
 		bool						readable(const std::string &);
 		bool						writable(const std::string &);
 		bool						executable(const std::string &);
 		bool						exists(const std::string &);
 		bool						is_cgi(std::string & );
-		std::vector<std::string>	Range_pars(const std::string &);
+		std::vector<std::string>	range_parse(const std::string &);
 		std::string 				get_http_date();
 		std::string					str_to_lower(std::string &);
 		std::string					str_to_lower(const std::string &);

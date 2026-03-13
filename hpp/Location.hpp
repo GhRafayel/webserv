@@ -30,7 +30,7 @@ class Location : public StringUtils
 		std::string							_root;
 		std::string							_index;
 		std::string							_location;
-		std::string							_error_massage;
+		std::string							_error_message;
 		std::vector<std::string>			_return;
 		std::map<std::string, std::string>	_cgi;
 		int									_max_body_size;

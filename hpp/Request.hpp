@@ -15,8 +15,8 @@ class Request : public StringUtils
 		Server		&server_ref;
 		Client		&client_ref;
 		
-		bool		pars_request();
-		void		get_best_mach(std::string &);
+		bool		parse_request();
+		void		get_best_match(std::string &);
 		void		find_cgi();
 		
 	public:
