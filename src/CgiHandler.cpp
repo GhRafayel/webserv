@@ -240,7 +240,6 @@ std::vector<char*> CgiHandler::init_envp() {
 void CgiHandler::child_process(std::vector<char*>& argv, std::vector<char*>& envp) {
 		dup2(client_ref.in_pipe[0], STDIN_FILENO);
 		dup2(client_ref.out_pipe[1], STDOUT_FILENO);
-		close(client_ref.fd);
 		close(client_ref.in_pipe[0]), close(client_ref.out_pipe[0]);
 		close(client_ref.in_pipe[1]), close(client_ref.out_pipe[1]);
 		execve(argv[0], &argv[0], &envp[0]);
@@ -270,7 +269,7 @@ int	CgiHandler::execute() {
 		child_process(argv, envp);
 
 	fcntl(client_ref.out_pipe[0], F_SETFL, O_NONBLOCK);
-	fcntl(client_ref.out_pipe[1], F_SETFL, O_NONBLOCK); // added
+	fcntl(client_ref.out_pipe[1], F_SETFL, O_NONBLOCK);
 	close(client_ref.in_pipe[0]), close(client_ref.out_pipe[1]);
 
 	std::string body;
