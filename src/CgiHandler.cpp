@@ -240,10 +240,9 @@ std::vector<char*> CgiHandler::init_envp() {
 void CgiHandler::child_process(std::vector<char*>& argv, std::vector<char*>& envp) {
 		dup2(client_ref.in_pipe[0], STDIN_FILENO);
 		dup2(client_ref.out_pipe[1], STDOUT_FILENO);
-
+		close(client_ref.fd);
 		close(client_ref.in_pipe[0]), close(client_ref.out_pipe[0]);
 		close(client_ref.in_pipe[1]), close(client_ref.out_pipe[1]);
-
 		execve(argv[0], &argv[0], &envp[0]);
 		std::_Exit(1);
 }
@@ -251,7 +250,6 @@ void CgiHandler::child_process(std::vector<char*>& argv, std::vector<char*>& env
 int	CgiHandler::execute() {
 	std::vector<char*> argv = init_argv();
 	std::vector<char*> envp = init_envp();
-	//int in_pipe[2], out_pipe[2];
 
 	if (pipe(client_ref.in_pipe) == -1)
 		return (client_ref.statuc_code = 500, -1);
@@ -264,17 +262,17 @@ int	CgiHandler::execute() {
 	client_ref.cgi_pid = fork();
 	if (client_ref.cgi_pid < 0)
 	{
-		close(client_ref.in_pipe[0]), close(client_ref.in_pipe[1]), close(client_ref.out_pipe[0]), close(client_ref.out_pipe[1]);
+		close(client_ref.in_pipe[0]), close(client_ref.in_pipe[1]);
+		close(client_ref.out_pipe[0]), close(client_ref.out_pipe[1]);
 		return (client_ref.statuc_code = 500, -1);
 	}
 	if (client_ref.cgi_pid == 0)
 		child_process(argv, envp);
 
-	close(client_ref.in_pipe[0]), close(client_ref.out_pipe[1]);
-
 	fcntl(client_ref.out_pipe[0], F_SETFL, O_NONBLOCK);
 	fcntl(client_ref.out_pipe[1], F_SETFL, O_NONBLOCK); // added
-	
+	close(client_ref.in_pipe[0]), close(client_ref.out_pipe[1]);
+
 	std::string body;
 	if (client_ref.request.count("body"))
 		body = client_ref.request["body"];
@@ -297,33 +295,6 @@ int	CgiHandler::execute() {
 	close(client_ref.in_pipe[1]);
 	int status = 0;
 	waitpid(client_ref.cgi_pid, &status, WNOHANG);
-	// char	buf[4096];
-	// while (true)
-	// {
-	// 	if (waitpid(client_ref.cgi_pid, &status, WNOHANG) > 0){
-	// 		break ;
-	// 	}
-	// 	if (time(NULL) - client_ref.timeOut >= 50)
-	// 	{
-	// 		kill(client_ref.cgi_pid, SIGKILL);
-	// 		waitpid(client_ref.cgi_pid, &status, 0);
-	// 		break;
-	// 	}
-	// 	ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
-	// 	if (r > 0)
-	// 		client_ref.cgibuf.append(buf, buf + r);
-	// 	else if (r == 0)
-	// 		break;
-	// 	usleep(1000);
-	// }
-	// while (true)
-	// {
-	// 	ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
-	// 	if (r <= 0) break;
-	// 	client_ref.cgibuf.append(buf, buf + r);
-	// }
-	// close(client_ref.out_pipe[0]);
-	// check_status_code(status);
 	return 0;
 }
 

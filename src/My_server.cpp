@@ -94,6 +94,7 @@ void	My_server::initConfig()
 	for (size_t i = 0; i < config.servers.size(); i++)
 	{
 		int fd = socket(AF_INET, SOCK_STREAM, 0);
+		fcntl(fd, F_SETFD, FD_CLOEXEC);
 
 		if (fd < 0)
 			throw std::runtime_error("socket failed\n");
@@ -119,6 +120,7 @@ void	My_server::create_server(const std::map<int, Server>::iterator & it)
 void     My_server::to_connect(int index)
 {
 	int fd = accept(_pollfds[index].fd, NULL, NULL);
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
 	if (fd >= 0)
 	{
 		if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
@@ -240,25 +242,17 @@ void	My_server::poll_out(int index)
 
 void	My_server::cgi_time_out(int index)
 {
-	//char									buf[4096];
 	int 									status = 0;
 	std::map<int, Client>::iterator it =	_client.find(_pollfds[index].fd);
 
 	if (waitpid(it->second.cgi_pid, &status, WNOHANG) > 0)
 		return ;
-	if (time(NULL) - it->second.timeOut >= 5)
+	if (time(NULL) - it->second.timeOut >= 15)
 	{
 		kill(it->second.cgi_pid, SIGKILL);
 		waitpid(it->second.cgi_pid, &status, 0);
 		check_status_code(status, it->second);
 	}
-	// ssize_t r = read(it->second.out_pipe[0], buf, sizeof(buf));
-	// if (r > 0)
-	// 	it->second.cgibuf.append(buf, buf + r);
-	// else if (r == 0)
-	// {
-	// 	check_status_code(status, it->second);
-	// }
 }
 // TODO: remember for dom
 void	My_server::time_out(int index)
@@ -278,7 +272,6 @@ void	My_server::time_out(int index)
 							"\r\n" ;
 		it->second.statuc_code = 408;
 	}
-	//it->second.timeOut = time(NULL);
 }
 
 void    My_server::accept_loop()

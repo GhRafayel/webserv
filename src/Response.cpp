@@ -216,7 +216,6 @@ void	Response::to_read_cgi()	{
 		client_ref.cgibuf.append(buf, buf + r);
 	else if (r == 0)
 	{
-		close(client_ref.out_pipe[0]);
 		waitpid(client_ref.cgi_pid, &status, 0);
 		check_status_code(status, client_ref);
 		client_ref.cgi_run = false;
