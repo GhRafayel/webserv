@@ -17,7 +17,7 @@ My_server::My_server() : StringUtils(),
 	_conf_file_path(abs_Path("conf/default.conf"))
 {
 	if(_conf_file_path.empty())
-		throw std::runtime_error("Configuration file dose not exist or worng path!");
+		throw std::runtime_error("Configuration file does not exist or wrong path!");
 }
 
 My_server::My_server(const std::string & conf_file_path) :
@@ -30,7 +30,7 @@ My_server::My_server(const std::string & conf_file_path) :
 	
 {
 	if(_conf_file_path.empty())
-		throw std::runtime_error("Configuration file dose not exist or worng path!");
+		throw std::runtime_error("Configuration file does not exist or wrong path!");
 }
 
 My_server::My_server(const My_server & obj) :StringUtils(),
@@ -94,6 +94,7 @@ void	My_server::initConfig()
 	for (size_t i = 0; i < config.servers.size(); i++)
 	{
 		int fd = socket(AF_INET, SOCK_STREAM, 0);
+		fcntl(fd, F_SETFD, FD_CLOEXEC);
 
 		if (fd < 0)
 			throw std::runtime_error("socket failed\n");
@@ -119,6 +120,7 @@ void	My_server::create_server(const std::map<int, Server>::iterator & it)
 void     My_server::to_connect(int index)
 {
 	int fd = accept(_pollfds[index].fd, NULL, NULL);
+	fcntl(fd, F_SETFD, FD_CLOEXEC);
 	if (fd >= 0)
 	{
 		if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
@@ -144,11 +146,12 @@ bool	My_server::is_server_socket(int fd)
 	return false;
 }
 
-void	My_server::remove_conection(int index)
+void	My_server::remove_connection(int index)
 {
 	close(_pollfds[index].fd);
 	_client.erase(_pollfds[index].fd);
 	_pollfds.erase(_pollfds.begin() + index);
+	std::cout << "remove_connection " << index << std::endl;
 }
 
 int	My_server::to_read(Client & obj)
@@ -172,7 +175,7 @@ void	My_server::poll_in(int index)
 	
 	if (to_read(c_ref) == 0)
 	{
-		remove_conection(index);
+		remove_connection(index);
 		return;
 	}
 	if (!c_ref.end_request)	return;
@@ -183,16 +186,6 @@ void	My_server::poll_in(int index)
 
 void	My_server::fun_405(Client & obj)
 {
-	if (obj.statuc_code == 408 || obj.statuc_code == 504)
-	{
-		ssize_t n = 1;
-		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), 0);
-		if (n > 0)
-		{
-			obj.outbuf.erase(0, n);
-		}
-		return ;
-	}
 	std::ostringstream strim;
 
 	strim << "HTTP/1.1 405 Not Allowed\r\n Content-Type: application/octet-stream\r\n"
@@ -232,36 +225,45 @@ void	My_server::poll_out(int index)
 	Response * response = get_class(s_ref, c_ref);
 	if (response)
 		response->send_response();
-	if (c_ref.end_request && c_ref.outbuf.empty())
-		remove_conection(index);
+	if (!c_ref.cgi_run && c_ref.end_request && c_ref.outbuf.empty())
+		remove_connection(index);
 	delete response;
 }
 
-// TODO: remember for dom
-bool	My_server::time_out(int index)
+void	My_server::cgi_time_out(int index)
 {
-	std::time_t corrent_time = time(NULL);
+	int 									status = 0;
+	std::map<int, Client>::iterator it =	_client.find(_pollfds[index].fd);
+
+	if (waitpid(it->second.cgi_pid, &status, WNOHANG) > 0)
+		return ;
+	if (time(NULL) - it->second.timeOut >= TIMEOUT)
+	{
+		kill(it->second.cgi_pid, SIGKILL);
+		waitpid(it->second.cgi_pid, &status, 0);
+		check_status_code(status, it->second);
+	}
+}
+
+void	My_server::time_out(int index)
+{
+	std::time_t current_time = time(NULL);
 	std::map<int, Client>::iterator it = _client.find(_pollfds[index].fd);
 
-	if (it == _client.end()) return false;
+	if (it == _client.end()) return ;
 
-	if (corrent_time - it->second.timeOut > 15)
+	if (it->second.is_cgi)
+		cgi_time_out(index);
+	else if (current_time - it->second.timeOut > 10)
 	{
-		it->second.outbuf = "HTTP/1.0 408 Request Timeout\r\n"
-							"Content-Length: 0\r\n"
-							"Connection: close\r\n"
-							"\r\n" ;
-		it->second.statuc_code = 408;
-		return true;
+		it->second.status_code = 408;
+		_pollfds[index].events |= POLLOUT;
 	}
-	it->second.timeOut = time(NULL);
-	return false;
 }
 
 void    My_server::accept_loop()
 {
 	std::cout << "\nServer start ...\n";
-
 	while (g_running && this->_pollfds.size())
 	{
 		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
@@ -273,12 +275,10 @@ void    My_server::accept_loop()
 			if (_pollfds[i].revents & POLLIN)
 			{
 				if (is_server_socket(_pollfds[i].fd))
-				{
 					to_connect(i);
-					break;
-				}	
 				else
 					poll_in(i);
+				break;		
 			}
 			else if (_pollfds[i].revents & POLLOUT)
 				poll_out(i);

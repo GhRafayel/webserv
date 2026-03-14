@@ -2,7 +2,7 @@
 
 StringUtils::~StringUtils() {}
 
-StringUtils::StringUtils() : _my_tayps() {
+StringUtils::StringUtils() : _my_types() {
 	init();
 }
 
@@ -62,7 +62,7 @@ void	StringUtils::init()
 			{
 				std::string key = trim(buffer.substr(post, buffer.length()), " ");
 				std::string value = trim(buffer.substr(0, post), " ");
-				_my_tayps.insert(std::make_pair(key, value));
+				_my_types.insert(std::make_pair(key, value));
 			}
 		}
 	}
@@ -72,14 +72,14 @@ void	StringUtils::init()
 	}
 }
 
-std::string	StringUtils::get_my_taype(const std::string & file_name)
+std::string	StringUtils::get_my_type(const std::string & file_name)
 {
 	size_t pos = file_name.rfind('.');
 
 	if (pos == std::string::npos)
 		return "Content-Type: application/octet-stream; charset=UTF-8";
-	std::map<std::string, std::string>::iterator it = _my_tayps.find(file_name.substr(pos + 1));
-	if (it == _my_tayps.end())
+	std::map<std::string, std::string>::iterator it = _my_types.find(file_name.substr(pos + 1));
+	if (it == _my_types.end())
 		return "Content-Type: application/octet-stream; charset=UTF-8";
 	return "Content-Type: " + it->second + "; charset=UTF-8";
 }
@@ -170,7 +170,7 @@ std::string	StringUtils::trim (std::string & str, const std::string & del)
 	return str;
 }
 
-std::string	StringUtils::chang_char(std::string & src, const char chr1, const char chr2)
+std::string	StringUtils::change_char(std::string & src, const char chr1, const char chr2)
 {
 	for (size_t i = 0; i < src.size(); i++)
 	{
@@ -283,11 +283,11 @@ std::string StringUtils::get_http_date()
 	now = std::time(NULL);
 	gmt = std::gmtime(&now);
 	
-	std::strftime(buffer, sizeof(buffer), "Data: %a, %d %b %Y %H:%M:%S GMT", gmt);
+	std::strftime(buffer, sizeof(buffer), "Date: %a, %d %b %Y %H:%M:%S GMT", gmt);
 	return std::string(buffer);
 }
 
-std::vector<std::string>	StringUtils::Range_pars(const std::string & req)
+std::vector<std::string>	StringUtils::range_parse(const std::string & req)
 {
 	std::string copy_req = req;
 	std::vector<std::string> temp = split(copy_req, "=", true);
@@ -333,4 +333,39 @@ std::string	StringUtils::str_to_upper(const std::string & src)
 {
 	std::string temp_src = src;
 	return str_to_upper(temp_src);
+}
+
+void	StringUtils::check_status_code(int  status, Client & obj)
+{
+	if (WIFEXITED(status))
+	{
+		if (WEXITSTATUS(status) != 0) {
+			obj.status_code = 500;
+			obj.cgi_run = false;
+			close(obj.out_pipe[0]);
+			return;
+		} 
+	}
+	else if (WIFSIGNALED(status))
+	{
+		if (WTERMSIG(status) == SIGKILL) {
+			obj.status_code = 504;
+		}
+		else {
+			obj.status_code = 500;
+		}
+		close(obj.out_pipe[0]);
+		obj.cgi_run = false;
+		return;
+	}
+
+	if (obj.cgibuf.compare(0, 7, "Status:") == 0)
+	{
+		obj.status_code = std::atoi(obj.cgibuf.substr(7).c_str());
+		close(obj.out_pipe[0]);
+		return ;
+	}
+	obj.status_code = 200;
+	obj.cgi_run = false;
+	close(obj.out_pipe[0]);
 }

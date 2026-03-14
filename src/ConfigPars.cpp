@@ -21,7 +21,7 @@ ConfigPars::ConfigPars(std::string & file_path) :
 	_token_nl(),
 	_is_open_location(),
 	_key_value(),
-	_error_massage("Configuration Error:\nAn invalid line was detected in the server block of the configuration file: > "),
+	_error_message("Configuration Error:\nAn invalid line was detected in the server block of the configuration file: > "),
 	_methods(),
 	func_map(init_fun_map())
 {
@@ -82,12 +82,12 @@ void	ConfigPars::read_config_file(std::string & file_name)
 void	ConfigPars::server_block()
 {
 	if (_is_open_server || !_is_open_http || !_is_open_location.empty())
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_message + _token_nl[_ind]);
 		
 	if (_token_nl[_ind][_token_nl[_ind].size() - 1] != '{')
 	{
 		if (_ind + 1 >= _token_nl.size() || _token_nl[_ind + 1] != "{" || _token_nl[_ind][6] != '\0')
-			throw std::runtime_error(_error_massage + _token_nl[_ind]);
+			throw std::runtime_error(_error_message + _token_nl[_ind]);
 		_ind++;
 	}
 	_ind  += 1;
@@ -104,7 +104,7 @@ void	ConfigPars::join_location_path(std::string & l_block)
 		_token_nl[_ind] = "location " + parent_path + chaild_path;
 	}
 	else
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_message + _token_nl[_ind]);
 }
 
 void	ConfigPars::location_block()
@@ -112,12 +112,12 @@ void	ConfigPars::location_block()
 	std::vector<std::string> l_block;
 
 	if (!_is_open_server || !_is_open_http)
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_message + _token_nl[_ind]);
 
 	if (_token_nl[_ind][_token_nl[_ind].size() - 1] != '{')
 	{
 		if (_ind + 1 >= _token_nl.size() || _token_nl[_ind + 1] != "{" )
-			throw std::runtime_error(_error_massage + _token_nl[_ind]);
+			throw std::runtime_error(_error_message + _token_nl[_ind]);
 		l_block.push_back(_token_nl[_ind]);
 		_ind++;
 	}
@@ -192,7 +192,7 @@ void	ConfigPars::clear_all()
 	_body_max_size.clear();
 	_error_404.clear();
 	_error_500.clear();
-	_error_massage.clear();
+	_error_message.clear();
 	_methods.clear();
 	_cgi_paths.clear();
 }
@@ -212,21 +212,21 @@ void	ConfigPars::close_blocks()
 	else if (_is_open_http)
 	{
 		if (_ind + 1 != _token_nl.size())
-			throw std::runtime_error(_error_massage + _token_nl[_ind]);
+			throw std::runtime_error(_error_message + _token_nl[_ind]);
 	}
 	else
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_message + _token_nl[_ind]);
 	_ind++;
 }
 
 void	ConfigPars::http_block()
 {
 	if (_is_open_http || _is_open_server || !_is_open_location.empty())
-		throw std::runtime_error(_error_massage + _token_nl[_ind]);
+		throw std::runtime_error(_error_message + _token_nl[_ind]);
 	if (_token_nl[_ind][_token_nl[_ind].size() - 1] != '{')
 	{
 		if (_ind + 1 >= _token_nl.size() || _token_nl[_ind + 1] != "{" || _token_nl[_ind][4] != '\0')
-			throw std::runtime_error(_error_massage + _token_nl[_ind]);
+			throw std::runtime_error(_error_message + _token_nl[_ind]);
 		_ind += 1;
 	}
 	_ind += 1;
@@ -282,13 +282,13 @@ void	ConfigPars::is_valid_line()
 		_ind++;
 	}
 	else
-		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
+		throw std::runtime_error(_error_message + _token_nl[_ind] + " " + int_to_string(_ind));
 }
 
 void	ConfigPars::listen()
 {
 	if (_key_value.size() != 2 || !is_digitS(_key_value[1]))
-		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
+		throw std::runtime_error(_error_message + _token_nl[_ind] + " " + int_to_string(_ind));
 	_ports.push_back(str_to_int(_key_value[1]));
 }
 
@@ -306,33 +306,33 @@ void	ConfigPars::method()
 void	ConfigPars::client_max_body_size() {
 
 	if (_key_value.size() != 2 || !is_digitS(_key_value[1]))
-		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
+		throw std::runtime_error(_error_message + _token_nl[_ind] + " " + int_to_string(_ind));
 
 	this->_body_max_size = _key_value[1];
 }
 
 void	ConfigPars::server_name() {
 	if (_key_value.size() != 2)
-		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
+		throw std::runtime_error(_error_message + _token_nl[_ind] + " " + int_to_string(_ind));
 	this->_server_name = _key_value[1];
 }
 
 void	ConfigPars::error_page_404() {
 	if (_key_value.size() != 2 || _key_value[1].empty())
-		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
+		throw std::runtime_error(_error_message + _token_nl[_ind] + " " + int_to_string(_ind));
 	this->_error_404 = _key_value[1];
 }
 
 void	ConfigPars::error_page_500() {
 	if (_key_value.size() != 2 || _key_value[1].empty())
-		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
+		throw std::runtime_error(_error_message + _token_nl[_ind] + " " + int_to_string(_ind));
 	this->_error_500 = _key_value[1];
 }
 
 void	ConfigPars::index()
 {
 	if (_key_value.size() != 2 || _key_value[1].empty())
-		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
+		throw std::runtime_error(_error_message + _token_nl[_ind] + " " + int_to_string(_ind));
 	this->_index = _key_value[1];
 }
 
@@ -340,7 +340,7 @@ void	ConfigPars::root()
 {
 	if (_key_value.size() != 2 || _key_value[1].empty())
 	{
-		throw std::runtime_error(_error_massage + _token_nl[_ind] + " " + int_to_string(_ind));
+		throw std::runtime_error(_error_message + _token_nl[_ind] + " " + int_to_string(_ind));
 	}
 	this->_root = _key_value[1];
 }
@@ -349,6 +349,6 @@ void	ConfigPars::callFunctionByName(const std::string & fun_name)
 {	
 	std::map<std::string, void (ConfigPars::*) (void)>::iterator it = func_map.find(fun_name);
 	if(it == func_map.end())
-		throw std::runtime_error(_error_massage + fun_name);
+		throw std::runtime_error(_error_message + fun_name);
 	(this->*func_map[it->first])();
 }

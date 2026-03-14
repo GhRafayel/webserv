@@ -35,7 +35,7 @@ print("</pre>")
 # GET Data
 query_string = os.environ.get("QUERY_STRING", "")
 get_data = parse_qs(query_string)
-print("<h2>GET Data:</h2>")
+print("<h2>GET Dat:</h2>")
 print("<pre>")
 if get_data:
     for key, values in get_data.items():

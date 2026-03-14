@@ -34,7 +34,8 @@ Response & Response::operator=(const Response & obj)
 
 void Response::send_response()
 {
-	std::map<int, void (Response::*) (void)>::iterator it = func_map.find(client_ref.statuc_code);
+	if (client_ref.cgi_run) return ;
+	std::map<int, void (Response::*) (void)>::iterator it = func_map.find(client_ref.status_code);
 	if (it == func_map.end()) 
 		(this->*func_map[400])();
 	else
@@ -48,17 +49,18 @@ void Response::send_response()
 }
 
 void	Response::init() {
-		func_map.insert(std::make_pair(200, &Response::fun_200));
-		func_map.insert(std::make_pair(206, &Response::fun_206));
-		func_map.insert(std::make_pair(301, &Response::fun_301));
-		func_map.insert(std::make_pair(400, &Response::fun_400));
-		func_map.insert(std::make_pair(404, &Response::fun_404));
-		func_map.insert(std::make_pair(403, &Response::fun_403));
-		func_map.insert(std::make_pair(405, &Response::fun_405));
-		func_map.insert(std::make_pair(423, &Response::fun_423));
-		func_map.insert(std::make_pair(500, &Response::fun_500));
-		func_map.insert(std::make_pair(504, &Response::fun_504));
-		func_map.insert(std::make_pair(200200, &Response::fun_200200));
+		func_map.insert(std::make_pair(200, 	&Response::fun_200));
+		func_map.insert(std::make_pair(206, 	&Response::fun_206));
+		func_map.insert(std::make_pair(301, 	&Response::fun_301));
+		func_map.insert(std::make_pair(400, 	&Response::fun_400));
+		func_map.insert(std::make_pair(404, 	&Response::fun_404));
+		func_map.insert(std::make_pair(403, 	&Response::fun_403));
+		func_map.insert(std::make_pair(405, 	&Response::fun_405));
+		func_map.insert(std::make_pair(408, 	&Response::fun_408));
+		func_map.insert(std::make_pair(423, 	&Response::fun_423));
+		func_map.insert(std::make_pair(500, 	&Response::fun_500));
+		func_map.insert(std::make_pair(504, 	&Response::fun_504));
+		func_map.insert(std::make_pair(200200,	&Response::fun_200200));
 }
 
 void	Response::fun_200200(){
@@ -87,7 +89,7 @@ void	Response::fun_200() {
 		ext = ".html";
 	}
 	else
-		body = get_file_content(abs_Path(client_ref.best_mach));
+		body = get_file_content(abs_Path(client_ref.best_match));
 	strim << "HTTP/1.0 200 ok" << end_line;
 	create_header();
 	strim << body << end_line;
@@ -99,14 +101,14 @@ void	Response::fun_206(){
 };
 
 void	Response::fun_301() {
-	strim << "HTTP/1.0 " << int_to_string(client_ref.statuc_code) << " Moved Permanently" << end_line;
-	strim << "Location: "  << client_ref.best_mach << end_line;
+	strim << "HTTP/1.0 " << int_to_string(client_ref.status_code) << " Moved Permanently" << end_line;
+	strim << "Location: "  << client_ref.best_match << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_400(){
-	strim <<  "HTTP/1.0 400 Bed Request" << end_line;
+	strim <<  "HTTP/1.0 400 Bad Request" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
@@ -119,8 +121,8 @@ void	Response::fun_403(){
 
 void	Response::fun_404(){
 	ext = ".html";
-	client_ref.best_mach = abs_Path(server_ref._error_404);
-	body = get_file_content(client_ref.best_mach);
+	client_ref.best_match = abs_Path(server_ref._error_404);
+	body = get_file_content(client_ref.best_match);
 	strim << "HTTP/1.0 404 Not Found" << end_line;
 	create_header();
 	strim << body << end_line;
@@ -129,6 +131,12 @@ void	Response::fun_404(){
 
 void	Response::fun_405(){
 	strim << "HTTP/1.0 405 Not Allowed" << end_line;
+	create_header();
+	client_ref.outbuf = strim.str();
+};
+
+void	Response::fun_408(){
+	strim <<  "HTTP/1.0 408 Request Timeout\r\n";
 	create_header();
 	client_ref.outbuf = strim.str();
 };
@@ -187,11 +195,11 @@ std::string	Response::static_page()
 
 void	Response::create_header()
 {
-	strim << get_my_taype(ext) << end_line;
-	strim << "Content_Length: " << body.size() << end_line;
+	strim << get_my_type(ext) << end_line;
+	strim << "Content-Length: " << body.size() << end_line;
 	strim << "Server: " << server_ref._server_name << " " << end_line;
-	strim << "Data: " << get_http_date() << end_line;
-	strim << "Conection:: close" << end_line << end_line;
+	strim << "Date: " << get_http_date() << end_line;
+	strim << "Connection: close" << end_line << end_line;
 }
 
 bool	Response::is_method_allowed()
@@ -205,4 +213,18 @@ bool	Response::is_method_allowed()
 	if (l_method || s_method)
 		return true;
 	return false;
+}
+
+void	Response::to_read_cgi()	{
+	int status = 0;
+	char	buf[4096];
+	ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
+	if (r > 0)
+		client_ref.cgibuf.append(buf, buf + r);
+	else if (r == 0)
+	{
+		waitpid(client_ref.cgi_pid, &status, 0);
+		check_status_code(status, client_ref);
+		client_ref.cgi_run = false;
+	}
 }
