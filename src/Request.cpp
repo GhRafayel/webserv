@@ -53,7 +53,9 @@ bool	Request::parse_request()
 		return (client_ref.status_code = 206, client_ref.method = "GET", false);
 
 	std::vector<std::string> req = split(client_ref.buffer, "\r\n", true);
+	
 
+	std::cout << req[0] << std::endl;
 	if (req.size() < 3)
 		return (client_ref.status_code = 400, false);
 	

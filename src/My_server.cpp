@@ -119,6 +119,11 @@ void	My_server::create_server(const std::map<int, Server>::iterator & it)
 
 void     My_server::to_connect(int index)
 {
+	std::map<int, std::string>::iterator coockis = _coockis.find(_pollfds[index].fd);
+	time_t tv = time(NULL);
+	if (coockis == _coockis.end())
+		_coockis.insert(std::make_pair(_pollfds[index].fd, "USER" + int_to_string(rand()) + int_to_string(tv)));
+	
 	int fd = accept(_pollfds[index].fd, NULL, NULL);
 	fcntl(fd, F_SETFD, FD_CLOEXEC);
 	if (fd >= 0)
@@ -173,9 +178,12 @@ void	My_server::poll_in(int index)
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
 	Server	&s_ref = _servers.find(c_ref.server_conf_key)->second;
 	
+	// std::cout << " this is client socket fd " <<  c_ref.fd << std::endl;
+
 	if (to_read(c_ref) == 0)
 	{
-		remove_connection(index);
+		// //remove_connection(index);
+		_pollfds[index].events = POLLOUT;
 		return;
 	}
 	if (!c_ref.end_request)	return;
@@ -188,17 +196,21 @@ void	My_server::fun_405(Client & obj)
 {
 	std::ostringstream strim;
 
-	strim << "HTTP/1.1 405 Not Allowed\r\n Content-Type: application/octet-stream\r\n"
-		  << "Content-Length: 0 \r\nServer: my Server \r\n"
-		  << "Date: " << get_http_date() << "\r\nConnection: close \r\n\r\n";
+	strim << "HTTP/1.1 405 Not Allowed\r\n";
+	strim << "Content-Type: application/octet-stream\r\n";
+	strim << "Content-Length: 0 \r\nServer: my Server \r\n";
+	strim << get_http_date() << "\r\n";
+	strim << "Connection: keep-alive \r\n";
+	strim << "\r\n";
 	obj.outbuf = strim.str();
 	ssize_t n = 1;
-	
-	while (n > 0)
+	while (true)
 	{
 		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), 0);
 		if (n > 0)
 			obj.outbuf.erase(0, n);
+		else
+			return ;
 	}
 }
 
@@ -222,11 +234,16 @@ void	My_server::poll_out(int index)
 	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
 	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
 
+	// std::cout << " this is client socket fd " <<  c_ref.fd << std::endl;
 	Response * response = get_class(s_ref, c_ref);
-	if (response)
+	if (response && !c_ref.cgi_run)
+	{
 		response->send_response();
-	if (!c_ref.cgi_run && c_ref.end_request && c_ref.outbuf.empty())
-		remove_connection(index);
+		_pollfds[index].events = POLLIN;
+	}
+		
+	// if (!c_ref.cgi_run && c_ref.end_request && c_ref.outbuf.empty())
+	// 	remove_connection(index);
 	delete response;
 }
 
@@ -254,7 +271,7 @@ void	My_server::time_out(int index)
 
 	if (it->second.is_cgi)
 		cgi_time_out(index);
-	else if (current_time - it->second.timeOut > 10)
+	else if (current_time - it->second.timeOut > 50)
 	{
 		it->second.status_code = 408;
 		_pollfds[index].events |= POLLOUT;
@@ -266,9 +283,11 @@ void    My_server::accept_loop()
 	std::cout << "\nServer start ...\n";
 	while (g_running && this->_pollfds.size())
 	{
+
 		int n = poll(_pollfds.data(), _pollfds.size(), 1000);
 			
 		size_t i = 0;
+		
 		while (n > 0 && g_running && i < _pollfds.size())
 		{
 			time_out(i);
