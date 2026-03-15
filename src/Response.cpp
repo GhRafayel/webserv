@@ -34,22 +34,17 @@ Response & Response::operator=(const Response & obj)
 
 void Response::send_response()
 {
+	if (client_ref.cgi_run) return ;
 	std::map<int, void (Response::*) (void)>::iterator it = func_map.find(client_ref.status_code);
 	if (it == func_map.end()) 
 		(this->*func_map[400])();
 	else
 		(this->*func_map[it->first])();
-
 	ssize_t n = 1;
-	while (true)
+	n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), 0);
+	if (n > 0)
 	{
-		n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), 0);
-		if (n > 0)
-		{
-			client_ref.outbuf.erase(0, n);
-		}
-		else
-			return ;
+		client_ref.outbuf.erase(0, n);
 	}
 }
 
@@ -70,7 +65,7 @@ void	Response::init() {
 
 void	Response::fun_200200(){
 	body = static_page();
-	strim << "HTTP/1.1 200 ok" << end_line;
+	strim << "HTTP/1.0 200 ok" << end_line;
 	ext = ".html";
 	create_header();
 	strim << body << end_line;
@@ -95,11 +90,8 @@ void	Response::fun_200() {
 	}
 	else
 		body = get_file_content(abs_Path(client_ref.best_match));
-	strim << "HTTP/1.1 200 ok" << end_line;
+	strim << "HTTP/1.0 200 ok" << end_line;
 	create_header();
-	std::cout << "\n================\n" << std::endl;
-	std::cout << strim.str() << std::endl;
-	std::cout << "\n================\n" << std::endl;
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
 };
@@ -109,20 +101,20 @@ void	Response::fun_206(){
 };
 
 void	Response::fun_301() {
-	strim << "HTTP/1.1 " << int_to_string(client_ref.status_code) << " Moved Permanently" << end_line;
+	strim << "HTTP/1.0 " << int_to_string(client_ref.status_code) << " Moved Permanently" << end_line;
 	strim << "Location: "  << client_ref.best_match << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_400(){
-	strim <<  "HTTP/1.1 400 Bad Request" << end_line;
+	strim <<  "HTTP/1.0 400 Bad Request" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_403(){
-	strim <<  "HTTP/1.1 403 Forbidden" << end_line;
+	strim <<  "HTTP/1.0 403 Forbidden" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
@@ -131,26 +123,26 @@ void	Response::fun_404(){
 	ext = ".html";
 	client_ref.best_match = abs_Path(server_ref._error_404);
 	body = get_file_content(client_ref.best_match);
-	strim << "HTTP/1.1 404 Not Found" << end_line;
+	strim << "HTTP/1.0 404 Not Found" << end_line;
 	create_header();
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_405(){
-	strim << "HTTP/1.1 405 Not Allowed" << end_line;
+	strim << "HTTP/1.0 405 Not Allowed" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_408(){
-	strim <<  "HTTP/1.1 408 Request Timeout\r\n";
+	strim <<  "HTTP/1.0 408 Request Timeout\r\n";
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_423(){
-	strim << "HTTP/1.1 423 Payload Too Large" << end_line;
+	strim << "HTTP/1.0 423 Payload Too Large" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
@@ -158,14 +150,14 @@ void	Response::fun_423(){
 void	Response::fun_500(){
 	ext = ".html";
 	body = get_file_content(abs_Path(server_ref._error_500));
-	strim << "HTTP/1.1 500 Internal Server Error" << end_line;
+	strim << "HTTP/1.0 500 Internal Server Error" << end_line;
 	create_header();
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
 };
 
 void	Response::fun_504(){
-	strim << "HTTP/1.1 504 Gateway Timeout" << end_line;
+	strim << "HTTP/1.0 504 Gateway Timeout" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 }
@@ -206,9 +198,8 @@ void	Response::create_header()
 	strim << get_my_type(ext) << end_line;
 	strim << "Content-Length: " << body.size() << end_line;
 	strim << "Server: " << server_ref._server_name << " " << end_line;
-	strim << get_http_date() << end_line;
-	strim << "Connection: keep-alive" << end_line;
-	strim << end_line;
+	strim << "Date: " << get_http_date() << end_line;
+	strim << "Connection: close" << end_line << end_line;
 }
 
 bool	Response::is_method_allowed()

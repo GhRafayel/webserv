@@ -25,7 +25,6 @@ extern volatile bool g_running;
 class My_server : public StringUtils
 {
 	private:
-		std::map<int, std::string>  _coockis;
 		std::map<int, Client>		_client;
 		std::map<int, Server>		_servers;
 		std::vector<pollfd>			_pollfds;

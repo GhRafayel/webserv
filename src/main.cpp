@@ -13,7 +13,6 @@ int main(int argc, char **argv)
 
 	std::signal(SIGINT, signal_handler);
 	std::signal(SIGTERM, signal_handler);
-	//std::signal(SIGPIPE, SIG_IGN);
 	if (argc < 3)
 	{
 		try
