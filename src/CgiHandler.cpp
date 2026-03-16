@@ -17,33 +17,6 @@ void	CgiHandler::setEnvVar(const std::string & key, const std::string & val)
 {
 	_envMap.insert(std::make_pair(key, val));
 }
-void	CgiHandler::check_status_code(int status)
-{
-	if (WIFEXITED(status))
-	{
-		if (WEXITSTATUS(status) != 0) {
-			client_ref.status_code = 500;
-			return;
-		} 
-	}
-	else if (WIFSIGNALED(status))
-	{
-		if (WTERMSIG(status) == SIGKILL) {
-			client_ref.status_code = 504;
-		}
-		else {
-			client_ref.status_code = 500;
-		}
-		return;
-	}
-
-	if (client_ref.cgibuf.compare(0, 7, "Status:") == 0)
-	{
-		client_ref.status_code = std::atoi(client_ref.cgibuf.substr(7).c_str());
-		return ;
-	}
-	client_ref.status_code = 200;
-}
 
 std::string CgiHandler::dirname_from_path(const std::string & path)
 {

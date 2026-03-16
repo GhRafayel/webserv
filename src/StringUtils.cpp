@@ -194,8 +194,7 @@ std::vector<std::string>	StringUtils::split(std::string & src, const std::string
 		src = src.substr(pos + del.size(), src.length());
 		if (val)
 		{
-			temp = trim(temp, " \t");
-			src = trim(src, del);
+			temp = trim(temp, " \t"), src = trim(src, del);
 		}
 		dest.push_back(temp);
 	}
@@ -203,8 +202,7 @@ std::vector<std::string>	StringUtils::split(std::string & src, const std::string
 	{
 		if (val)
 			src = trim(src, " \t");
-		dest.push_back(src);
-		src.clear();
+		dest.push_back(src), src.clear();
 	}
 		
 	return dest;

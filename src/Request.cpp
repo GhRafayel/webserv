@@ -49,9 +49,6 @@ void	Request::find_cgi()
 bool	Request::parse_request()
 {
 	client_ref.buffer = change_char(client_ref.buffer, '\t', ' ');
-	if (client_ref.buffer.find("Range:") == 0)
-		return (client_ref.status_code = 206, client_ref.method = "GET", false);
-
 	std::vector<std::string> req = split(client_ref.buffer, "\r\n", true);
 
 	if (req.size() < 3)
@@ -79,10 +76,8 @@ bool	Request::parse_request()
 			client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 		}
 	}
-	if (client_ref.request.find("Cookie:") == client_ref.request.end())
-	{
-		server_ref._coockis.insert(std::make_pair(client_ref.fd,"Set-Cookie: session_id=" + int_to_string(rand() + client_ref.timeOut) + ";	Path=/; HttpOnly"));
-	}
+	if (client_ref.request.find("Cookie") == client_ref.request.end())
+		client_ref.request.insert(std::make_pair("Cookie", ": session_id=" + int_to_string(rand() + client_ref.timeOut)));
 	client_ref.is_dir = is_directory(abs_Path(client_ref.best_match));
 	return true;
 }

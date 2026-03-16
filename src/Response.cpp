@@ -91,7 +91,7 @@ void	Response::fun_200() {
 	else
 		body = get_file_content(abs_Path(client_ref.best_match));
 	strim << "HTTP/1.1 200 ok" << end_line;
-	create_header();
+	create_header();	
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
 };
@@ -193,14 +193,14 @@ std::string	Response::static_page()
 	return str;
 }
 
-void	Response::create_header()
-{
+void	Response::create_header() {
+
 	strim << get_my_type(ext) << end_line;
 	strim << "Content-Length: " << body.size() << end_line;
 	strim << "Server: " << server_ref._server_name << " " << end_line;
-	strim << "Date: " << get_http_date() << end_line;
+	strim << get_http_date() << end_line;
 	strim << "Connection: alive" << end_line;
-	//strim << client_ref.request.find("Cookie:")->second << end_line;
+	strim <<  "Set-Cookie" +  client_ref.request.find("Cookie")->second + ";	Path=/; HttpOnly" <<  end_line;
 	strim << end_line;
 }
 
