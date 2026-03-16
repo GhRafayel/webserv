@@ -200,7 +200,7 @@ void	Response::create_header()
 	strim << "Server: " << server_ref._server_name << " " << end_line;
 	strim << "Date: " << get_http_date() << end_line;
 	strim << "Connection: alive" << end_line;
-	strim << client_ref.request.find("Cookie:")->second << end_line;
+	//strim << client_ref.request.find("Cookie:")->second << end_line;
 	strim << end_line;
 }
 
