@@ -269,7 +269,6 @@ int	CgiHandler::execute() {
 		child_process(argv, envp);
 
 	fcntl(client_ref.out_pipe[0], F_SETFL, O_NONBLOCK);
-	fcntl(client_ref.out_pipe[1], F_SETFL, O_NONBLOCK);
 	close(client_ref.in_pipe[0]), close(client_ref.out_pipe[1]);
 
 	std::string body;
