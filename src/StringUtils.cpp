@@ -204,6 +204,7 @@ std::vector<std::string>	StringUtils::split(std::string & src, const std::string
 		if (val)
 			src = trim(src, " \t");
 		dest.push_back(src);
+		src.clear();
 	}
 		
 	return dest;
