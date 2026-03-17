@@ -52,10 +52,7 @@ int	Get::create_response() {
 			return (client_ref.status_code = 200200, 0);
 	}
 	if (client_ref.request.find("Range") != client_ref.request.end())
-	{
-		std::cout << client_ref.request["Range"] << std::endl;
 		return (client_ref.status_code = 206, 0);
-	}
 	return (client_ref.status_code = 200, 0);
 }
 

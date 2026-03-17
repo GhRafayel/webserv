@@ -189,13 +189,15 @@ void	My_server::fun_405(Client & obj)
 
 	strim << "HTTP/1.1 405 Not Allowed\r\n Content-Type: application/octet-stream\r\n"
 		  << "Content-Length: 0 \r\nServer: my Server \r\n"
-		  << "Date: " << get_http_date() << "\r\nConnection: close \r\n\r\n";
+		  << "Date: " << get_http_date() << "\r\nConnection: alive \r\n\r\n"
+		  << "Set-Cookie" +  obj.request.find("Cookie")->second + ";	Path=/; HttpOnly\r\n"
+		  << "\r\n";
 	obj.outbuf = strim.str();
 	ssize_t n = 1;
 	
 	while (n > 0)
 	{
-		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), 0);
+		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), MSG_NOSIGNAL);
 		if (n > 0)
 			obj.outbuf.erase(0, n);
 	}
@@ -254,7 +256,7 @@ void	My_server::time_out(int index)
 
 	if (it->second.is_cgi)
 		cgi_time_out(index);
-	else if (current_time - it->second.timeOut > TIMEOUT)
+	else if (current_time - it->second.timeOut > 3)
 	{
 		it->second.status_code = 408;
 		_pollfds[index].events = POLLOUT;
