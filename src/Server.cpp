@@ -2,7 +2,7 @@
 
 Server::~Server() {}
 
-Server::Server() : _coockis(),
+Server::Server() :
     _locations(),
     _root("www/public"),
     _server_name("localhost"),
@@ -16,7 +16,7 @@ Server::Server() : _coockis(),
     _addr.sin_port = htons(8080);
 }
 
-Server::Server(const Server & obj) :  _coockis(obj._coockis),
+Server::Server(const Server & obj) :
     _methods(obj._methods),
     _locations(obj._locations),
     _root(obj._root),
@@ -37,7 +37,6 @@ Server & Server::operator = (const Server & obj)
 {
     if (this != &obj)
     {
-        this->_coockis = obj._coockis;
         this->_locations = obj._locations;
         this->_root = obj._root;
         this->_server_name = obj._server_name;

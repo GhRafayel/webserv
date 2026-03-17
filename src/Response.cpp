@@ -50,7 +50,6 @@ void Response::send_response()
 
 void	Response::init() {
 		func_map.insert(std::make_pair(200, 	&Response::fun_200));
-		func_map.insert(std::make_pair(206, 	&Response::fun_206));
 		func_map.insert(std::make_pair(301, 	&Response::fun_301));
 		func_map.insert(std::make_pair(400, 	&Response::fun_400));
 		func_map.insert(std::make_pair(404, 	&Response::fun_404));
@@ -94,10 +93,6 @@ void	Response::fun_200() {
 	create_header();	
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
-};
-
-void	Response::fun_206(){
-	
 };
 
 void	Response::fun_301() {

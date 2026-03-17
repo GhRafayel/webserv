@@ -76,7 +76,8 @@ bool	Request::parse_request()
 	{
 		std::string	key, value;
 		post = req[i].find(":");
-		upload_parser(req[i]);
+		if (client_ref.method == "POST")
+			upload_parser(req[i]);
 		if (post != std::string::npos)
 		{
 			key = trim(req[i].substr(0, post), " ");

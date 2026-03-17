@@ -20,7 +20,6 @@ class Server
 		Server();
 		Server(const Server &);
 		Server & operator = (const Server &);
-		std::map<int, std::string>	_coockis;
 		std::map<std::string, bool>	_methods;
 		std::vector<Location>		_locations;
 		std::string					_root;
