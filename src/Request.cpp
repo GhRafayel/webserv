@@ -58,6 +58,9 @@ bool	Request::parse_request()
 {
 	size_t 		post = client_ref.buffer.find("\r\n\r\n");
 	std::string header = client_ref.buffer.substr(0, post + 4);
+	if (header.find("Range:") == 0)
+		return (client_ref.status_code = 206, client_ref.method = "GET", false);
+
 	client_ref.buffer = client_ref.buffer.substr(post + 4);
 
 	header = change_char(header, '\t', ' ');
@@ -70,8 +73,7 @@ bool	Request::parse_request()
 	if (first_line.size() < 3)
 		return (client_ref.status_code = 400, false);
 	client_ref.method = first_line[0];
-	if (client_ref.method == "POST")
-		client_ref.request.insert(std::make_pair("body", ""));
+	client_ref.request.insert(std::make_pair("body", ""));
 	for (size_t i = 1; i < req.size(); i++)
 	{
 		std::string	key, value;

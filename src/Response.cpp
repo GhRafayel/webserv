@@ -50,6 +50,7 @@ void Response::send_response()
 
 void	Response::init() {
 		func_map.insert(std::make_pair(200, 	&Response::fun_200));
+		func_map.insert(std::make_pair(206, 	&Response::fun_206));
 		func_map.insert(std::make_pair(301, 	&Response::fun_301));
 		func_map.insert(std::make_pair(400, 	&Response::fun_400));
 		func_map.insert(std::make_pair(404, 	&Response::fun_404));
@@ -91,9 +92,29 @@ void	Response::fun_200() {
 		body = get_file_content(abs_Path(client_ref.best_match));
 	strim << "HTTP/1.1 200 ok" << end_line;
 	create_header();	
-	strim << body << end_line;
+	strim << body << end_line << end_line;
 	client_ref.outbuf = strim.str();
 };
+
+void Response::fun_206()
+{
+	std::vector<std::string> temp = range_parse(client_ref.buffer);
+	if (!readable(path)) client_ref.status_code = 403;
+	
+	if (temp.empty()) client_ref.status_code = 400;
+	else
+	{
+		int	start = str_to_int(temp[0]);
+		int	end = (temp[1].empty() ? -1 : str_to_int(temp[1]));
+		if (end == -1)
+			body = get_file_content(path);
+		else
+			body = get_file_content(path, start, end - start + 1);
+		std::stringstream s;
+		s << " 200 Partial Content\r\n Content-Range: bytes " << start << "-" << end << "/" << body.size();
+		client_ref.status_code = 200;
+	}
+}
 
 void	Response::fun_301() {
 	strim << "HTTP/1.1 " << int_to_string(client_ref.status_code) << " Moved Permanently" << end_line;
@@ -120,7 +141,7 @@ void	Response::fun_404(){
 	body = get_file_content(client_ref.best_match);
 	strim << "HTTP/1.1 404 Not Found" << end_line;
 	create_header();
-	strim << body << end_line;
+	strim << body << end_line << end_line;
 	client_ref.outbuf = strim.str();
 };
 
@@ -147,7 +168,7 @@ void	Response::fun_500(){
 	body = get_file_content(abs_Path(server_ref._error_500));
 	strim << "HTTP/1.1 500 Internal Server Error" << end_line;
 	create_header();
-	strim << body << end_line;
+	strim << body << end_line << end_line;
 	client_ref.outbuf = strim.str();
 };
 
@@ -195,7 +216,7 @@ void	Response::create_header() {
 	strim << "Server: " << server_ref._server_name << " " << end_line;
 	strim << get_http_date() << end_line;
 	strim << "Connection: alive" << end_line;
-	//strim <<  "Set-Cookie" +  client_ref.request.find("Cookie")->second + ";	Path=/; HttpOnly" <<  end_line;
+	strim <<  "Set-Cookie" +  client_ref.request.find("Cookie")->second + ";	Path=/; HttpOnly" <<  end_line;
 	strim << end_line;
 }
 

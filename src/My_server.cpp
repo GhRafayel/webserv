@@ -241,6 +241,7 @@ void	My_server::cgi_time_out(int index)
 		kill(it->second.cgi_pid, SIGKILL);
 		waitpid(it->second.cgi_pid, &status, 0);
 		check_status_code(status, it->second);
+		_pollfds[index].events = POLLOUT;
 	}
 }
 
@@ -253,7 +254,7 @@ void	My_server::time_out(int index)
 
 	if (it->second.is_cgi)
 		cgi_time_out(index);
-	else if (current_time - it->second.timeOut > 10)
+	else if (current_time - it->second.timeOut > TIMEOUT)
 	{
 		it->second.status_code = 408;
 		_pollfds[index].events |= POLLOUT;

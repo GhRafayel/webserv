@@ -30,6 +30,7 @@ class Response : public StringUtils
 	
 		void				fun_200200();
 		void				fun_200();
+		void				fun_206();
 		void				fun_301();
 		void				fun_400();
 		void				fun_403();
