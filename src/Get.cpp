@@ -35,14 +35,13 @@ int	Get::create_response() {
 		return (client_ref.status_code = 405, 0);
 	if (path.empty()) 
 		return (client_ref.status_code = 404, 0);
-	if (!readable(path) || is_directory(path) )
+	if (!readable(path) || is_directory(path))
 	{
 		if (client_ref.best_location_index == -1)
 			return (client_ref.status_code = 403, 0);
 		else if (!server_ref._locations[client_ref.best_location_index]._autoIndex)
 			return (client_ref.status_code = 403, 0);
 	}
-	
 	if (client_ref.is_dir && is_directory(path))
 	{
 			if (exists(path + "/index.html"))
@@ -51,6 +50,11 @@ int	Get::create_response() {
 				return (client_ref.status_code = 200, 0);
 			}
 			return (client_ref.status_code = 200200, 0);
+	}
+	if (client_ref.request.find("Range") != client_ref.request.end())
+	{
+		std::cout << client_ref.request["Range"] << std::endl;
+		return (client_ref.status_code = 206, 0);
 	}
 	return (client_ref.status_code = 200, 0);
 }

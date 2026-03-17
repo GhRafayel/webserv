@@ -39,6 +39,7 @@ fclean : clean
 	rm -f $(NAME) rm -f $(DEBUG)
 
 re : fclean all
+	./$(NAME)
 
 -include $(DEP)
 

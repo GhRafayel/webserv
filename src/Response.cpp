@@ -32,7 +32,7 @@ Response & Response::operator=(const Response & obj)
 	return *this;
 }
 
-void Response::send_response()
+void		Response::send_response()
 {
 	if (client_ref.cgi_run) return ;
 	std::map<int, void (Response::*) (void)>::iterator it = func_map.find(client_ref.status_code);
@@ -48,7 +48,7 @@ void Response::send_response()
 	}
 }
 
-void	Response::init() {
+void		Response::init() {
 		func_map.insert(std::make_pair(200, 	&Response::fun_200));
 		func_map.insert(std::make_pair(206, 	&Response::fun_206));
 		func_map.insert(std::make_pair(301, 	&Response::fun_301));
@@ -63,7 +63,7 @@ void	Response::init() {
 		func_map.insert(std::make_pair(200200,	&Response::fun_200200));
 }
 
-void	Response::fun_200200(){
+void		Response::fun_200200(){
 	body = static_page();
 	strim << "HTTP/1.1 200 ok" << end_line;
 	ext = ".html";
@@ -72,7 +72,7 @@ void	Response::fun_200200(){
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_200() {
+void		Response::fun_200() {
 	
 	if (client_ref.is_cgi)
 	{
@@ -96,46 +96,39 @@ void	Response::fun_200() {
 	client_ref.outbuf = strim.str();
 };
 
-void Response::fun_206()
-{
-	std::vector<std::string> temp = range_parse(client_ref.buffer);
-	if (!readable(path)) client_ref.status_code = 403;
-	
-	if (temp.empty()) client_ref.status_code = 400;
-	else
-	{
-		int	start = str_to_int(temp[0]);
-		int	end = (temp[1].empty() ? -1 : str_to_int(temp[1]));
-		if (end == -1)
-			body = get_file_content(path);
-		else
-			body = get_file_content(path, start, end - start + 1);
-		std::stringstream s;
-		s << " 200 Partial Content\r\n Content-Range: bytes " << start << "-" << end << "/" << body.size();
-		client_ref.status_code = 200;
-	}
+void		Response::fun_206() {
+
+	size_t post = client_ref.request["Range"].rfind("=");
+	std::string temp = client_ref.request["Range"].substr(post + 1);
+	post = temp.find("-");
+	size_t start = str_to_int(temp.substr(0, post));
+	size_t end = str_to_int(temp.substr(post + 1));
+
+	std::cout << "start = " << start << " | end = " << end << std::endl;
+	body = get_file_content(abs_Path(client_ref.best_match));
+
 }
 
-void	Response::fun_301() {
+void		Response::fun_301() {
 	strim << "HTTP/1.1 " << int_to_string(client_ref.status_code) << " Moved Permanently" << end_line;
 	strim << "Location: "  << client_ref.best_match << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_400(){
+void		Response::fun_400(){
 	strim <<  "HTTP/1.1 400 Bad Request" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_403(){
+void		Response::fun_403(){
 	strim <<  "HTTP/1.1 403 Forbidden" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_404(){
+void		Response::fun_404(){
 	ext = ".html";
 	client_ref.best_match = abs_Path(server_ref._error_404);
 	body = get_file_content(client_ref.best_match);
@@ -145,25 +138,25 @@ void	Response::fun_404(){
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_405(){
+void		Response::fun_405(){
 	strim << "HTTP/1.1 405 Not Allowed" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_408(){
+void		Response::fun_408(){
 	strim <<  "HTTP/1.1 408 Request Timeout\r\n";
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_423(){
+void		Response::fun_423(){
 	strim << "HTTP/1.1 423 Payload Too Large" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_500(){
+void		Response::fun_500(){
 	ext = ".html";
 	body = get_file_content(abs_Path(server_ref._error_500));
 	strim << "HTTP/1.1 500 Internal Server Error" << end_line;
@@ -172,7 +165,7 @@ void	Response::fun_500(){
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_504(){
+void		Response::fun_504(){
 	strim << "HTTP/1.1 504 Gateway Timeout" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
@@ -209,7 +202,7 @@ std::string	Response::static_page()
 	return str;
 }
 
-void	Response::create_header() {
+void		Response::create_header() {
 
 	strim << get_my_type(ext) << end_line;
 	strim << "Content-Length: " << body.size() << end_line;
@@ -220,7 +213,7 @@ void	Response::create_header() {
 	strim << end_line;
 }
 
-bool	Response::is_method_allowed()
+bool		Response::is_method_allowed()
 {
 	bool s_method = server_ref.get_method(client_ref.method);
 	bool l_method = false;
@@ -233,7 +226,7 @@ bool	Response::is_method_allowed()
 	return false;
 }
 
-void	Response::to_read_cgi()	{
+void		Response::to_read_cgi()	{
 	int status = 0;
 	char	buf[4096];
 	

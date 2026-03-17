@@ -58,9 +58,6 @@ bool	Request::parse_request()
 {
 	size_t 		post = client_ref.buffer.find("\r\n\r\n");
 	std::string header = client_ref.buffer.substr(0, post + 4);
-	if (header.find("Range:") == 0)
-		return (client_ref.status_code = 206, client_ref.method = "GET", false);
-
 	client_ref.buffer = client_ref.buffer.substr(post + 4);
 
 	header = change_char(header, '\t', ' ');
@@ -78,14 +75,9 @@ bool	Request::parse_request()
 	{
 		std::string	key, value;
 		post = req[i].find(":");
-		if (client_ref.method == "POST")
-			upload_parser(req[i]);
+		upload_parser(req[i]);
 		if (post != std::string::npos)
-		{
-			key = trim(req[i].substr(0, post), " ");
-			value = trim(req[i].substr(post, req[i].size()), " ");
-			client_ref.request.insert(std::make_pair(key, value + "\r\n"));
-		}
+			client_ref.request.insert(std::make_pair(trim(req[i].substr(0, post), " "), trim(req[i].substr(post, req[i].size()), " ") + "\r\n"));
 	}
 	client_ref.request.insert(std::make_pair("url_path", first_line[1]));
 	if (client_ref.method == "POST")
