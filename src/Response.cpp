@@ -98,25 +98,24 @@ void		Response::fun_200() {
 
 void		Response::fun_206() {
 
+	
 	size_t post = client_ref.request["Range"].rfind("=");
 	std::string temp = client_ref.request["Range"].substr(post + 1);
 	post = temp.find("-");
 	size_t start = str_to_int(temp.substr(0, post));
 	size_t end = str_to_int(temp.substr(post + 1));
 
-	std::cout << "start = " << start << " | end = " << end << std::endl;
 	body = get_file_content(abs_Path(client_ref.best_match));
 	
 	strim << "HTTP/1.1 206 Partial Content" << end_line;
 	strim <<	get_my_type(ext) << end_line;
-	strim << "Accept-Ranges: bytes" << end_line;
-	strim << "Content-Range: bytes" << start << "-" << end << "/" << body.size() << end_line;
+	strim << "Accept-Ranges: bytes " << end_line;
+	strim << "Content-Range: bytes " << start << "-" << end << "/" << body.size() << end_line;
 	strim << "Content-Length: " << body.size() << end_line << end_line;
 	if (end == 0)
 		body = body.substr(start);
 	else
 		body = body.substr(start, end);
-	std::cout << strim.str() << std::endl;
 	strim << body;
 	client_ref.outbuf = strim.str();
 }
