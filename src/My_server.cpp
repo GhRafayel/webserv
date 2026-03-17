@@ -156,7 +156,7 @@ void	My_server::remove_connection(int index)
 
 int	My_server::to_read(Client & obj)
 {
-	char	buffer[1025];
+	char	buffer[1024];
 
 	int n = recv(obj.fd, buffer, sizeof(buffer), 0);
 	if (n > 0)
@@ -180,7 +180,7 @@ void	My_server::poll_in(int index)
 	}
 	if (!c_ref.end_request)	return;
 	Request	req(s_ref, c_ref);
-	_pollfds[index].events |= POLLOUT;
+	_pollfds[index].events = POLLOUT;
 }
 
 void	My_server::fun_405(Client & obj)
@@ -277,7 +277,6 @@ void    My_server::accept_loop()
 					to_connect(i);
 				else
 					poll_in(i);
-				break;		
 			}
 			else if (_pollfds[i].revents & POLLOUT)
 				poll_out(i);
