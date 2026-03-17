@@ -7,11 +7,11 @@ Get::Get(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 	create_response();
 }
 
-void	Get::create_response() {
+int	Get::create_response() {
 	
 	if (client_ref.is_cgi)
 	{
-		if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return;
+		if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
 		if (client_ref.cgi_run)
 		{
 			to_read_cgi();
@@ -22,9 +22,9 @@ void	Get::create_response() {
 			CGI->cgi_run();
 			delete CGI;
 		}
-		if (client_ref.status_code < 200 || client_ref.status_code > 600) return;
+		if (client_ref.status_code < 200 || client_ref.status_code > 600) return 0;
 	}
-	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return;
+	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
 	path = abs_Path(client_ref.best_match);
 	size_t		post = client_ref.best_match.rfind(".");
 
@@ -32,21 +32,21 @@ void	Get::create_response() {
 		ext = client_ref.best_match.substr(post);
 
 	if (!is_method_allowed()) 
-		client_ref.status_code = 405;
-	else if (path.empty()) 
-		client_ref.status_code = 404;
-	else if (!readable(path) || (is_directory(path) && !server_ref._locations[client_ref.best_location_index]._autoIndex))
-		client_ref.status_code = 403;
-	else if (client_ref.is_dir && is_directory(path))
+		return (client_ref.status_code = 405, 0);
+	if (path.empty()) 
+		return (client_ref.status_code = 404, 0);
+	if (!readable(path) || (is_directory(path) && !server_ref._locations[client_ref.best_location_index]._autoIndex))
+		return (client_ref.status_code = 403, 0);
+	if (client_ref.is_dir && is_directory(path))
 	{
 			if (exists(path + "/index.html"))
 			{
 				client_ref.best_match += "/index.html";
-				client_ref.status_code = 200;
+				return (client_ref.status_code = 200, 0);
 			}
-			else client_ref.status_code = 200200;
+			return (client_ref.status_code = 200200, 0);
 	}
-	else client_ref.status_code = 200;
+	return (client_ref.status_code = 200, 0);
 }
 
 /*

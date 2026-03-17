@@ -45,37 +45,49 @@ void	Request::find_cgi()
 		}
 	}
 }
+void	Request::upload_parser(std::string & str)
+{
+	if (str.find("Content-Type: multipart/form-data; boundary") != std::string::npos)
+	{
+		client_ref.buffer = client_ref.buffer.substr(client_ref.buffer.find("\r\n\r\n") + 4);
+		client_ref.buffer = client_ref.buffer.substr(0, client_ref.buffer.find("\r\n\r\n"));
+	}
+}
 
 bool	Request::parse_request()
 {
-	client_ref.buffer = change_char(client_ref.buffer, '\t', ' ');
-	std::vector<std::string> req = split(client_ref.buffer, "\r\n", true);
+	size_t 		post = client_ref.buffer.find("\r\n\r\n");
+	std::string header = client_ref.buffer.substr(0, post + 4);
+	client_ref.buffer = client_ref.buffer.substr(post + 4);
+
+	header = change_char(header, '\t', ' ');
+	std::vector<std::string> req = split(header, "\r\n", true);
 
 	if (req.size() < 3)
 		return (client_ref.status_code = 400, false);
 	
-	std::vector<std::string> header = split(req[0], " ", true);
-	if (header.size() < 3)
+	std::vector<std::string> first_line = split(req[0], " ", true);
+	if (first_line.size() < 3)
 		return (client_ref.status_code = 400, false);
-	client_ref.method = header[0];
-	
-	client_ref.request.insert(std::make_pair("url_path", header[1]));
-
-	get_best_match(header[1]);
+	client_ref.method = first_line[0];
+	if (client_ref.method == "POST")
+		client_ref.request.insert(std::make_pair("body", ""));
 	for (size_t i = 1; i < req.size(); i++)
 	{
 		std::string	key, value;
-		size_t 		post = req[i].find(":");
-
-		if (i + 1 == req.size() && client_ref.method == "POST")
-			client_ref.request.insert(std::make_pair("body", req[i]));
-		else if (post != std::string::npos)
+		post = req[i].find(":");
+		upload_parser(req[i]);
+		if (post != std::string::npos)
 		{
 			key = trim(req[i].substr(0, post), " ");
 			value = trim(req[i].substr(post, req[i].size()), " ");
 			client_ref.request.insert(std::make_pair(key, value + "\r\n"));
 		}
 	}
+	client_ref.request.insert(std::make_pair("url_path", first_line[1]));
+	if (client_ref.method == "POST")
+		client_ref.request.find("body")->second = client_ref.buffer;
+	get_best_match(first_line[1]);
 	if (client_ref.request.find("Cookie") == client_ref.request.end())
 		client_ref.request.insert(std::make_pair("Cookie", ": session_id=" + int_to_string(rand() + client_ref.timeOut)));
 	client_ref.is_dir = is_directory(abs_Path(client_ref.best_match));

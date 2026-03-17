@@ -158,11 +158,11 @@ int	My_server::to_read(Client & obj)
 {
 	char	buffer[1025];
 
-	int n = recv(obj.fd, buffer, 1024, 0);
+	int n = recv(obj.fd, buffer, sizeof(buffer), 0);
 	if (n > 0)
 	{
-		buffer[n] = '\0';
-		obj.buffer.append(buffer);
+		obj.timeOut = time(NULL);
+		obj.buffer.append(buffer, n);
 		obj.end_request = is_end_of_request(obj.buffer);
 	}
 	return n;
@@ -179,7 +179,6 @@ void	My_server::poll_in(int index)
 		return;
 	}
 	if (!c_ref.end_request)	return;
-
 	Request	req(s_ref, c_ref);
 	_pollfds[index].events |= POLLOUT;
 }
