@@ -70,12 +70,7 @@ void	Location::cgi_extension(std::string & str)
 {
 	if (str.empty())
 		throw std::runtime_error(_error_message + str);
-	if (str == "py")
-		_cgi.insert(std::make_pair("py", "python3"));
-	else if (str == "php")
-	{
-		_cgi.insert(std::make_pair("php", "php-cgi"));
-	}
+	_cgi.push_back(str);
 }
 
 bool	Location::is_line_valid(std::string & line)

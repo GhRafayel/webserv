@@ -33,15 +33,19 @@ void	Request::find_cgi()
 		client_ref.best_match = client_ref.best_match.substr(0, post);
 	}
 	post = client_ref.best_match.find(".");
+
 	if (post != std::string::npos && client_ref.best_location_index != -1)
 	{
 		std::string ext = client_ref.best_match.substr(post + 1);
-		std::map<std::string, std::string> & temp = server_ref._locations[client_ref.best_location_index]._cgi;
-		if (temp.find(ext) != temp.end())
+		std::vector<std::string> & temp = server_ref._locations[client_ref.best_location_index]._cgi;
+		for (size_t i = 0; i < temp.size(); i++)
 		{
-			client_ref.cgi_type = str_to_lower(temp.find(ext)->second);
-			client_ref.cgibuf = client_ref.buffer;
-			client_ref.is_cgi = true;
+			if (temp[i] == ext)
+			{
+				client_ref.cgibuf = client_ref.buffer;
+				client_ref.is_cgi = true;
+				break;
+			}
 		}
 	}
 }
