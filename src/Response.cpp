@@ -98,7 +98,6 @@ void		Response::fun_200() {
 
 void		Response::fun_206() {
 
-	
 	size_t post = client_ref.request["Range"].rfind("=");
 	std::string temp = client_ref.request["Range"].substr(post + 1);
 	post = temp.find("-");
