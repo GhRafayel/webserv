@@ -106,7 +106,19 @@ void		Response::fun_206() {
 
 	std::cout << "start = " << start << " | end = " << end << std::endl;
 	body = get_file_content(abs_Path(client_ref.best_match));
-
+	
+	strim << "HTTP/1.1 206 Partial Content" << end_line;
+	strim <<	get_my_type(ext) << end_line;
+	strim << "Accept-Ranges: bytes" << end_line;
+	strim << "Content-Range: bytes" << start << "-" << end << "/" << body.size() << end_line;
+	strim << "Content-Length: " << body.size() << end_line << end_line;
+	if (end == 0)
+		body = body.substr(start);
+	else
+		body = body.substr(start, end);
+	std::cout << strim.str() << std::endl;
+	strim << body;
+	client_ref.outbuf = strim.str();
 }
 
 void		Response::fun_301() {
