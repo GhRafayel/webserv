@@ -32,6 +32,17 @@ Response & Response::operator=(const Response & obj)
 	return *this;
 }
 
+void		Response::to_send()
+{
+	ssize_t n = 1;
+	while (n > 0)
+	{
+		n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), MSG_NOSIGNAL);
+		if (n > 0)
+			client_ref.outbuf.erase(0, n);
+	}
+}
+
 void		Response::send_response()
 {
 	if (client_ref.cgi_run) return ;
@@ -40,15 +51,7 @@ void		Response::send_response()
 		(this->*func_map[400])();
 	else
 		(this->*func_map[it->first])();
-	ssize_t n = 1;
-	while (true)
-	{
-		n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), MSG_NOSIGNAL);
-		if (n > 0)
-			client_ref.outbuf.erase(0, n);
-		else if (n <= 0)
-			return ;
-	}
+	to_send();
 }
 
 void		Response::init() {
@@ -158,7 +161,7 @@ void		Response::fun_405(){
 };
 
 void		Response::fun_408(){
-	strim <<  "HTTP/1.1 408 Request Timeout\r\n";
+	strim <<  "HTTP/1.1 408 Request Timeout" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };

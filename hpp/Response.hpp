@@ -14,6 +14,8 @@ class Response : public StringUtils
 		std::map<int, void (Response::*) (void)>	func_map;
 		std::string									end_line;
 		void										init();
+		void										to_send();
+
 	protected:
 		Server &			server_ref;
 		Client &			client_ref;

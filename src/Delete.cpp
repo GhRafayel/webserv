@@ -9,6 +9,8 @@ Delete::Delete (Server & s_obj, Client & c_obj) : Response(s_obj, c_obj)
 
 int	Delete::create_response()
 {
+	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
+
 	path = abs_Path(client_ref.best_match);
 	size_t	post = client_ref.best_match.rfind(".");
 
