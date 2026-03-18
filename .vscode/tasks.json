@@ -1,0 +1,37 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Webserv (Debug)",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "CXXFLAGS=-g -O0"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Build webserv with debug symbols using Makefile"
+        },
+        {
+            "label": "Build Webserv (Release)",
+            "type": "shell",
+            "command": "make",
+            "args": [],
+            "group": "build",
+            "problemMatcher": ["$gcc"],
+            "detail": "Build webserv in release mode using Makefile"
+        },
+        {
+            "label": "Clean Build",
+            "type": "shell",
+            "command": "make",
+            "args": ["clean"],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Clean build artifacts"
+        }
+    ]
+}

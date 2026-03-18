@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Webserv",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/webserv",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build Webserv (Debug)"
+        },
+        {
+            "name": "Debug Webserv (Attach)",
+            "type": "lldb",
+            "request": "attach",
+            "program": "${workspaceFolder}/webserv",
+            "pid": "${command:pickProcess}"
+        }
+    ]
+}

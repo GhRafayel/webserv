@@ -1,3 +1,4 @@
+#!/usr/bin/php-cgi
 <?php
 header("Content-Type: text/html");
 echo "<h1>CGI Handler Status: Active</h1>";

@@ -156,13 +156,13 @@ void	My_server::remove_connection(int index)
 
 int	My_server::to_read(Client & obj)
 {
-	char	buffer[1025];
+	char	buffer[1024];
 
-	int n = recv(obj.fd, buffer, 1024, 0);
+	int n = recv(obj.fd, buffer, sizeof(buffer), 0);
 	if (n > 0)
 	{
-		buffer[n] = '\0';
-		obj.buffer.append(buffer);
+		obj.timeOut = time(NULL);
+		obj.buffer.append(buffer, n);
 		obj.end_request = is_end_of_request(obj.buffer);
 	}
 	return n;
@@ -179,9 +179,8 @@ void	My_server::poll_in(int index)
 		return;
 	}
 	if (!c_ref.end_request)	return;
-
 	Request	req(s_ref, c_ref);
-	_pollfds[index].events |= POLLOUT;
+	_pollfds[index].events = POLLOUT;
 }
 
 void	My_server::fun_405(Client & obj)
@@ -190,13 +189,14 @@ void	My_server::fun_405(Client & obj)
 
 	strim << "HTTP/1.1 405 Not Allowed\r\n Content-Type: application/octet-stream\r\n"
 		  << "Content-Length: 0 \r\nServer: my Server \r\n"
-		  << "Date: " << get_http_date() << "\r\nConnection: close \r\n\r\n";
+		  << "Date: " << get_http_date() << "\r\nConnection: alive \r\n\r\n"
+		  << "Set-Cookie" +  obj.request.find("Cookie")->second + ";	Path=/; HttpOnly\r\n"
+		  << "\r\n";
 	obj.outbuf = strim.str();
 	ssize_t n = 1;
-	
 	while (n > 0)
 	{
-		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), 0);
+		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), MSG_NOSIGNAL);
 		if (n > 0)
 			obj.outbuf.erase(0, n);
 	}
@@ -242,6 +242,7 @@ void	My_server::cgi_time_out(int index)
 		kill(it->second.cgi_pid, SIGKILL);
 		waitpid(it->second.cgi_pid, &status, 0);
 		check_status_code(status, it->second);
+		_pollfds[index].events = POLLOUT;
 	}
 }
 
@@ -254,10 +255,9 @@ void	My_server::time_out(int index)
 
 	if (it->second.is_cgi)
 		cgi_time_out(index);
-	else if (current_time - it->second.timeOut > 10)
+	else if (current_time - it->second.timeOut > 0)
 	{
 		it->second.status_code = 408;
-		_pollfds[index].events |= POLLOUT;
 	}
 }
 
@@ -278,7 +278,6 @@ void    My_server::accept_loop()
 					to_connect(i);
 				else
 					poll_in(i);
-				break;		
 			}
 			else if (_pollfds[i].revents & POLLOUT)
 				poll_out(i);

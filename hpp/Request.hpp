@@ -16,6 +16,7 @@ class Request : public StringUtils
 		Client		&client_ref;
 		
 		bool		parse_request();
+		void		upload_parser(std::string &);
 		void		get_best_match(std::string &);
 		void		find_cgi();
 		

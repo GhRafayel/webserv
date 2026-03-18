@@ -2,7 +2,7 @@
 
 Server::~Server() {}
 
-Server::Server() : 
+Server::Server() :
     _locations(),
     _root("www/public"),
     _server_name("localhost"),
@@ -16,7 +16,7 @@ Server::Server() :
     _addr.sin_port = htons(8080);
 }
 
-Server::Server(const Server & obj) : 
+Server::Server(const Server & obj) :
     _methods(obj._methods),
     _locations(obj._locations),
     _root(obj._root),
@@ -25,7 +25,6 @@ Server::Server(const Server & obj) :
     _body_max_size(obj._body_max_size),
     _error_404(obj._error_404),
     _error_500(obj._error_500),
-    _cgi_paths(obj._cgi_paths),
     _port(obj._port)
 {
     _addr.sin_family = obj._addr.sin_family;
@@ -48,7 +47,6 @@ Server & Server::operator = (const Server & obj)
         this->_addr.sin_addr = obj._addr.sin_addr;
         this->_addr.sin_port = obj._addr.sin_port;
         this->_methods = obj._methods;
-        this->_cgi_paths = obj._cgi_paths;
     }
     return *this;
 }

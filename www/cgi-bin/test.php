@@ -1,3 +1,5 @@
+#!/usr/bin/php-cgi
+
 <?php
 // Tell browser this is HTML
 header('Content-Type: text/html; charset=UTF-8');

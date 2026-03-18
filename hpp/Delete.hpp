@@ -9,7 +9,7 @@ class Delete : virtual public Response
 {
 	private:
 		Delete ();
-		void		create_response();
+		int		create_response();
 	public:
 		~Delete ();
 		Delete (Server &, Client &);

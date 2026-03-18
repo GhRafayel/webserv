@@ -35,7 +35,6 @@ class CgiHandler : public StringUtils
 		std::string	basename_from_path(const std::string &path);
 
 		CgiHandler& 		operator=(const CgiHandler&);
-		std::string			find_interpreter();
 		std::string 		getEnvVar(std::string &);
 		std::string 		unchunkReq(std::string &);
 		std::string 		decodeQm(const std::string&);
@@ -43,13 +42,9 @@ class CgiHandler : public StringUtils
 		void				createEnvironment();
 		void				setEnvVar(const std::string &, const std::string &);
 		bool				is_method_allowed();
-		bool				cgi_exist();
 		int					execute();
-		void				check_status_code(int);
-
-		std::vector<char*>	init_argv();
 		std::vector<char*>	init_envp();
-		void				child_process(std::vector<char*>&, std::vector<char*>&);
+		void				child_process(std::vector<char*>&);
 
 	public:		
 		CgiHandler( Server & s_obj,  Client & obj);

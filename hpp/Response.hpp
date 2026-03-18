@@ -25,7 +25,7 @@ class Response : public StringUtils
 		bool				is_method_allowed();
 		void				create_header();
 		void				to_read_cgi();
-		virtual void		create_response() = 0;
+		virtual int			create_response() = 0;
 		Response &			operator=(const Response &);
 	
 		void				fun_200200();
