@@ -11,11 +11,8 @@ int	Delete::create_response()
 {
 	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
 
-	path = abs_Path(client_ref.best_match);
-	size_t	post = client_ref.best_match.rfind(".");
-
-	if (post != std::string::npos)
-		ext = client_ref.best_match.substr(post, client_ref.best_match.size());
+	std::string path = abs_Path(client_ref.best_match);
+	ext = get_extension(client_ref.best_match);
 
 	if (!is_method_allowed()) 
 		return (client_ref.status_code = 405, 0);

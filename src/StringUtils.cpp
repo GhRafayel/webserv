@@ -367,3 +367,12 @@ void	StringUtils::check_status_code(int  status, Client & obj)
 	obj.cgi_run = false;
 	close(obj.out_pipe[0]);
 }
+
+std::string	StringUtils::get_extension(const std::string & file_name)
+{
+	size_t pos = file_name.rfind('.');
+
+	if (pos == std::string::npos)
+		return "";
+	return file_name.substr(pos + 1);
+}

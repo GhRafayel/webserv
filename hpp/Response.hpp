@@ -20,7 +20,6 @@ class Response : public StringUtils
 		Server &			server_ref;
 		Client &			client_ref;
 		std::ostringstream	strim;
-		std::string			path;
 		std::string			body;
 		std::string			ext;
 		std::string			static_page();

@@ -48,6 +48,7 @@ class StringUtils
 		std::string					str_to_lower(const std::string &);
 		std::string					str_to_upper(const std::string &);
 		std::string					str_to_upper(std::string &);
+		std::string					get_extension(const std::string & file_name);
 		size_t						parse_content_length(const std::string &);
 		void						check_status_code(int , Client & );
 

@@ -13,9 +13,7 @@ int	Get::create_response() {
 	{
 		if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
 		if (client_ref.cgi_run)
-		{
 			to_read_cgi();
-		}
 		else 
 		{
 			CgiHandler * CGI = new CgiHandler(server_ref, client_ref);
@@ -25,12 +23,8 @@ int	Get::create_response() {
 		if (client_ref.status_code < 200 || client_ref.status_code > 600) return 0;
 	}
 	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
-	path = abs_Path(client_ref.best_match);
-	size_t		post = client_ref.best_match.rfind(".");
-
-	if (post != std::string::npos)
-		ext = client_ref.best_match.substr(post);
-
+	std::string path = abs_Path(client_ref.best_match);
+	ext = get_extension(path);
 	if (!is_method_allowed()) 
 		return (client_ref.status_code = 405, 0);
 	if (path.empty()) 

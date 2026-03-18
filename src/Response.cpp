@@ -190,7 +190,7 @@ void		Response::fun_504(){
 std::string	Response::static_page()
 {
 	std::string str;
-	DIR* dir = opendir(path.c_str());
+	DIR* dir = opendir(abs_Path(client_ref.best_match).c_str());
 	struct dirent* entry;
 	while ((entry = readdir(dir)) != NULL)
 	{
