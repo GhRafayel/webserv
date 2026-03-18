@@ -9,8 +9,7 @@ class Get : virtual public Response
 {
 	private:
 		Get();
-		void	create_response();
-		void	fun_206();
+		int		create_response();
 	public:
 		~Get();
 		Get(Server &, Client &);

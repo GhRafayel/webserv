@@ -1,3 +1,5 @@
+#!/usr/bin/php-cgi
+
 <?php
 echo "<h1>PHP Test Page</h1>";
 echo "<p>PHP Version: " . phpversion() . "</p>";

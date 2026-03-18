@@ -13,7 +13,6 @@ class ConfigPars : public StringUtils
 		bool								_is_open_server;
 		size_t								_ind;
 		std::vector<Location>				_locations;
-		std::vector<std::string>			_cgi_paths;
 		std::vector<std::string>			_token_nl;
 		std::vector<bool>					_is_open_location;
 		std::vector<int>					_ports;
@@ -53,8 +52,6 @@ class ConfigPars : public StringUtils
 		void	method();
 		bool	check_config_blocks(const std::string &);
 		void	close_blocks();
-		void	cgi_path();
-
 	public:
 		std::vector<Server>	servers;
 		~ConfigPars();

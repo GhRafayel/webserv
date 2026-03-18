@@ -9,20 +9,16 @@ Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj) {
 bool Post::check_size()
 {
 	int size = client_ref.request.find("body")->second.size();
-
-	if (client_ref.best_location_index != -1)
-	{
-		if (server_ref._locations[client_ref.best_location_index]._max_body_size > size || server_ref._body_max_size > size)
-			return false;
-	}
+	if (server_ref._locations[client_ref.best_location_index]._max_body_size > size || server_ref._body_max_size > size)
+		return false;
 	return true;
 }
 
-void	Post::create_response()
+int	Post::create_response()
 {	
 	if (client_ref.is_cgi)
 	{
-		if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return;
+		if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
 		if (client_ref.cgi_run)
 		{
 			to_read_cgi();
@@ -33,9 +29,9 @@ void	Post::create_response()
 			CGI->cgi_run();
 			delete CGI;
 		}
-		if (client_ref.status_code < 200 || client_ref.status_code > 600) return;
+		if (client_ref.status_code < 200 || client_ref.status_code > 600) return 0;
 	}
-	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return;
+	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
 	path = abs_Path(client_ref.best_match);
 	size_t		post = path.rfind(".");
 	if (post != std::string::npos)
@@ -44,19 +40,16 @@ void	Post::create_response()
 	std::map<std::string, std::string>::iterator it = client_ref.request.find("body");
 	
 	if (!is_method_allowed())
-		client_ref.status_code = 405;
-	else if (check_size())
-		client_ref.status_code = 423;
-	else
-	{
-		size_t n =  client_ref.best_match.rfind("/");
-		std::string new_path = abs_Path(client_ref.best_match.substr(0, n)) + client_ref.best_match.substr(n).c_str();
-		body = it->second;
-		std::ofstream file(new_path.c_str());
-		if (!writable(new_path)) 
-			client_ref.status_code = 500;
-		file << body;
-		file.close();
-		client_ref.status_code = 200;
-	}
+		return (client_ref.status_code = 405, 0);
+	if (check_size())
+		return (client_ref.status_code = 423, 0);
+	size_t n =  client_ref.best_match.rfind("/");
+	std::string new_path = abs_Path(client_ref.best_match.substr(0, n)) + client_ref.best_match.substr(n).c_str();
+	body = it->second;
+	std::ofstream file(new_path.c_str(), std::ios::binary);
+	if (!writable(new_path)) 
+		return (client_ref.status_code = 500, 0);
+	file << body;
+	file.close();
+	return (client_ref.status_code = 200, 0);
 }

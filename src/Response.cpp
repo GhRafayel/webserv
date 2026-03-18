@@ -32,7 +32,7 @@ Response & Response::operator=(const Response & obj)
 	return *this;
 }
 
-void Response::send_response()
+void		Response::send_response()
 {
 	if (client_ref.cgi_run) return ;
 	std::map<int, void (Response::*) (void)>::iterator it = func_map.find(client_ref.status_code);
@@ -41,14 +41,17 @@ void Response::send_response()
 	else
 		(this->*func_map[it->first])();
 	ssize_t n = 1;
-	n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), 0);
-	if (n > 0)
+	while (true)
 	{
-		client_ref.outbuf.erase(0, n);
+		n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), MSG_NOSIGNAL);
+		if (n > 0)
+			client_ref.outbuf.erase(0, n);
+		else if (n <= 0)
+			return ;
 	}
 }
 
-void	Response::init() {
+void		Response::init() {
 		func_map.insert(std::make_pair(200, 	&Response::fun_200));
 		func_map.insert(std::make_pair(206, 	&Response::fun_206));
 		func_map.insert(std::make_pair(301, 	&Response::fun_301));
@@ -63,16 +66,16 @@ void	Response::init() {
 		func_map.insert(std::make_pair(200200,	&Response::fun_200200));
 }
 
-void	Response::fun_200200(){
+void		Response::fun_200200(){
 	body = static_page();
-	strim << "HTTP/1.0 200 ok" << end_line;
+	strim << "HTTP/1.1 200 OK" << end_line;
 	ext = ".html";
 	create_header();
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_200() {
+void		Response::fun_200() {
 	
 	if (client_ref.is_cgi)
 	{
@@ -90,74 +93,93 @@ void	Response::fun_200() {
 	}
 	else
 		body = get_file_content(abs_Path(client_ref.best_match));
-	strim << "HTTP/1.0 200 ok" << end_line;
-	create_header();
-	strim << body << end_line;
+	strim << "HTTP/1.1 200 OK" << end_line;
+	create_header();	
+	strim << body << end_line << end_line;
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_206(){
-	
-};
+void		Response::fun_206() {
 
-void	Response::fun_301() {
-	strim << "HTTP/1.0 " << int_to_string(client_ref.status_code) << " Moved Permanently" << end_line;
+	size_t post = client_ref.request["Range"].rfind("=");
+	std::string temp = trim(client_ref.request["Range"].substr(post + 1), "\r\n");
+	post = temp.find("-");
+	body = get_file_content(abs_Path(client_ref.best_match));
+	size_t end_post = str_to_int(temp.substr(post + 1));
+	size_t start = str_to_int(temp.substr(0, post)); 
+	if (end_post == std::string::npos || end_post >= body.size())
+		end_post = body.size() - 1;
+	size_t content_length = end_post - start + 1;
+	strim << "HTTP/1.1 206 Partial Content" << end_line;
+	std::cout << "my tipe " << ext << " ===" << std::endl;
+	strim <<  get_my_type(client_ref.best_match.substr(client_ref.best_match.rfind("."))) << end_line;
+	strim << "Accept-Ranges: bytes" << end_line;
+	strim << "Content-Range: bytes " << start << "-" << end_post << "/" << body.size() << end_line;
+	strim << "Content-Length: " << content_length << end_line;
+	strim << "Connection: keep-alive" << end_line;
+	strim <<  "Set-Cookie" + client_ref.request.find("Cookie")->second + "; Path=/; HttpOnly" <<  end_line << end_line;
+	strim << body.substr(start, content_length);
+	client_ref.outbuf = strim.str();
+}
+
+void		Response::fun_301() {
+	strim << "HTTP/1.1 " << int_to_string(client_ref.status_code) << " Moved Permanently" << end_line;
 	strim << "Location: "  << client_ref.best_match << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_400(){
-	strim <<  "HTTP/1.0 400 Bad Request" << end_line;
+void		Response::fun_400(){
+	strim <<  "HTTP/1.1 400 Bad Request" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_403(){
-	strim <<  "HTTP/1.0 403 Forbidden" << end_line;
+void		Response::fun_403(){
+	strim <<  "HTTP/1.1 403 Forbidden" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_404(){
+void		Response::fun_404(){
 	ext = ".html";
 	client_ref.best_match = abs_Path(server_ref._error_404);
 	body = get_file_content(client_ref.best_match);
-	strim << "HTTP/1.0 404 Not Found" << end_line;
+	strim << "HTTP/1.1 404 Not Found" << end_line;
 	create_header();
-	strim << body << end_line;
+	strim << body << end_line << end_line;
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_405(){
-	strim << "HTTP/1.0 405 Not Allowed" << end_line;
-	create_header();
-	client_ref.outbuf = strim.str();
-};
-
-void	Response::fun_408(){
-	strim <<  "HTTP/1.0 408 Request Timeout\r\n";
+void		Response::fun_405(){
+	strim << "HTTP/1.1 405 Not Allowed" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_423(){
-	strim << "HTTP/1.0 423 Payload Too Large" << end_line;
+void		Response::fun_408(){
+	strim <<  "HTTP/1.1 408 Request Timeout\r\n";
 	create_header();
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_500(){
+void		Response::fun_423(){
+	strim << "HTTP/1.1 423 Payload Too Large" << end_line;
+	create_header();
+	client_ref.outbuf = strim.str();
+};
+
+void		Response::fun_500(){
 	ext = ".html";
 	body = get_file_content(abs_Path(server_ref._error_500));
-	strim << "HTTP/1.0 500 Internal Server Error" << end_line;
+	strim << "HTTP/1.1 500 Internal Server Error" << end_line;
 	create_header();
-	strim << body << end_line;
+	strim << body << end_line << end_line;
 	client_ref.outbuf = strim.str();
 };
 
-void	Response::fun_504(){
-	strim << "HTTP/1.0 504 Gateway Timeout" << end_line;
+void		Response::fun_504(){
+	strim << "HTTP/1.1 504 Gateway Timeout" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 }
@@ -193,16 +215,18 @@ std::string	Response::static_page()
 	return str;
 }
 
-void	Response::create_header()
-{
+void		Response::create_header() {
+
 	strim << get_my_type(ext) << end_line;
 	strim << "Content-Length: " << body.size() << end_line;
-	strim << "Server: " << server_ref._server_name << " " << end_line;
-	strim << "Date: " << get_http_date() << end_line;
-	strim << "Connection: close" << end_line << end_line;
+	strim << "Server: " << server_ref._server_name << end_line;
+	strim << get_http_date() << end_line;
+	strim << "Connection: keep-alive" << end_line;
+	strim <<  "Set-Cookie" +  client_ref.request.find("Cookie")->second + "; Path=/; HttpOnly" <<  end_line;
+	strim << end_line;
 }
 
-bool	Response::is_method_allowed()
+bool		Response::is_method_allowed()
 {
 	bool s_method = server_ref.get_method(client_ref.method);
 	bool l_method = false;
@@ -215,9 +239,10 @@ bool	Response::is_method_allowed()
 	return false;
 }
 
-void	Response::to_read_cgi()	{
+void		Response::to_read_cgi()	{
 	int status = 0;
 	char	buf[4096];
+	
 	ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
 	if (r > 0)
 		client_ref.cgibuf.append(buf, buf + r);

@@ -3,59 +3,14 @@
     "configurations": [
         {
             "name": "Debug Webserv",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/webserv",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "Build Webserv (Debug)",
-            
-            // CRITICAL: Add these missing GDB settings
-            "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
-            
-            // IMPORTANT: Stop at entry to ensure variables panel initializes
-            "stopAtEntry": false,
-            
-            // Setup commands for better variable display
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "Set print pretty on",
-                    "text": "set print pretty on",
-                    "ignoreFailures": true
-                }
-            ],
-            
-            // Optional: Enable logging to debug issues
-            "logging": {
-                "engineLogging": false,
-                "trace": false,
-                "traceResponse": false,
-                "programOutput": true
-            }
+            "preLaunchTask": "Build Webserv (Debug)"
         },
         {
             "name": "Debug Webserv (Attach)",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "attach",
             "program": "${workspaceFolder}/webserv",
-            "processId": "${command:pickProcess}",
-            
-            // Add these for attach configuration too
-            "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
+            "pid": "${command:pickProcess}"
         }
     ]
 }

@@ -9,7 +9,8 @@ class Post : virtual public Response
 {
 	private:
 		Post();
-		void	create_response();
+		int		create_response();
+		int		upload();
 		bool	check_size();
 	public:
 		~Post();
