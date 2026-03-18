@@ -54,14 +54,14 @@ void	Request::upload_parser(std::string & str)
 	if (str.find("Content-Type: multipart/form-data; boundary") != std::string::npos)
 	{
 		client_ref.buffer = client_ref.buffer.substr(client_ref.buffer.find("\r\n\r\n") + 4);
-		client_ref.buffer = client_ref.buffer.substr(0, client_ref.buffer.find("\r\n\r\n"));
+		client_ref.buffer = client_ref.buffer.substr(0, client_ref.buffer.find("\r\n"));
 	}
 }
 
 bool	Request::parse_request()
 {
 	size_t 		post = client_ref.buffer.find("\r\n\r\n");
-	std::string header = client_ref.buffer.substr(0, post + 4);
+	std::string header = client_ref.buffer.substr(0, post);
 	client_ref.buffer = client_ref.buffer.substr(post + 4);
 
 	header = change_char(header, '\t', ' ');

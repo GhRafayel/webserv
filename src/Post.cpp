@@ -33,9 +33,9 @@ int	Post::create_response()
 	}
 	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
 	path = abs_Path(client_ref.best_match);
-	size_t		post = path.rfind(".");
+	size_t		post = client_ref.best_match.rfind(".");
 	if (post != std::string::npos)
-		ext = path.substr(post, path.size());
+		ext = client_ref.best_match.substr(post);
 
 	std::map<std::string, std::string>::iterator it = client_ref.request.find("body");
 	
@@ -43,8 +43,8 @@ int	Post::create_response()
 		return (client_ref.status_code = 405, 0);
 	if (check_size())
 		return (client_ref.status_code = 423, 0);
-	size_t n =  client_ref.best_match.rfind("/");
-	std::string new_path = abs_Path(client_ref.best_match.substr(0, n)) + client_ref.best_match.substr(n).c_str();
+	post =  client_ref.best_match.rfind("/");
+	std::string new_path = abs_Path(client_ref.best_match.substr(0, post)) + client_ref.best_match.substr(post).c_str();
 	body = it->second;
 	std::ofstream file(new_path.c_str(), std::ios::binary);
 	if (!writable(new_path)) 
