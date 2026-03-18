@@ -76,30 +76,12 @@ std::string	StringUtils::get_my_type(const std::string & file_name)
 {
 	size_t pos = file_name.rfind('.');
 
-	if (pos == std::string::npos)
+	if (pos == std::string::npos || file_name.empty())
 		return "Content-Type: application/octet-stream; charset=UTF-8";
 	std::map<std::string, std::string>::iterator it = _my_types.find(file_name.substr(pos + 1));
 	if (it == _my_types.end())
 		return "Content-Type: application/octet-stream; charset=UTF-8";
 	return "Content-Type: " + it->second + "; charset=UTF-8";
-}
-
-std::string	StringUtils::get_file_content(const std::string & file_path, size_t start, size_t len)
-{
-	std::string res;
-	res.resize(len);
-
-	std::ifstream file(file_path.c_str(), std::ios::binary);
-	if (!file)
-		return res;
-
-	file.seekg(start);
-	
-	file.read(&res[0], len);
-
-	res.resize(file.gcount());
-
-	return res;
 }
 
 std::string	StringUtils::get_file_content(const std::string & file_path)
@@ -285,24 +267,6 @@ std::string StringUtils::get_http_date()
 	return std::string(buffer);
 }
 
-std::vector<std::string>	StringUtils::range_parse(const std::string & req)
-{
-	std::string copy_req = req;
-	std::vector<std::string> temp = split(copy_req, "=", true);
-	copy_req = temp[1];
-	temp  = split(copy_req, "-", true);
-	return temp;
-}
-
-bool StringUtils::is_cgi(std::string & ext)
-{
-	if (ext.length() == 0) return false;
-
-	if (ext.substr(1) == "py" || ext.substr(1)  == "cgi")
-		return true;
-	return true;
-}
-
 std::string	StringUtils::str_to_lower(std::string & src)
 {
 	for (size_t i = 0; i < src.length(); i++)
@@ -366,13 +330,4 @@ void	StringUtils::check_status_code(int  status, Client & obj)
 	obj.status_code = 200;
 	obj.cgi_run = false;
 	close(obj.out_pipe[0]);
-}
-
-std::string	StringUtils::get_extension(const std::string & file_name)
-{
-	size_t pos = file_name.rfind('.');
-
-	if (pos == std::string::npos)
-		return "";
-	return file_name.substr(pos + 1);
 }

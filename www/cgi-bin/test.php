@@ -1,4 +1,4 @@
-#!/usr/bin/php-cgi
+#!/opt/homebrew/bin/php-cgi
 
 <?php
 // Tell browser this is HTML

@@ -21,7 +21,6 @@ class Response : public StringUtils
 		Client &			client_ref;
 		std::ostringstream	strim;
 		std::string			body;
-		std::string			ext;
 		std::string			static_page();
 		bool				is_method_allowed();
 		void				create_header();

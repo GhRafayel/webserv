@@ -30,12 +30,12 @@ int	Post::create_response()
 		if (client_ref.status_code < 200 || client_ref.status_code > 600) return 0;
 	}
 	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
-	ext = get_extension(client_ref.best_match);	
 	if (!is_method_allowed())
 		return (client_ref.status_code = 405, 0);
 	if (check_size())
 		return (client_ref.status_code = 423, 0);
-	std::ofstream file(abs_Path(client_ref.best_match).c_str(), std::ios::binary);
+	size_t post = client_ref.best_match.rfind("/");
+	std::ofstream file(abs_Path(client_ref.best_match.substr(0, post)) + client_ref.best_match.substr(post).c_str());
 	if (!exists(abs_Path(client_ref.best_match)))
 		return (client_ref.status_code = 404, 0);
 	if (!writable(abs_Path(client_ref.best_match))) 

@@ -24,7 +24,6 @@ int	Get::create_response() {
 	}
 	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
 	std::string path = abs_Path(client_ref.best_match);
-	ext = get_extension(path);
 	if (!is_method_allowed()) 
 		return (client_ref.status_code = 405, 0);
 	if (path.empty()) 

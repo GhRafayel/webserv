@@ -1,4 +1,4 @@
-#!/usr/bin/php-cgi
+#!/opt/homebrew/bin/php-cgi
 
 <?php
 header('Content-Type: text/html; charset=UTF-8');

@@ -70,9 +70,10 @@ void		Response::init() {
 }
 
 void		Response::fun_200200(){
+	
 	body = static_page();
 	strim << "HTTP/1.1 200 OK" << end_line;
-	ext = ".html";
+	client_ref.best_match = ".html";
 	create_header();
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
@@ -92,7 +93,7 @@ void		Response::fun_200() {
 			if (post != std::string::npos)
 				body = client_ref.cgibuf.substr(post + 2);
 		}
-		ext = ".html";
+		client_ref.best_match = ".html";
 	}
 	else
 		body = get_file_content(abs_Path(client_ref.best_match));
@@ -114,7 +115,6 @@ void		Response::fun_206() {
 		end_post = body.size() - 1;
 	size_t content_length = end_post - start + 1;
 	strim << "HTTP/1.1 206 Partial Content" << end_line;
-	std::cout << "my tipe " << ext << " ===" << std::endl;
 	strim <<  get_my_type(client_ref.best_match.substr(client_ref.best_match.rfind("."))) << end_line;
 	strim << "Accept-Ranges: bytes" << end_line;
 	strim << "Content-Range: bytes " << start << "-" << end_post << "/" << body.size() << end_line;
@@ -145,7 +145,6 @@ void		Response::fun_403(){
 };
 
 void		Response::fun_404(){
-	ext = ".html";
 	client_ref.best_match = abs_Path(server_ref._error_404);
 	body = get_file_content(client_ref.best_match);
 	strim << "HTTP/1.1 404 Not Found" << end_line;
@@ -173,8 +172,8 @@ void		Response::fun_423(){
 };
 
 void		Response::fun_500(){
-	ext = ".html";
-	body = get_file_content(abs_Path(server_ref._error_500));
+	client_ref.best_match = abs_Path(server_ref._error_500);
+	body = get_file_content(client_ref.best_match);
 	strim << "HTTP/1.1 500 Internal Server Error" << end_line;
 	create_header();
 	strim << body << end_line << end_line;
@@ -220,7 +219,7 @@ std::string	Response::static_page()
 
 void		Response::create_header() {
 
-	strim << get_my_type(ext) << end_line;
+	strim << get_my_type(client_ref.best_match) << end_line;
 	strim << "Content-Length: " << body.size() << end_line;
 	strim << "Server: " << server_ref._server_name << end_line;
 	strim << get_http_date() << end_line;

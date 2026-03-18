@@ -51,10 +51,12 @@ void	Request::find_cgi()
 }
 void	Request::upload_parser(std::string & str)
 {
+
 	if (str.find("Content-Type: multipart/form-data; boundary") != std::string::npos)
 	{
+		std::string bund = str.substr(str.find("=") + 1);
 		client_ref.buffer = client_ref.buffer.substr(client_ref.buffer.find("\r\n\r\n") + 4);
-		client_ref.buffer = client_ref.buffer.substr(0, client_ref.buffer.find("\r\n"));
+		client_ref.buffer = client_ref.buffer.substr(0, client_ref.buffer.find("\r\n--" + bund + "--"));
 	}
 }
 
@@ -94,7 +96,6 @@ bool	Request::parse_request()
 
 void Request::get_best_match(std::string & url_path)
 {
-	//int				best_index = -1;
 	std::string		best_loc;
 	
 	if (client_ref.request.find("url_path")->second == "/"){
@@ -119,7 +120,7 @@ void Request::get_best_match(std::string & url_path)
 			return ;
 		}
 		std::string relative_path = url_path.substr(best_loc.size());
-		std::string real_path = server_ref._root + server_ref._locations[client_ref.best_location_index]._root + relative_path;
+		std::string real_path = server_ref._locations[client_ref.best_location_index]._root + relative_path;
 
 		if (!server_ref._locations[client_ref.best_location_index]._index.empty() && relative_path.empty())
 			real_path += server_ref._locations[client_ref.best_location_index]._index;

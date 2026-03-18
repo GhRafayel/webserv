@@ -1,3 +1,3 @@
-#!/usr/bin/env php-cgi
+#!/opt/homebrew/bin/php-cgi
 
-<?php sleep(5); phpinfo(); ?>
+<?php  phpinfo(); ?>
