@@ -41,10 +41,13 @@ void		Response::send_response()
 	else
 		(this->*func_map[it->first])();
 	ssize_t n = 1;
-	n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), MSG_NOSIGNAL);
-	if (n > 0)
+	while (true)
 	{
-		client_ref.outbuf.erase(0, n);
+		n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), MSG_NOSIGNAL);
+		if (n > 0)
+			client_ref.outbuf.erase(0, n);
+		else if (n <= 0)
+			return ;
 	}
 }
 
@@ -90,7 +93,7 @@ void		Response::fun_200() {
 	}
 	else
 		body = get_file_content(abs_Path(client_ref.best_match));
-	strim << "HTTP/1.1 200 ok" << end_line;
+	strim << "HTTP/1.1 200 OK" << end_line;
 	create_header();	
 	strim << body << end_line << end_line;
 	client_ref.outbuf = strim.str();
@@ -99,23 +102,23 @@ void		Response::fun_200() {
 void		Response::fun_206() {
 
 	size_t post = client_ref.request["Range"].rfind("=");
-	std::string temp = client_ref.request["Range"].substr(post + 1);
+	std::string temp = trim(client_ref.request["Range"].substr(post + 1), "\r\n");
 	post = temp.find("-");
-	size_t start = str_to_int(temp.substr(0, post));
-	size_t end = str_to_int(temp.substr(post + 1));
-
 	body = get_file_content(abs_Path(client_ref.best_match));
-	
+	size_t end_post = str_to_int(temp.substr(post + 1));
+	size_t start = str_to_int(temp.substr(0, post)); 
+	if (end_post == std::string::npos || end_post >= body.size())
+		end_post = body.size() - 1;
+	size_t content_length = end_post - start + 1;
 	strim << "HTTP/1.1 206 Partial Content" << end_line;
-	strim <<	get_my_type(ext) << end_line;
-	strim << "Accept-Ranges: bytes " << end_line;
-	strim << "Content-Range: bytes " << start << "-" << end << "/" << body.size() << end_line;
-	strim << "Content-Length: " << body.size() << end_line << end_line;
-	if (end == 0)
-		body = body.substr(start);
-	else
-		body = body.substr(start, end);
-	strim << body;
+	std::cout << "my tipe " << ext << " ===" << std::endl;
+	strim <<  get_my_type(client_ref.best_match.substr(client_ref.best_match.rfind("."))) << end_line;
+	strim << "Accept-Ranges: bytes" << end_line;
+	strim << "Content-Range: bytes " << start << "-" << end_post << "/" << body.size() << end_line;
+	strim << "Content-Length: " << content_length << end_line;
+	strim << "Connection: keep-alive" << end_line;
+	strim <<  "Set-Cookie" + client_ref.request.find("Cookie")->second + "; Path=/; HttpOnly" <<  end_line << end_line;
+	strim << body.substr(start, content_length);
 	client_ref.outbuf = strim.str();
 }
 
@@ -216,10 +219,10 @@ void		Response::create_header() {
 
 	strim << get_my_type(ext) << end_line;
 	strim << "Content-Length: " << body.size() << end_line;
-	strim << "Server: " << server_ref._server_name << " " << end_line;
+	strim << "Server: " << server_ref._server_name << end_line;
 	strim << get_http_date() << end_line;
-	strim << "Connection: alive" << end_line;
-	strim <<  "Set-Cookie" +  client_ref.request.find("Cookie")->second + ";	Path=/; HttpOnly" <<  end_line;
+	strim << "Connection: keep-alive" << end_line;
+	strim <<  "Set-Cookie" +  client_ref.request.find("Cookie")->second + "; Path=/; HttpOnly" <<  end_line;
 	strim << end_line;
 }
 

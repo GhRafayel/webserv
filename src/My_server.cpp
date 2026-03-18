@@ -194,7 +194,6 @@ void	My_server::fun_405(Client & obj)
 		  << "\r\n";
 	obj.outbuf = strim.str();
 	ssize_t n = 1;
-	
 	while (n > 0)
 	{
 		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), MSG_NOSIGNAL);
@@ -256,10 +255,9 @@ void	My_server::time_out(int index)
 
 	if (it->second.is_cgi)
 		cgi_time_out(index);
-	else if (current_time - it->second.timeOut > 3)
+	else if (current_time - it->second.timeOut > 0)
 	{
 		it->second.status_code = 408;
-		_pollfds[index].events = POLLOUT;
 	}
 }
 

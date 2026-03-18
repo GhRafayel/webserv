@@ -1,3 +1,3 @@
-#!/usr/bin/php-cgi
+#!/usr/bin/env php-cgi
 
 <?php sleep(5); phpinfo(); ?>

@@ -3,7 +3,7 @@
     "configurations": [
         {
             "name": "Debug Webserv",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/webserv",
             "args": [],
@@ -12,7 +12,7 @@
         },
         {
             "name": "Debug Webserv (Attach)",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "attach",
             "program": "${workspaceFolder}/webserv",
             "pid": "${command:pickProcess}"
