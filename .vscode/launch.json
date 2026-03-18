@@ -3,11 +3,6 @@
     "configurations": [
         {
             "name": "Debug Webserv",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/webserv",
-            "args": [],
-            "cwd": "${workspaceFolder}",
             "preLaunchTask": "Build Webserv (Debug)"
         },
         {
