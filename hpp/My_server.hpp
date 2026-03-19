@@ -12,13 +12,7 @@
 #include "Post.hpp"
 #include "Delete.hpp"
 #include "Client.hpp"
-#include <sys/socket.h>
-#include <fcntl.h>
-#include <csignal>
-#include <pthread.h>
-#include <unistd.h>
-#include <poll.h>
-#include <algorithm>
+
 
 extern volatile bool g_running;
 

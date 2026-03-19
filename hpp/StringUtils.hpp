@@ -1,17 +1,21 @@
 #ifndef STRINGUTILS_HPP
 #define STRINGUTILS_HPP
 
+#include "Client.hpp"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <poll.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <ctime>
+#include <algorithm>
 #include <iostream>
+#include <csignal>
+#include <ctime>
 #include <fstream>
-#include <sstream>
 #include <vector>
 #include <map>
-#include "../hpp/Client.hpp"
-#include "signal.h"
 
 class StringUtils 
 {
@@ -47,7 +51,6 @@ class StringUtils
 		std::string					str_to_upper(std::string &);
 		size_t						parse_content_length(const std::string &);
 		void						check_status_code(int , Client & );
-
 };
 
 #endif

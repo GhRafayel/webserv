@@ -1,17 +1,8 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-
 #include "StringUtils.hpp"
 #include "Location.hpp"
-#include <typeinfo>
-#include <iostream>
-#include <sstream>
-#include <vector>
-#include <map>
 
 class Server
 {
@@ -35,4 +26,3 @@ class Server
 };
 
 #endif
-

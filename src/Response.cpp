@@ -37,7 +37,7 @@ void		Response::to_send()
 	ssize_t n = 1;
 	while (n > 0)
 	{
-		n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), MSG_NOSIGNAL);
+		n = send(client_ref.fd, client_ref.outbuf.data(), 1024, MSG_NOSIGNAL);
 		if (n > 0)
 			client_ref.outbuf.erase(0, n);
 	}
@@ -52,6 +52,22 @@ void		Response::send_response()
 	else
 		(this->*func_map[it->first])();
 	to_send();
+}
+
+void		Response::cgi_outPut_pars()
+{
+	size_t post = client_ref.cgibuf.find("\r\n\r\n");
+	if (post == std::string::npos && (post = client_ref.cgibuf.find("\r\n")) == std::string::npos)
+	{
+		body = client_ref.cgibuf;
+		client_ref.cgibuf.clear();
+		client_ref.is_cgi = false;
+	}
+	else
+	{
+		body = client_ref.cgibuf.substr(post + 2);
+		client_ref.cgibuf = client_ref.cgibuf.substr(0, post);
+	}
 }
 
 void		Response::init() {
@@ -82,23 +98,11 @@ void		Response::fun_200200(){
 void		Response::fun_200() {
 	
 	if (client_ref.is_cgi)
-	{
-		body = client_ref.cgibuf;
-		size_t post = client_ref.cgibuf.find("\r\n\r\n");
-		if (post != std::string::npos)
-			body = client_ref.cgibuf.substr(post + 4);
-		else
-		{
-			post = client_ref.cgibuf.find("\r\n");
-			if (post != std::string::npos)
-				body = client_ref.cgibuf.substr(post + 2);
-		}
-		client_ref.best_match = ".html";
-	}
+		cgi_outPut_pars();
 	else
 		body = get_file_content(abs_Path(client_ref.best_match));
 	strim << "HTTP/1.1 200 OK" << end_line;
-	create_header();	
+	create_header();
 	strim << body << end_line << end_line;
 	client_ref.outbuf = strim.str();
 };
@@ -145,6 +149,7 @@ void		Response::fun_403(){
 };
 
 void		Response::fun_404(){
+	client_ref.is_cgi = false;
 	client_ref.best_match = abs_Path(server_ref._error_404);
 	body = get_file_content(client_ref.best_match);
 	strim << "HTTP/1.1 404 Not Found" << end_line;
@@ -172,6 +177,7 @@ void		Response::fun_423(){
 };
 
 void		Response::fun_500(){
+	client_ref.is_cgi = false;
 	client_ref.best_match = abs_Path(server_ref._error_500);
 	body = get_file_content(client_ref.best_match);
 	strim << "HTTP/1.1 500 Internal Server Error" << end_line;
@@ -219,7 +225,7 @@ std::string	Response::static_page()
 
 void		Response::create_header() {
 
-	strim << get_my_type(client_ref.best_match) << end_line;
+	strim << (client_ref.is_cgi ? client_ref.cgibuf :  get_my_type(client_ref.best_match)) << end_line;
 	strim << "Content-Length: " << body.size() << end_line;
 	strim << "Server: " << server_ref._server_name << end_line;
 	strim << get_http_date() << end_line;
