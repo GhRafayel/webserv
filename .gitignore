@@ -1,16 +1,6 @@
 # Editor
 
-# PDFs
-*.pdf
-
-# Testers
-other/
-
 # Build / output
 output/
-
 webserv
 
-# Other
-other/
-test.sh
