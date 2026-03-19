@@ -234,7 +234,7 @@ void	My_server::time_out(int index)
 
 	if (it->second.is_cgi)
 		cgi_time_out(index);
-	else if (current_time - it->second.timeOut > 0)
+	else if (current_time - it->second.timeOut > TIMEOUT)
 	{
 		it->second.status_code = 408;
 	}
@@ -250,7 +250,7 @@ void    My_server::accept_loop()
 		size_t i = 0;
 		while (n > 0 && g_running && i < _pollfds.size())
 		{
-			//time_out(i);
+			time_out(i);
 			if (_pollfds[i].revents & POLLIN)
 			{
 				if (is_server_socket(_pollfds[i].fd))
