@@ -89,7 +89,7 @@ void		Response::fun_200200(){
 	
 	body = static_page();
 	strim << "HTTP/1.1 200 OK" << end_line;
-	client_ref.best_match = ".html";
+	ext = ".html";
 	create_header();
 	strim << body << end_line;
 	client_ref.outbuf = strim.str();
