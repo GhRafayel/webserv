@@ -1,17 +1,21 @@
 #ifndef STRINGUTILS_HPP
 #define STRINGUTILS_HPP
 
+#include "Client.hpp"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <poll.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <ctime>
+#include <algorithm>
 #include <iostream>
+#include <csignal>
+#include <ctime>
 #include <fstream>
-#include <sstream>
 #include <vector>
 #include <map>
-#include "../hpp/Client.hpp"
-#include "signal.h"
 
 class StringUtils 
 {
@@ -33,7 +37,6 @@ class StringUtils
 		std::string					change_char(std::string &, const char, const char);
 		std::vector<std::string>	split(std::string &, const std::string &, bool);
 		std::string					get_file_content(const std::string & );
-		std::string					get_file_content(const std::string & , size_t , size_t);
 		std::string 				int_to_string(int);
 		std::string					get_my_type(const std::string &);
 		bool						is_directory(const std::string &);
@@ -41,8 +44,6 @@ class StringUtils
 		bool						writable(const std::string &);
 		bool						executable(const std::string &);
 		bool						exists(const std::string &);
-		bool						is_cgi(std::string & );
-		std::vector<std::string>	range_parse(const std::string &);
 		std::string 				get_http_date();
 		std::string					str_to_lower(std::string &);
 		std::string					str_to_lower(const std::string &);
@@ -50,7 +51,6 @@ class StringUtils
 		std::string					str_to_upper(std::string &);
 		size_t						parse_content_length(const std::string &);
 		void						check_status_code(int , Client & );
-
 };
 
 #endif

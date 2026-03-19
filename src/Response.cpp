@@ -32,6 +32,17 @@ Response & Response::operator=(const Response & obj)
 	return *this;
 }
 
+void		Response::to_send()
+{
+	ssize_t n = 1;
+	while (n > 0)
+	{
+		n = send(client_ref.fd, client_ref.outbuf.data(), 1024, MSG_NOSIGNAL);
+		if (n > 0)
+			client_ref.outbuf.erase(0, n);
+	}
+}
+
 void		Response::send_response()
 {
 	if (client_ref.cgi_run) return ;
@@ -40,14 +51,22 @@ void		Response::send_response()
 		(this->*func_map[400])();
 	else
 		(this->*func_map[it->first])();
-	ssize_t n = 1;
-	while (true)
+	to_send();
+}
+
+void		Response::cgi_outPut_pars()
+{
+	size_t post = client_ref.cgibuf.find("\r\n\r\n");
+	if (post == std::string::npos && (post = client_ref.cgibuf.find("\r\n")) == std::string::npos)
 	{
-		n = send(client_ref.fd, client_ref.outbuf.data(), client_ref.outbuf.size(), MSG_NOSIGNAL);
-		if (n > 0)
-			client_ref.outbuf.erase(0, n);
-		else if (n <= 0)
-			return ;
+		body = client_ref.cgibuf;
+		client_ref.cgibuf.clear();
+		client_ref.is_cgi = false;
+	}
+	else
+	{
+		body = client_ref.cgibuf.substr(post + 2);
+		client_ref.cgibuf = client_ref.cgibuf.substr(0, post);
 	}
 }
 
@@ -67,6 +86,7 @@ void		Response::init() {
 }
 
 void		Response::fun_200200(){
+	
 	body = static_page();
 	strim << "HTTP/1.1 200 OK" << end_line;
 	ext = ".html";
@@ -78,23 +98,11 @@ void		Response::fun_200200(){
 void		Response::fun_200() {
 	
 	if (client_ref.is_cgi)
-	{
-		body = client_ref.cgibuf;
-		size_t post = client_ref.cgibuf.find("\r\n\r\n");
-		if (post != std::string::npos)
-			body = client_ref.cgibuf.substr(post + 4);
-		else
-		{
-			post = client_ref.cgibuf.find("\r\n");
-			if (post != std::string::npos)
-				body = client_ref.cgibuf.substr(post + 2);
-		}
-		ext = ".html";
-	}
+		cgi_outPut_pars();
 	else
 		body = get_file_content(abs_Path(client_ref.best_match));
 	strim << "HTTP/1.1 200 OK" << end_line;
-	create_header();	
+	create_header();
 	strim << body << end_line << end_line;
 	client_ref.outbuf = strim.str();
 };
@@ -111,7 +119,6 @@ void		Response::fun_206() {
 		end_post = body.size() - 1;
 	size_t content_length = end_post - start + 1;
 	strim << "HTTP/1.1 206 Partial Content" << end_line;
-	std::cout << "my tipe " << ext << " ===" << std::endl;
 	strim <<  get_my_type(client_ref.best_match.substr(client_ref.best_match.rfind("."))) << end_line;
 	strim << "Accept-Ranges: bytes" << end_line;
 	strim << "Content-Range: bytes " << start << "-" << end_post << "/" << body.size() << end_line;
@@ -142,7 +149,7 @@ void		Response::fun_403(){
 };
 
 void		Response::fun_404(){
-	ext = ".html";
+	client_ref.is_cgi = false;
 	client_ref.best_match = abs_Path(server_ref._error_404);
 	body = get_file_content(client_ref.best_match);
 	strim << "HTTP/1.1 404 Not Found" << end_line;
@@ -158,7 +165,7 @@ void		Response::fun_405(){
 };
 
 void		Response::fun_408(){
-	strim <<  "HTTP/1.1 408 Request Timeout\r\n";
+	strim <<  "HTTP/1.1 408 Request Timeout" << end_line;
 	create_header();
 	client_ref.outbuf = strim.str();
 };
@@ -170,8 +177,9 @@ void		Response::fun_423(){
 };
 
 void		Response::fun_500(){
-	ext = ".html";
-	body = get_file_content(abs_Path(server_ref._error_500));
+	client_ref.is_cgi = false;
+	client_ref.best_match = abs_Path(server_ref._error_500);
+	body = get_file_content(client_ref.best_match);
 	strim << "HTTP/1.1 500 Internal Server Error" << end_line;
 	create_header();
 	strim << body << end_line << end_line;
@@ -187,7 +195,7 @@ void		Response::fun_504(){
 std::string	Response::static_page()
 {
 	std::string str;
-	DIR* dir = opendir(path.c_str());
+	DIR* dir = opendir(abs_Path(client_ref.best_match).c_str());
 	struct dirent* entry;
 	while ((entry = readdir(dir)) != NULL)
 	{
@@ -217,7 +225,7 @@ std::string	Response::static_page()
 
 void		Response::create_header() {
 
-	strim << get_my_type(ext) << end_line;
+	strim << (client_ref.is_cgi ? client_ref.cgibuf :  get_my_type(client_ref.best_match)) << end_line;
 	strim << "Content-Length: " << body.size() << end_line;
 	strim << "Server: " << server_ref._server_name << end_line;
 	strim << get_http_date() << end_line;

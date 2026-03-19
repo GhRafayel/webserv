@@ -1,23 +1,10 @@
-
 #ifndef CGIHANDLER_HPP
 #define CGIHANDLER_HPP
 
-
-#include <string>
-#include <map>
-#include <vector>
-#include <algorithm>
-#include <unistd.h>
-#include <cstdlib>
-#include <sys/wait.h>
 #include "Response.hpp"
 #include "StringUtils.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
-#include <fcntl.h>
-#include <cstdio>
-#include <cctype>
-#include <cstring>
 
 class CgiHandler : public StringUtils
 {

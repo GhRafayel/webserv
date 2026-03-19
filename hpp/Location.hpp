@@ -2,9 +2,6 @@
 #define LOCATION_HPP
 
 #include "StringUtils.hpp"
-#include <iostream>
-#include <vector>
-#include <map>
 
 class Location : public StringUtils
 {

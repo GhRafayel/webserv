@@ -3,7 +3,6 @@
 
 #include "StringUtils.hpp"
 #include "Location.hpp"
-
 #include "Server.hpp"
 
 class ConfigPars : public StringUtils

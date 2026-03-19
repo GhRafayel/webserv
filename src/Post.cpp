@@ -20,9 +20,7 @@ int	Post::create_response()
 	{
 		if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
 		if (client_ref.cgi_run)
-		{
 			to_read_cgi();
-		}
 		else
 		{
 			CgiHandler * CGI = new CgiHandler(server_ref, client_ref);
@@ -32,24 +30,17 @@ int	Post::create_response()
 		if (client_ref.status_code < 200 || client_ref.status_code > 600) return 0;
 	}
 	if (client_ref.status_code >= 200 && client_ref.status_code <= 600) return 0;
-	path = abs_Path(client_ref.best_match);
-	size_t		post = path.rfind(".");
-	if (post != std::string::npos)
-		ext = path.substr(post, path.size());
-
-	std::map<std::string, std::string>::iterator it = client_ref.request.find("body");
-	
 	if (!is_method_allowed())
 		return (client_ref.status_code = 405, 0);
 	if (check_size())
 		return (client_ref.status_code = 423, 0);
-	size_t n =  client_ref.best_match.rfind("/");
-	std::string new_path = abs_Path(client_ref.best_match.substr(0, n)) + client_ref.best_match.substr(n).c_str();
-	body = it->second;
-	std::ofstream file(new_path.c_str(), std::ios::binary);
-	if (!writable(new_path)) 
+	size_t post = client_ref.best_match.rfind("/");
+	std::ofstream file(abs_Path(client_ref.best_match.substr(0, post)) + client_ref.best_match.substr(post).c_str());
+	if (!exists(abs_Path(client_ref.best_match)))
+		return (client_ref.status_code = 404, 0);
+	if (!writable(abs_Path(client_ref.best_match))) 
 		return (client_ref.status_code = 500, 0);
-	file << body;
+	file << client_ref.request["body"];
 	file.close();
 	return (client_ref.status_code = 200, 0);
 }

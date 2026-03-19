@@ -12,13 +12,7 @@
 #include "Post.hpp"
 #include "Delete.hpp"
 #include "Client.hpp"
-#include <sys/socket.h>
-#include <fcntl.h>
-#include <csignal>
-#include <pthread.h>
-#include <unistd.h>
-#include <poll.h>
-#include <algorithm>
+
 
 extern volatile bool g_running;
 
@@ -31,7 +25,6 @@ class My_server : public StringUtils
 		int							_time;
 		std::string					_conf_file_path;
 
-		void	fun_405(Client &);
 		void	to_connect(int);
 		bool	is_server_socket(int);
 		void	initConfig();

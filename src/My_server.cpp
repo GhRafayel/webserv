@@ -183,38 +183,19 @@ void	My_server::poll_in(int index)
 	_pollfds[index].events = POLLOUT;
 }
 
-void	My_server::fun_405(Client & obj)
-{
-	std::ostringstream strim;
-
-	strim << "HTTP/1.1 405 Not Allowed\r\n Content-Type: application/octet-stream\r\n"
-		  << "Content-Length: 0 \r\nServer: my Server \r\n"
-		  << "Date: " << get_http_date() << "\r\nConnection: alive \r\n\r\n"
-		  << "Set-Cookie" +  obj.request.find("Cookie")->second + ";	Path=/; HttpOnly\r\n"
-		  << "\r\n";
-	obj.outbuf = strim.str();
-	ssize_t n = 1;
-	while (n > 0)
-	{
-		n = send(obj.fd, obj.outbuf.data(), obj.outbuf.size(), MSG_NOSIGNAL);
-		if (n > 0)
-			obj.outbuf.erase(0, n);
-	}
-}
-
 Response * My_server::get_class(Server & s_obj, Client & c_obj)
 {
 	if (c_obj.method == "GET") {
 		return (new Get(s_obj, c_obj));
 	}
-	else if (c_obj.method == "POST") {
+	if (c_obj.method == "POST") {
 		return (new Post(s_obj, c_obj));
 	}
-	else if (c_obj.method == "DELETE") {
+	if (c_obj.method == "DELETE") {
 		return (new Delete(s_obj, c_obj));
 	}
-	fun_405(c_obj);
-	return NULL;
+	c_obj.status_code = 405;
+	return (new Delete(s_obj, c_obj));
 }
 
 void	My_server::poll_out(int index)
@@ -223,8 +204,7 @@ void	My_server::poll_out(int index)
 	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
 
 	Response * response = get_class(s_ref, c_ref);
-	if (response)
-		response->send_response();
+	response->send_response();
 	if (!c_ref.cgi_run && c_ref.end_request && c_ref.outbuf.empty())
 		remove_connection(index);
 	delete response;
@@ -242,7 +222,6 @@ void	My_server::cgi_time_out(int index)
 		kill(it->second.cgi_pid, SIGKILL);
 		waitpid(it->second.cgi_pid, &status, 0);
 		check_status_code(status, it->second);
-		_pollfds[index].events = POLLOUT;
 	}
 }
 
@@ -255,7 +234,7 @@ void	My_server::time_out(int index)
 
 	if (it->second.is_cgi)
 		cgi_time_out(index);
-	else if (current_time - it->second.timeOut > 0)
+	else if (current_time - it->second.timeOut > TIMEOUT)
 	{
 		it->second.status_code = 408;
 	}

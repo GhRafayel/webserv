@@ -2,11 +2,8 @@
 #define REQUEST_HPP
 
 #include "StringUtils.hpp"
-#include <sys/socket.h>
 #include "Client.hpp"
 #include "Server.hpp"
-#include <iostream>
-#include <map>
 
 class Request : public StringUtils
 {
