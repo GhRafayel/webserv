@@ -287,6 +287,7 @@ std::string	StringUtils::str_to_upper(std::string & src)
 	for (size_t i = 0; i < src.length(); i++)
 	{
 		src[i] = std::toupper(src[i]);
+		if (src[i] == '-') src[i] = '_';
 	}
 	return src;
 }

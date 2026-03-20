@@ -83,7 +83,7 @@ bool	Request::parse_request()
 		post = req[i].find(":");
 		upload_parser(req[i]);
 		if (post != std::string::npos)
-			client_ref.request.insert(std::make_pair( trim(req[i].substr(0, post + 1), " "), trim(req[i].substr(post, req[i].size()), " ")));
+			client_ref.request.insert(std::make_pair( trim(req[i].substr(0, post), " "), trim(req[i].substr(post + 1, req[i].size()), " ")));
 	}
 	client_ref.request.insert(std::make_pair("url_path", first_line[1]));
 	client_ref.request.find("body")->second = client_ref.buffer;

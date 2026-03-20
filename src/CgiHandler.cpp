@@ -152,18 +152,22 @@ void	CgiHandler::createEnvironment() {
 	setEnvVar("REDIRECT_STATUS", "200");
 	if (client_ref.method == "POST")
 	{
-		std::string	clen = client_ref.request.count("Content-Length") ? trim(client_ref.request["Content-Length"],"\r\n") : "";
-		std::string ctype = client_ref.request.count("Content-Type") ? trim (client_ref.request["Content-Type"],"\r\n") : "";
-		if (!clen.empty())
-				setEnvVar("CONTENT_LENGTH", clen);
-		if (!ctype.empty())
-			setEnvVar("CONTENT_TYPE", ctype);
+		setEnvVar("CONTENT_LENGHT", client_ref.request["Content-Length"]);
+		setEnvVar("CONTENT_TYPE", 	client_ref.request["Content-Type"]);
 	}
 	
 	std::map<std::string, std::string>::iterator it = client_ref.request.begin();
 	while (it != client_ref.request.end())
 	{
-		if (it->first.empty() || it->first == "url_path" || it->first == "protocol"  || it->first == "method" || it->first == "Host" || it->first == "remote_addr")
+		if (it->first.empty()	|| it->first == "url_path" 
+								|| it->first == "protocol"  
+								|| it->first == "method" 
+								|| it->first == "Host" 
+								|| it->first == "remote_addr"
+								|| it->first == "Content-Length"
+								|| it->first == "Content-Type"
+								|| it->first == "body"
+			)
 		{
 			it++;
 			continue;
