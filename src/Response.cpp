@@ -37,9 +37,16 @@ void		Response::to_send()
 	ssize_t n = 1;
 	while (n > 0)
 	{
-		n = send(client_ref.fd, client_ref.outbuf.data(), 1024, MSG_NOSIGNAL);
+
+		n = send(client_ref.fd, client_ref.outbuf.data(), (client_ref.outbuf.size() > 1024 ? 1024 : client_ref.outbuf.size()), MSG_NOSIGNAL);
 		if (n > 0)
 			client_ref.outbuf.erase(0, n);
+		if (n == -1 )
+		{
+			client_ref.outbuf.clear();
+			client_ref.cgi_run = false;
+			client_ref.end_request = true;
+		}
 	}
 }
 
@@ -51,6 +58,7 @@ void		Response::send_response()
 		(this->*func_map[400])();
 	else
 		(this->*func_map[it->first])();
+	if (client_ref.outbuf.empty()) return ;
 	to_send();
 }
 

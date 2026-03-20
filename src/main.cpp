@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 		{
 			if (argc == 1)
 			{
-				server = new My_server("conf/server.conf");
+				server = new My_server("conf/default.conf");
 				server->start_server();
 			}
 			else

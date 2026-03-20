@@ -237,6 +237,7 @@ void	My_server::time_out(int index)
 	else if (current_time - it->second.timeOut > TIMEOUT)
 	{
 		it->second.status_code = 408;
+		_pollfds[index].events = POLLOUT;
 	}
 }
 
