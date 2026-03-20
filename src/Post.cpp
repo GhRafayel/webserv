@@ -35,7 +35,7 @@ int	Post::create_response()
 	if (check_size())
 		return (client_ref.status_code = 423, 0);
 	size_t post = client_ref.best_match.rfind("/");
-	std::ofstream file(abs_Path(client_ref.best_match.substr(0, post)) + client_ref.best_match.substr(post).c_str());
+	std::ofstream file((abs_Path(client_ref.best_match.substr(0, post)) + client_ref.best_match.substr(post)).c_str());
 	if (!exists(abs_Path(client_ref.best_match)))
 		return (client_ref.status_code = 404, 0);
 	if (!writable(abs_Path(client_ref.best_match))) 

@@ -1,3 +1,3 @@
-#!/opt/homebrew/bin/php-cgi
+#!/usr/bin/env php-cgi
 
 <?php  phpinfo(); ?>
