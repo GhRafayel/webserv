@@ -152,8 +152,8 @@ void	CgiHandler::createEnvironment() {
 	setEnvVar("REDIRECT_STATUS", "200");
 	if (client_ref.method == "POST")
 	{
-		std::string	clen = client_ref.request.count("content-length") ? client_ref.request["content-length"] : "";
-		std::string ctype = client_ref.request.count("content-type") ? client_ref.request["content-type"] : "";
+		std::string	clen = client_ref.request.count("Content-Length") ? trim(client_ref.request["Content-Length"],"\r\n") : "";
+		std::string ctype = client_ref.request.count("Content-Type") ? trim (client_ref.request["Content-Type"],"\r\n") : "";
 		if (!clen.empty())
 				setEnvVar("CONTENT_LENGTH", clen);
 		if (!ctype.empty())
