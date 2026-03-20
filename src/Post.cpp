@@ -9,9 +9,12 @@ Post::Post(Server & s_obj, Client & c_obj) : Response(s_obj, c_obj) {
 bool Post::check_size()
 {
 	int size = client_ref.request.find("body")->second.size();
-	if (server_ref._locations[client_ref.best_location_index]._max_body_size > size || server_ref._body_max_size > size)
-		return false;
-	return true;
+	if (client_ref.best_location_index != -1)
+	{
+		if (server_ref._locations[client_ref.best_location_index]._max_body_size || server_ref._body_max_size > size)
+			return false;
+	}
+	return  server_ref._body_max_size > size;
 }
 
 int	Post::create_response()
