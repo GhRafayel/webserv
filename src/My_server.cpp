@@ -170,10 +170,13 @@ int	My_server::to_read(Client & obj)
 
 void	My_server::poll_in(int index)
 {
-	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
+	std::map<int, Client>::iterator it = _client.find(_pollfds[index].fd);
+	if (it == _client.end()) return;
+
+	Client	&c_ref = it->second;
 	Server	&s_ref = _servers.find(c_ref.server_conf_key)->second;
 	
-	if (to_read(c_ref) == 0)
+	if (to_read(c_ref) < 0)
 	{
 		remove_connection(index);
 		return;
@@ -200,7 +203,10 @@ Response * My_server::get_class(Server & s_obj, Client & c_obj)
 
 void	My_server::poll_out(int index)
 {
-	Client	&c_ref = _client.find(_pollfds[index].fd)->second;
+	std::map<int, Client>::iterator it = _client.find(_pollfds[index].fd);
+	if (it == _client.end()) return;
+
+	Client	&c_ref = it->second;
 	Server  &s_ref = _servers.find(c_ref.server_conf_key)->second;
 
 	Response * response = get_class(s_ref, c_ref);
@@ -215,8 +221,8 @@ void	My_server::cgi_time_out(int index)
 	int 									status = 0;
 	std::map<int, Client>::iterator it =	_client.find(_pollfds[index].fd);
 
-	if (waitpid(it->second.cgi_pid, &status, WNOHANG) > 0)
-		return ;
+	if (it == _client.end()) return ;
+	if (waitpid(it->second.cgi_pid, &status, WNOHANG) > 0) return ;
 	if (time(NULL) - it->second.timeOut >= TIMEOUT)
 	{
 		kill(it->second.cgi_pid, SIGKILL);

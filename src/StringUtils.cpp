@@ -104,7 +104,7 @@ std::string	StringUtils::get_file_content(const std::string & file_path)
 std::string	StringUtils::int_to_string(int num)
 {
 	std::stringstream ss;
-	ss << num;
+	ss << std::abs(num);
 	return   ss.str();
 }
 
@@ -192,7 +192,7 @@ std::vector<std::string>	StringUtils::split(std::string & src, const std::string
 std::string	StringUtils::abs_Path(const std::string & name)
 {
 	std::string path;
-	char actualpath [1024];
+	char actualpath [PATH_MAX];
 	char *r_path = realpath(name.c_str(), actualpath);
 	if (!r_path)
 		return "";

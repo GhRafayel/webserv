@@ -18,7 +18,7 @@ DEP = $(OBJ:.o=.d)
 
 NAME = webserv
 C	 = c++
-FLAG = -Wall -Wextra -Werror -std=c++98 -MMD  -g3
+FLAG = -Wall -Wextra -Werror -std=c++98 -MMD
 COMP = $(C) $(FLAG)
 
 all : create-dirs $(NAME)

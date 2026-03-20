@@ -88,8 +88,6 @@ bool	Request::parse_request()
 	client_ref.request.insert(std::make_pair("url_path", first_line[1]));
 	client_ref.request.find("body")->second = client_ref.buffer;
 	get_best_match(first_line[1]);
-	if (client_ref.request.find("Cookie") == client_ref.request.end())
-		client_ref.request.insert(std::make_pair("Cookie", ": session_id=" + int_to_string(rand() + client_ref.timeOut)));
 	client_ref.is_dir = is_directory(abs_Path(client_ref.best_match));
 	return true;
 }

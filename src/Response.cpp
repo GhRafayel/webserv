@@ -203,6 +203,8 @@ std::string	Response::static_page()
 {
 	std::string str;
 	DIR* dir = opendir(abs_Path(client_ref.best_match).c_str());
+	if (dir == NULL)
+		return str;
 	struct dirent* entry;
 	while ((entry = readdir(dir)) != NULL)
 	{
@@ -237,7 +239,11 @@ void		Response::create_header() {
 	strim << "Server: " << server_ref._server_name << end_line;
 	strim << get_http_date() << end_line;
 	strim << "Connection: keep-alive" << end_line;
-	strim <<  "Set-Cookie" +  client_ref.request.find("Cookie")->second + "; Path=/; HttpOnly" <<  end_line;
+	std::map<std::string, std::string>::iterator it = client_ref.request.find("Cookie");
+	if (it != client_ref.request.end())
+		strim << "Set-Cookie: " + it->second + "; Path=/; HttpOnly" << end_line;
+	else
+		strim << "Set-Cookie: session_id=" << int_to_string(rand() + client_ref.timeOut) << "; Path=/; HttpOnly" << end_line;
 	strim << end_line;
 }
 
