@@ -14,7 +14,7 @@ bool Post::check_size()
 		if (server_ref._locations[client_ref.best_location_index]._max_body_size || server_ref._body_max_size > size)
 			return false;
 	}
-	return  !server_ref._body_max_size > size;
+	return  !(server_ref._body_max_size > size);
 }
 
 int	Post::create_response()
