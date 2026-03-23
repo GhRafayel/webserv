@@ -276,10 +276,11 @@ void		Response::to_read_cgi()	{
 		client_ref.cgibuf.append(buf, buf + r);
 		return ;
 	}	
-	if (r < 0) return ;
-	
-	waitpid(client_ref.cgi_pid, &status, 0);
-	check_status_code(status, client_ref);
-	client_ref.cgi_run = false;
-	
+	else if (r == 0)
+	{
+		waitpid(client_ref.cgi_pid, &status, 0);
+		check_status_code(status, client_ref);
+		client_ref.cgi_run = false;
+		std::cout << "hello bllo " << std::endl;
+	}
 }
