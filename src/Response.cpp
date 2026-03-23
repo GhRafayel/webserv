@@ -96,6 +96,7 @@ void		Response::init() {
 void		Response::fun_200200(){
 	
 	body = static_page();
+	client_ref.best_match += ".html";
 	strim << "HTTP/1.1 200 OK" << end_line;
 	create_header();
 	strim << body << end_line;
@@ -131,7 +132,11 @@ void		Response::fun_206() {
 	strim << "Content-Range: bytes " << start << "-" << end_post << "/" << body.size() << end_line;
 	strim << "Content-Length: " << content_length << end_line;
 	strim << "Connection: keep-alive" << end_line;
-	strim <<  "Set-Cookie" + client_ref.request.find("Cookie")->second + "; Path=/; HttpOnly" <<  end_line << end_line;
+	std::map<std::string, std::string>::iterator it = client_ref.request.find("Cookie");
+	if (it != client_ref.request.end())
+		strim << "Set-Cookie: " + it->second + "; Path=/; HttpOnly" << end_line;
+	else
+		strim << "Set-Cookie: session_id=" << int_to_string(rand() + client_ref.timeOut) << "; Path=/; HttpOnly" << end_line;
 	strim << body.substr(start, content_length);
 	client_ref.outbuf = strim.str();
 }
@@ -194,8 +199,9 @@ void		Response::fun_500(){
 };
 
 void		Response::fun_504(){
-	strim << "HTTP/1.1 504 Gateway Timeout" << end_line;
+	strim << "HTTP/1.1 504 Gateway Timeout";
 	create_header();
+	std::cout << client_ref.outbuf << std::endl;
 	client_ref.outbuf = strim.str();
 }
 
@@ -266,11 +272,14 @@ void		Response::to_read_cgi()	{
 	
 	ssize_t r = read(client_ref.out_pipe[0], buf, sizeof(buf));
 	if (r > 0)
-		client_ref.cgibuf.append(buf, buf + r);
-	else if (r == 0)
 	{
-		waitpid(client_ref.cgi_pid, &status, 0);
-		check_status_code(status, client_ref);
-		client_ref.cgi_run = false;
-	}
+		client_ref.cgibuf.append(buf, buf + r);
+		return ;
+	}	
+	if (r < 0) return ;
+	
+	waitpid(client_ref.cgi_pid, &status, 0);
+	check_status_code(status, client_ref);
+	client_ref.cgi_run = false;
+	
 }

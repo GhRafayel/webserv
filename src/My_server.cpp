@@ -176,7 +176,7 @@ void	My_server::poll_in(int index)
 	Client	&c_ref = it->second;
 	Server	&s_ref = _servers.find(c_ref.server_conf_key)->second;
 	
-	if (to_read(c_ref) < 0)
+	if (to_read(c_ref) <= 0)
 	{
 		remove_connection(index);
 		return;

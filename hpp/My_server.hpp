@@ -1,7 +1,7 @@
 #ifndef MY_SERVER_HPP
 #define MY_SERVER_HPP
 
-#define TIMEOUT 15
+#define TIMEOUT 2
 
 #include "StringUtils.hpp"
 #include "ConfigPars.hpp"
